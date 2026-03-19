@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #050403;
+  --color-orange: #CC460C;
+  --color-dim: #C8C4BC;
+  --color-white: #F0EBE2;
+  
+  --font-yrsa: 'Yrsa', serif;
+  --font-syne: 'Syne', sans-serif;
+  --font-sans: 'DM Sans', sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-white);
+    font-family: var(--font-sans);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
+  }
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility glass {
+  background-color: rgb(255 255 255 / 0.05);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+@utility glass-heavy {
+  background-color: rgb(5 4 3 / 0.8);
+  backdrop-filter: blur(40px);
+  border-top: 1px solid rgb(255 255 255 / 0.05);
+}
+
+@utility magnetic {
+  cursor: pointer;
+}
+
+/* ─── OVERRIDE FRAMER MOTION / 21ST DEV SUR HTML NATIF ─── */
+
+/* HOVER ZOOM & GLASS SUR PORTFOLIO ORIGINAL */
+.work-item {
+  border-radius: 12px;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.work-item:hover {
+  transform: scale(0.98) !important;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(204, 70, 12, 0.15) !important;
+}
+
+.work-item .work-thumb-img {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.work-item:hover .work-thumb-img {
+  transform: scale(1.08) !important; /* L'effet "Hover Zoom" 5/5 adoré par le client */
+}
+
+/* GLASS EFFECT 3/5 sur l'OVERLAY DU PORTFOLIO */
+.work-item .work-overlay {
+  background: linear-gradient(to top, rgba(5,4,3, 0.9) 0%, rgba(5,4,3, 0) 100%) !important;
+  transition: background 0.6s, backdrop-filter 0.6s !important;
+  padding: 2rem !important;
+}
+
+.work-item:hover .work-overlay {
+  background: linear-gradient(to top, rgba(5,4,3, 0.98) 0%, rgba(5,4,3, 0.3) 100%) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* TEXT GLOW HOVER 3/5 sur les titres Yrsa */
+.work-item .work-title {
+  transition: text-shadow 0.4s ease !important;
+}
+.work-item:hover .work-title {
+  text-shadow: 0 0 15px rgba(240, 235, 226, 0.4) !important;
+}
+
+/* OVERRIDE : Rétablir le bouton "Voir le projet" du client (qui avait été bloqué par mes CSS initiaux accidentels) */
+.work-item .work-voir {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s !important;
+}
+.work-item:hover .work-voir {
+  transform: translateX(8px) !important;
+  background: rgba(255,255,255,0.1) !important;
+}
