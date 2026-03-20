@@ -47,6 +47,17 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "WebSite",
+      "@id": "https://nolanarc.com/#website",
+      "url": "https://nolanarc.com",
+      "name": "Nolan Arc",
+      "alternateName": "Nolan Arc Réalisateur",
+      "publisher": {
+        "@type": "Person",
+        "@id": "https://nolanarc.com/#nolan-arc"
+      }
+    },
+    {
       "@type": "Article",
       "@id": "https://nolanarc.com/demarche.html#article",
       "headline": "Ma démarche — Nolan Arc, Réalisateur",
@@ -1785,10 +1796,18 @@ if(cur){
   (function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
 }
 
-/* PROGRESS */
-const prog=document.getElementById('prog');
-if(prog) window.addEventListener('scroll',()=>{prog.style.width=(window.scrollY > 300); });
-  btn.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+/* PROGRESS & BACKTOP */
+(function(){
+  const prog=document.getElementById('prog');
+  const btn=document.getElementById('backTop');
+  window.addEventListener('scroll',()=>{
+    if(prog){
+      const h=document.documentElement, b=document.body, st='scrollTop', sh='scrollHeight';
+      const pct=(h[st]||b[st])/((h[sh]||b[sh])-h.clientHeight)*100;
+      prog.style.width=pct+'%';
+    }
+  });
+  if(btn) btn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 })();
 </script>
 <!-- HYBRID REACT MOUNTS (GOOGLE SAUCE) -->

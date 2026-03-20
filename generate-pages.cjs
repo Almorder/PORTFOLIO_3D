@@ -13,7 +13,7 @@ const reactInjection = `
 </body>
 `;
 
-['demarche.html', 'mentions-legales.html'].forEach(file => {
+['ma-demarche.html', 'mentions-legales.html'].forEach(file => {
   const filePath = path.join(__dirname, file);
   if (fs.existsSync(filePath)) {
     let content = fs.readFileSync(filePath, 'utf8');

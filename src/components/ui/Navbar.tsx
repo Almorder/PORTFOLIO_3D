@@ -73,7 +73,7 @@ export const Navbar = () => {
               {['Work', 'Services', 'Témoignages', 'Contact', 'Ma démarche'].map((item, i) => (
                 <motion.a 
                   key={item} 
-                  href={item === 'Ma démarche' ? '/demarche.html' : `#${item.toLowerCase()}`}
+                  href={item === 'Ma démarche' ? '/ma-demarche.html' : `#${item.toLowerCase()}`}
                   onClick={() => setMenuOpen(false)}
                   className="font-yrsa text-5xl italic text-white hover:text-orange transition-colors"
                   initial={{ opacity: 0, y: 30 }}

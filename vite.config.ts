@@ -9,9 +9,9 @@ export default defineConfig({
     rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html'),
-          demarche: resolve(__dirname, 'demarche.html'),
+          'ma-demarche': resolve(__dirname, 'ma-demarche.html'),
           mentions: resolve(__dirname, 'mentions-legales.html'),
-          e404: resolve(__dirname, '404.html'),
+          '404': resolve(__dirname, '404.html'),
           'film-de-marque': resolve(__dirname, 'projet/film-de-marque/index.html'),
           'mariage': resolve(__dirname, 'projet/mariage/index.html'),
           'direction-artistique': resolve(__dirname, 'projet/direction-artistique/index.html'),
