@@ -1,6 +1,7 @@
 import { CustomCursor } from './components/ui/CustomCursor';
 import { BackgroundScene } from './components/canvas/BackgroundScene';
 import { Navbar } from './components/ui/Navbar';
+import { SideNav } from './components/ui/SideNav';
 import { Hero } from './sections/Hero';
 import { Work } from './sections/Work';
 
@@ -18,6 +19,7 @@ function App() {
       {/* Main UI Layer (Glassmorphism & Layout) */}
       <div className="relative z-10">
         <Navbar />
+        <SideNav />
         
         <main>
           <Hero />

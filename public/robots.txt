@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://nolanarc.com/sitemap.xml
