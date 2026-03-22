@@ -18,11 +18,11 @@
 <meta name="keywords" content="réalisateur, films de marque, vidéaste mariage, direction artistique, film institutionnel, vidéaste événementiel, France">
 <meta name="author" content="Nolan Arc">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://nolanarc.com/demarche.html">
+<link rel="canonical" href="https://nolanarc.com/ma-demarche.html">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://nolanarc.com/demarche.html">
+<meta property="og:url" content="https://nolanarc.com/ma-demarche.html">
 <meta property="og:title" content="Nolan Arc, Réalisateur · Films de marque & Événementiel">
 <meta property="og:description" content="Je rends beau le réel. Films de marque, mariages, direction artistique. Seul, de la conception au rendu.">
 <meta property="og:image" content="https://nolanarc.com/og-cover.jpg">
@@ -47,19 +47,8 @@
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "WebSite",
-      "@id": "https://nolanarc.com/#website",
-      "url": "https://nolanarc.com",
-      "name": "Nolan Arc",
-      "alternateName": "Nolan Arc Réalisateur",
-      "publisher": {
-        "@type": "Person",
-        "@id": "https://nolanarc.com/#nolan-arc"
-      }
-    },
-    {
       "@type": "Article",
-      "@id": "https://nolanarc.com/demarche.html#article",
+      "@id": "https://nolanarc.com/ma-demarche.html#article",
       "headline": "Ma démarche — Nolan Arc, Réalisateur",
       "description": "La vision, les principes créatifs et le processus de travail de Nolan Arc, réalisateur spécialisé en films de marque et vidéaste mariage.",
       "author": {
@@ -73,8 +62,8 @@
         "name": "Nolan Arc",
         "url": "https://nolanarc.com"
       },
-      "url": "https://nolanarc.com/demarche.html",
-      "mainEntityOfPage": "https://nolanarc.com/demarche.html",
+      "url": "https://nolanarc.com/ma-demarche.html",
+      "mainEntityOfPage": "https://nolanarc.com/ma-demarche.html",
       "inLanguage": "fr",
       "about": [
         {
@@ -113,7 +102,7 @@
           "@type": "ListItem",
           "position": 2,
           "name": "Ma démarche",
-          "item": "https://nolanarc.com/demarche.html"
+          "item": "https://nolanarc.com/ma-demarche.html"
         }
       ]
     }
@@ -1475,7 +1464,7 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
     <li><a href="/#services">Services</a></li>
     <li><a href="/#about">À propos</a></li>
     <li><a href="/#contact">Contact</a></li>
-    <li><a href="ma-demarche.html" style="color:var(--orange);">Ma démarche</a></li>
+    <li><a href="/ma-demarche.html" style="color:var(--orange);">Ma démarche</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:1.5rem;">
     <a href="/#contact" class="nav-cta"><span>Démarrer un projet →</span></a>
@@ -1629,7 +1618,7 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
     <li><a href="/#services">Services</a></li>
     <li><a href="/#about">À propos</a></li>
     <li><a href="/#contact">Contact</a></li>
-    <li><a href="/demarche.html" style="color:var(--orange);">Ma démarche</a></li>
+    <li><a href="/ma-demarche.html" style="color:var(--orange);">Ma démarche</a></li>
     <li><a href="/mentions-legales.html">Mentions légales</a></li>
   </ul>
   <div class="foot-social">
@@ -1646,177 +1635,175 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
   <div class="foot-copy">© 2026 · Nolan Arc</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
+/* ── CONFIG & HELPERS */
+const MIN_LOAD = 1000;
+const startTime = Date.now();
+
 /* ── PAGE LOADER */
 const loader = document.getElementById('loader');
-const MIN_LOAD = 1200; // ms minimum display
-const startTime = Date.now();
-window.addEventListener('load', () => {
-  const elapsed = Date.now() - startTime;
-  const remaining = Math.max(0, MIN_LOAD - elapsed);
-  setTimeout(() => {
-    loader.classList.add('hide');
+if (loader) {
+  window.addEventListener('load', () => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, MIN_LOAD - elapsed);
     setTimeout(() => {
-      loader.style.display = 'none';
-    }, 700);
-  }, remaining);
-});
+      loader.classList.add('hide');
+      setTimeout(() => { loader.style.display = 'none'; }, 700);
+    }, remaining);
+  });
+}
 
 /* ── PAGE TRANSITIONS */
 const pageTransition = document.getElementById('pageTransition');
 function doTransition(href) {
-  document.body.classList.add('is-transitioning');
-  if(pageTransition) pageTransition.classList.add('entering');
-  setTimeout(() => { window.location.href = href; }, 600);
+  if (pageTransition) {
+    pageTransition.classList.add('leaving');
+    setTimeout(() => { window.location.href = href; }, 500);
+  } else {
+    window.location.href = href;
+  }
 }
-// Intercept internal links (project pages etc)
 document.addEventListener('click', e => {
   const a = e.target.closest('a');
   if (!a) return;
   const href = a.getAttribute('href');
-  if (!href || href.startsWith('#') || href.startsWith('mailto') ||
+  if (!href || href.startsWith('#') || href.startsWith('mailto') || href.startsWith('tel') || 
       href.startsWith('http') || a.target === '_blank') return;
   e.preventDefault();
   doTransition(href);
 });
-// On page show (back/forward), clear transition
 window.addEventListener('pageshow', () => {
-  if(pageTransition){ pageTransition.classList.remove('entering'); pageTransition.classList.remove('leaving'); }
-  document.body.classList.remove('is-transitioning');
+  if (pageTransition) pageTransition.classList.remove('leaving', 'entering');
 });
 
-/* ── COOKIE CONSENT */
-function acceptCookies() {
-  localStorage.setItem('cookie_consent', 'accepted');
-  document.getElementById('cookieBanner').classList.remove('show');
+/* ── CURSOR */
+const cur = document.getElementById('cur'), ring = document.getElementById('cur-ring');
+if (cur && ring) {
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.left = mx + 'px'; cur.style.top = my + 'px'; });
+  (function loop() { rx += (mx - rx) * 0.15; ry += (my - ry) * 0.15; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(loop); })();
 }
-function rejectCookies() {
-  localStorage.setItem('cookie_consent', 'rejected');
-  document.getElementById('cookieBanner').classList.remove('show');
-}
-(function initCookie() {
-  const consent = localStorage.getItem('cookie_consent');
-  if (!consent) {
-    setTimeout(() => document.getElementById('cookieBanner').classList.add('show'), 2000);
-  }
-})();
 
-/* ── FAQ ACCORDION */
-(function(){
-  function initFaq() {
-    document.querySelectorAll('#faqAccordion .faq-q, .faq-list .faq-q').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const item = this.closest('.faq-item');
-        const isOpen = item.classList.contains('open');
-        // Fermer tous
-        document.querySelectorAll('.faq-item.open').forEach(i => {
-          i.classList.remove('open');
-          const ic = i.querySelector('.faq-q-icon');
-          if(ic) ic.textContent = '+';
-        });
-        // Ouvrir si était fermé
-        if(!isOpen) {
-          item.classList.add('open');
-          const ic = this.querySelector('.faq-q-icon');
-          if(ic) ic.textContent = '×';
-        }
-      });
+/* ── REVEAL SYSTEM */
+const revealElements = document.querySelectorAll('.reveal');
+if (revealElements.length) {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('on'), parseInt(e.target.dataset.delay) || 0);
+      }
+    });
+  }, { threshold: 0.01 }); // lowered threshold for reliability
+
+  revealElements.forEach((el, i) => {
+    el.dataset.delay = (i % 4) * 80;
+    io.observe(el);
+  });
+
+  // Fallback: reveal all after 3 seconds if not already revealed
+  setTimeout(() => {
+    revealElements.forEach(el => el.classList.add('on'));
+  }, 3500);
+}
+
+/* ── PROGRESS BAR */
+const prog = document.getElementById('prog');
+if (prog) window.addEventListener('scroll', () => { prog.style.width = (window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100) + '%'; }, { passive: true });
+
+/* ── NAV BEHAVIOR */
+const nav = document.querySelector('nav');
+const hero = document.querySelector('.page-hero-demarche') || document.getElementById('hero');
+if (nav && hero) {
+  const navObserver = new IntersectionObserver(entries => {
+    nav.classList.toggle('scrolled', !entries[0].isIntersecting);
+  }, { threshold: 0.1 });
+  navObserver.observe(hero);
+}
+
+/* ── MOBILE MENU */
+const menuBtn = document.getElementById('menuBtn'), mobileNav = document.getElementById('mobileNav');
+if (menuBtn && mobileNav) {
+  function closeMobile() {
+    mobileNav.classList.remove('open');
+    const spans = menuBtn.querySelectorAll('span');
+    spans[0].style.transform = ''; spans[1].style.opacity = '1'; spans[2].style.transform = '';
+  }
+  menuBtn.addEventListener('click', () => {
+    const open = mobileNav.classList.toggle('open');
+    const spans = menuBtn.querySelectorAll('span');
+    if (open) {
+      spans[0].style.transform = 'translateY(6px) rotate(45deg)'; spans[1].style.opacity = '0'; spans[2].style.transform = 'translateY(-6px) rotate(-45deg)';
+    } else {
+      closeMobile();
+    }
+  });
+  window.addEventListener('resize', () => { if (window.innerWidth > 768) closeMobile(); });
+}
+
+/* ── TILT EFFECTS */
+document.querySelectorAll('.tilt-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `perspective(800px) rotateY(${x * 10}deg) rotateX(${-y * 8}deg) translateZ(5px)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(800px) rotateY(0) rotateX(0) translateZ(0)';
+  });
+});
+
+/* ── UNIVERSAL DRAG/CAROUSEL ── */
+(function() {
+  const CAROUSEL_SELECTORS = ['.services-grid', '.testi-track', '.manifeste-grid', '.nom-senses', '.about-details', '.process-steps', '.valeurs-layout'];
+  function initDrag(el) {
+    if (!el) return;
+    let isDown = false, startX, scrollLeft;
+    el.addEventListener('mousedown', e => { isDown = true; el.style.cursor = 'grabbing'; startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; });
+    el.addEventListener('mouseleave', () => { isDown = false; el.style.cursor = ''; });
+    el.addEventListener('mouseup', () => { isDown = false; el.style.cursor = ''; });
+    el.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      e.preventDefault();
+      const walk = (e.pageX - el.offsetLeft - startX) * 1.5;
+      el.scrollLeft = scrollLeft - walk;
     });
   }
-  // Init au chargement
-  if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFaq);
-  } else {
-    initFaq();
-  }
+  CAROUSEL_SELECTORS.forEach(sel => document.querySelectorAll(sel).forEach(initDrag));
 })();
 
-/* ── EASTER EGG, Konami code → ellipse explosion */
+/* ── COOKIE CONSENT */
 (function() {
-  const seq = [38,38,40,40,37,39,37,39,66,65];
-  let idx = 0;
-  document.addEventListener('keydown', e => {
-    if (e.keyCode === seq[idx]) {
-      idx++;
-      if (idx === seq.length) {
-        idx = 0;
-        triggerEasterEgg();
-      }
-    } else { idx = 0; }
-  });
-  function triggerEasterEgg() {
-    const msg = document.createElement('div');
-    msg.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
-      text-align:center;pointer-events:none;animation:eggAnim 3s ease forwards;`;
-    msg.innerHTML = `<div style="font-family:'Yrsa',serif;font-size:clamp(2rem,6vw,4rem);font-style:italic;color:#f0ebe2;line-height:1.2;">
-      Tu as trouvé l'arc.<br><em style="color:#cc460c;">Bien joué.</em></div>`;
-    const style = document.createElement('style');
-    style.textContent = `@keyframes eggAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.8);}20%{opacity:1;transform:translate(-50%,-50%) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1);}}`;
-    document.head.appendChild(style);
-    document.body.appendChild(msg);
-    // Spawn orange particles
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('div');
-      const angle = (i / 18) * Math.PI * 2;
-      const dist = 120 + Math.random() * 80;
-      p.style.cssText = `position:fixed;top:50%;left:50%;width:4px;height:4px;border-radius:50%;
-        background:#cc460c;z-index:9998;pointer-events:none;
-        animation:particle${i} 1.5s ease forwards;`;
-      const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist;
-      style.textContent += `@keyframes particle${i}{0%{transform:translate(-50%,-50%);opacity:1;}100%{transform:translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px));opacity:0;}}`;
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 1600);
-    }
-    setTimeout(() => { msg.remove(); }, 3100);
+  const banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+  const accept = document.getElementById('cookieAccept') || document.getElementById('cookieOk');
+  const refuse = document.getElementById('cookieRefuse') || document.getElementById('cookieDecline');
+  if (localStorage.getItem('na_cookie_consent')) return;
+  setTimeout(() => banner.classList.add('show'), 2500);
+  function dismiss(val) {
+    localStorage.setItem('na_cookie_consent', val);
+    banner.classList.remove('show');
+    setTimeout(() => banner.remove(), 700);
   }
+  if (accept) accept.addEventListener('click', () => dismiss('accepted'));
+  if (refuse) refuse.addEventListener('click', () => dismiss('refused'));
 })();
 
+/* ── BACK TO TOP */
+(function() {
+  const btn = document.getElementById('backTop');
+  if (!btn) return;
+  window.addEventListener('scroll', () => { btn.classList.toggle('show', window.scrollY > 600); }, { passive: true });
+  btn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+})();
 
-
-/* ── PAGE TRANSITIONS, disabled in preview, enable on real domain */
-// Uncomment below when deployed to nolanarc.com
-/*
-const pt = document.getElementById('page-transition');
-document.querySelectorAll('a[href]:not([href^="#"]):not([href^="mailto"]):not([href^="http"]):not([href^="tel"])').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const href = link.getAttribute('href');
-    pt.classList.add('entering');
-    setTimeout(()=>{ window.location.href = href; }, 480);
+/* ── FAQ */
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
   });
 });
-*/
-
-/* CURSOR */
-const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
-if(cur){
-  let mx=0,my=0,rx=0,ry=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-  (function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
-}
-
-/* PROGRESS & BACKTOP */
-(function(){
-  const prog=document.getElementById('prog');
-  const btn=document.getElementById('backTop');
-  window.addEventListener('scroll',()=>{
-    if(prog){
-      const h=document.documentElement, b=document.body, st='scrollTop', sh='scrollHeight';
-      const pct=(h[st]||b[st])/((h[sh]||b[sh])-h.clientHeight)*100;
-      prog.style.width=pct+'%';
-    }
-  });
-  if(btn) btn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-})();
 </script>
-<!-- HYBRID REACT MOUNTS (GOOGLE SAUCE) -->
-<style>
-  html, body { background-color: transparent !important; }
-  #pageTransition { pointer-events: none !important; background: transparent !important; }
-  .arc-bg { display: none !important; opacity: 0; }
-</style>
-<div id="react-3d-root"></div>
-<script type="module" src="/src/main.tsx"></script>
-</body>
-</html>
