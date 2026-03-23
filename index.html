@@ -122,7 +122,7 @@
       "@type": "LocalBusiness",
       "@id": "https://nolanarc.com/#business",
       "name": "Nolan Arc",
-      "description": "Réalisateur freelance — films de marque, mariages, direction artistique. Basé en France, disponible partout.",
+      "description": "Réalisateur freelance films de marque, mariages, direction artistique. Basé en France, disponible partout.",
       "url": "https://nolanarc.com",
       "email": "nolanribcontact@gmail.com",
       "priceRange": "À partir de 1500€",
@@ -470,7 +470,7 @@
       "@type": "WebPage",
       "@id": "https://nolanarc.com/#webpage",
       "url": "https://nolanarc.com",
-      "name": "Nolan Arc — Réalisateur, Films de marque & Événementiel",
+      "name": "Nolan Arc Réalisateur, Films de marque & Événementiel",
       "speakable": {
         "@type": "SpeakableSpecification",
         "cssSelector": [
@@ -545,10 +545,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @media(hover:hover){
   #cur{position:fixed;width:7px;height:7px;background:var(--orange);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .15s,background .2s,border-radius .2s,width .2s,height .2s;}
   #cur-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(204,70,12,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .1s ease,top .1s ease,width .3s,height .3s,border-color .3s;}
-  /* Curseur sur work items — â–¶ */
+  /* Curseur sur work items â–¶ */
   body:has(.work-item:hover) #cur{width:0;height:0;background:transparent;border-radius:0;border-left:10px solid var(--white);border-top:6px solid transparent;border-bottom:6px solid transparent;}
   body:has(.work-item:hover) #cur-ring{width:56px;height:56px;border-color:rgba(204,70,12,.7);}
-  /* Curseur sur CTAs — agrandi */
+  /* Curseur sur CTAs agrandi */
   body:has(.section-cta-btn:hover) #cur-ring,body:has(.hero-cta-btn:hover) #cur-ring{width:50px;height:50px;border-color:rgba(204,70,12,.8);}
   body:has(.tilt-card:hover) #cur-ring{width:50px;height:50px;border-color:rgba(204,70,12,.5);}
 }
@@ -707,7 +707,7 @@ section{padding:7rem 6vw;position:relative;}
 /* â”€â”€ PROCESS 5 ÉTAPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #process{padding:5rem 6vw;position:relative;}
 .process-eyebrow{font-family:var(--head);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:2.5rem;}
-/* Ligne segmentée — 5 segments, gaps entre chaque (desktop et mobile) */
+/* Ligne segmentée 5 segments, gaps entre chaque (desktop et mobile) */
 .process-hline{
   position:absolute;
   left:6vw; right:6vw;
@@ -729,7 +729,7 @@ section{padding:7rem 6vw;position:relative;}
 .ps-num{font-family:var(--title);font-size:1.6rem;font-style:italic;color:var(--orange);line-height:1;margin-bottom:1.2rem;background:var(--bg);padding:0 .8rem;}
 .ps-label{font-family:var(--head);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--white);margin-bottom:.5rem;}
 .ps-sub{font-family:var(--body);font-size:.85rem;color:rgba(200,196,188,.5);line-height:1.6;max-width:110px;}
-/* Mobile — carrousel swipe */
+/* Mobile carrousel swipe */
 @media(max-width:768px){
   #process{padding:3.5rem 0;}
   .process-eyebrow{padding:0 5vw;margin-bottom:2rem;}
@@ -795,7 +795,7 @@ section{padding:7rem 6vw;position:relative;}
 .hero-typewriter .typewriter{font-family:var(--title) !important;font-size:clamp(1.1rem,1.8vw,1.5rem) !important;font-style:italic !important;color:var(--orange) !important;display:inline !important;min-height:1.4em;line-height:1.4;}
 
 .hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:2rem;min-width:320px;padding-right:2vw;}
-/* Typewriter — ligne dédiée, visible */
+/* Typewriter ligne dédiée, visible */
 
 .hero-stats{display:flex;gap:3rem;}
 .hstat{text-align:right;}
@@ -1078,7 +1078,7 @@ footer{background:var(--bg);padding:2.5rem 6vw;border-top:1px solid var(--faint)
 /* â”€â”€â”€ PAGE LOADER â”€â”€â”€ */
 #loader{position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .7s ease,transform .7s ease;}
 #loader.hide{opacity:0;transform:translateY(-8px);pointer-events:none;}
-/* Plan fixe — letterbox cinéma */
+/* Plan fixe letterbox cinéma */
 #loader-letterbox-top,#loader-letterbox-bot{position:absolute;left:0;right:0;height:10vh;background:#000;z-index:2;transition:height .9s cubic-bezier(.16,1,.3,1);}
 #loader-letterbox-top{top:0;}
 #loader-letterbox-bot{bottom:0;}
@@ -1144,7 +1144,7 @@ body.is-transitioning{overflow:hidden;}
 @keyframes arcRotate{from{transform:translateY(-50%) rotate(0deg);}to{transform:translateY(-50%) rotate(360deg);}}
 
 /* â”€â”€â”€ MICRO ANIMATIONS â”€â”€â”€ */
-/* Stats — flicker on load */
+/* Stats flicker on load */
 .hstat-n{animation:statAppear .6s both;}
 .hstat:nth-child(1) .hstat-n{animation-delay:1.2s;}
 .hstat:nth-child(2) .hstat-n{animation-delay:1.4s;}
@@ -1154,30 +1154,30 @@ body.is-transitioning{overflow:hidden;}
 
 @keyframes statAppear{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-/* Nav logo — subtle pulse on hover */
+/* Nav logo subtle pulse on hover */
 .nav-logo{transition:opacity .3s;}
 .nav-logo:hover{opacity:.75;}
 
-/* Service cards — subtle float on hover */
+/* Service cards subtle float on hover */
 .service-card{transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s;}
 .service-card:hover{transform:translateY(-3px);}
 
-/* Process steps — number glow on hover */
+/* Process steps number glow on hover */
 .process-step:hover .ps-n{color:rgba(204,70,12,.3);transition:color .4s;}
 
-/* Valeur items — icon pulse */
+/* Valeur items icon pulse */
 .valeur-item:hover .vi-icon{animation:iconPulse .5s ease;}
 @keyframes iconPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
 
-/* Marquee — orange on hover item */
+/* Marquee orange on hover item */
 .marquee-item{transition:color .3s;}
 .marquee-wrap:hover .marquee-item:hover{color:var(--white);}
 
-/* Work items — subtle lift */
+/* Work items subtle lift */
 .work-item{transition:transform .5s cubic-bezier(.16,1,.3,1);}
 .work-item:hover{transform:scale(1.01);}
 
-/* Eyebrow line — grow on section enter */
+/* Eyebrow line grow on section enter */
 .reveal.on .eyebrow::before{animation:lineGrow .6s cubic-bezier(.16,1,.3,1) both;}
 @keyframes lineGrow{from{width:0;}to{width:22px;}}
 
@@ -1490,7 +1490,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   .hero-claim{max-width:100%;font-size:.95rem;}
   .hero-title{font-size:clamp(4rem,18vw,7rem);}
 
-  /* Services — horizontal scroll carousel on mobile */
+  /* Services horizontal scroll carousel on mobile */
   .services-grid{
     display:flex;
     flex-direction:row;
@@ -1526,7 +1526,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   .manifeste-declaration{padding:2.5rem 2rem;}
   .manifeste-declaration::before{font-size:6rem;left:1.5rem;}
 
-  /* About — géré par le bloc consolidé en bas du CSS */
+  /* About géré par le bloc consolidé en bas du CSS */
 
   /* Processus (ma-demarche) */
   .process-steps{grid-template-columns:1fr 1fr;}
@@ -1567,7 +1567,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   .testi-card{flex:0 0 85vw;width:85vw;padding:2rem 1.5rem;}
   .testi-slider{overflow:hidden;}
   
-  /* â”€ SERVICE CARDS mobile — géré par le carousel CSS ci-dessus */
+  /* â”€ SERVICE CARDS mobile géré par le carousel CSS ci-dessus */
 
   /* â”€ PREVENT OVERFLOW */
   .hero-title{word-break:break-word;}
@@ -1607,7 +1607,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   *{box-sizing:border-box;}
   img,video,iframe,svg{max-width:100%;}
 
-  /* Process — horizontal scroll on mobile */
+  /* Process horizontal scroll on mobile */
   .process-steps{
     display:flex;
     flex-direction:row;
@@ -1629,7 +1629,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   }
   .process-steps .process-step:last-child{margin-right:0;}
 
-  /* Values — horizontal scroll */
+  /* Values horizontal scroll */
   .valeurs-layout{
     display:flex;
     flex-direction:row;
@@ -1658,7 +1658,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   }
   .work-filters::-webkit-scrollbar,.work-mood-filters::-webkit-scrollbar{display:none;}
 
-  /* Clients grid — 2 per row, clean */
+  /* Clients grid 2 per row, clean */
   .clients-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -1696,7 +1696,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
   /* Section padding reduce */
   section{padding:4rem 5vw;}
 
-  /* Work grid — single column with aspect ratio */
+  /* Work grid single column with aspect ratio */
   .work-item{aspect-ratio:16/9;}
 
 }
@@ -1847,7 +1847,7 @@ nav.scrolled{background:rgba(8,7,6,.85);backdrop-filter:blur(12px);border-bottom
 .asl-dot.active{background:var(--orange);transform:scale(1.3);}
 
 
-/* â•â• ABOUT — MOBILE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* â•â• ABOUT MOBILE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media(max-width:768px){
 
   /* Layout : colonne pleine largeur */
@@ -2092,7 +2092,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       title="Showreel Nolan Arc"
       frameborder="0">
     </iframe>
-    <!-- Bouton play showreel — se retire après activation -->
+    <!-- Bouton play showreel se retire après activation -->
     <button class="hero-reel-play" id="heroReelPlay" aria-label="Lancer le showreel">
       <span class="hrp-circle">
         <span class="hrp-arrow"></span>
@@ -2208,7 +2208,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   </div>
 
   <!-- 
-    â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+    â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     â•‘  PORTFOLIO, COMMENT AJOUTER TES VIDÉOS      â•‘
     â•‘  Pour chaque work-item, remplace :           â•‘
     â•‘  data-video="TON_ID_YT_OU_VIMEO"            â•‘
@@ -2482,7 +2482,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Matthieu</strong></div>
             <div class="testi-role">Ouilove · Direction artistique</div>
           </div>
-          <div class="testi-source">ðŸ“± Instagram</div>
+          <div class="testi-source">📱 Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2506,7 +2506,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Anthony</strong></div>
             <div class="testi-role">Cosmopol ISC Paris · Teaser d'association</div>
           </div>
-          <div class="testi-source">ðŸ“± Instagram</div>
+          <div class="testi-source">📱 Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2518,7 +2518,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Lola</strong></div>
             <div class="testi-role">Modèle · Création de contenu bijoux</div>
           </div>
-          <div class="testi-source">ðŸ“± Instagram</div>
+          <div class="testi-source">📱 Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2530,7 +2530,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Victoria</strong></div>
             <div class="testi-role">Modèle · Création de contenu bijoux</div>
           </div>
-          <div class="testi-source">ðŸ“± Instagram</div>
+          <div class="testi-source">📱 Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2554,7 +2554,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Reka Force Security</strong></div>
             <div class="testi-role">Direction artistique</div>
           </div>
-          <div class="testi-source">ðŸ“± Instagram</div>
+          <div class="testi-source">📱 Instagram</div>
         </div>
       </div>
 
@@ -2581,7 +2581,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <p class="s-body reveal">Chaque projet part de la même question : qu'est-ce que le spectateur doit gagner en regardant ça ?</p>
   <div class="services-grid">
     <div class="service-card tilt-card reveal">
-      <div class="sc-icon">â—ˆ</div>
+      <div class="sc-icon">◈</div>
       <div class="sc-title">Films de marque</div>
       <div class="sc-desc">Pour les marques qui se soucient de leur message, de leur image et de la cohérence qu'elles renvoient. Je les accompagne pour affiner leur vision et construire une stratégie qui durera sur le long terme.</div>
       <ul class="sc-list">
@@ -2590,7 +2590,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       </ul>
     </div>
     <div class="service-card tilt-card reveal">
-      <div class="sc-icon">â—‡</div>
+      <div class="sc-icon">◇</div>
       <div class="sc-title">Événementiel & Moments de vie</div>
       <div class="sc-desc">Ce qui ne se revit pas, je le capture. Les demandes en mariage, les gens qui se marient pour la vie. Je me place dans leur rythme pour montrer ce qui est réfléchi et symbolique.</div>
       <ul class="sc-list">
@@ -2599,12 +2599,12 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       </ul>
       <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--faint);">
         <span style="font-family:var(--title);font-size:1.4rem;font-style:italic;color:var(--orange);">À partir de 1 500 €</span>
-        <span style="display:block;margin-top:.25rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);font-style:italic;">Pour les films de mariage uniquement — Les autres formats sont sur devis.</span>
+        <span style="display:block;margin-top:.25rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);font-style:italic;">Pour les films de mariage uniquement Les autres formats sont sur devis.</span>
         <a href="#faq" style="display:block;margin-top:.5rem;font-family:var(--head);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .3s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--muted)'">Voir les détails → FAQ</a>
       </div>
     </div>
     <div class="service-card tilt-card reveal">
-      <div class="sc-icon">â—‹</div>
+      <div class="sc-icon">○</div>
       <div class="sc-title">Direction Artistique</div>
       <div class="sc-desc">Définir une cohérence visuelle globale : identité, ton, univers. Pour que chaque production s'inscrive dans quelque chose de plus grand que le projet lui-même.</div>
       <ul class="sc-list">
@@ -2683,7 +2683,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <div class="about-layout">
     <div class="reveal">
       <!-- 
-        SLIDESHOW PORTRAIT — 3 photos qui s'alternent automatiquement
+        SLIDESHOW PORTRAIT 3 photos qui s'alternent automatiquement
         Pour activer : remplace data-src="ta-photo-1.jpg" par le chemin de ta photo
         Format recommandé : portrait 3:4, min 800x1000px
       -->
@@ -2759,7 +2759,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
         <span class="rdv-arrow">→</span>
       </a>
       <div class="rdv-sub">15/30 min · Sans engagement · On part de là</div>
-      <div style="font-family:var(--head);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-top:1.5rem;">✦ Mariages 2026/2027 — places limitées</div>
+      <div style="font-family:var(--head);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-top:1.5rem;">✦ Mariages 2026/2027 places limitées</div>
     </div>
   </div>
 
@@ -3424,8 +3424,8 @@ function setView(mode, btn) {
   document.addEventListener('keydown', e => { if(e.key === 'Escape') ee.classList.remove('show'); });
 })();
 
-/* â”€â”€ COUNTER — valeurs affichées directement en HTML */
-/* â”€â”€ TYPEWRITER — script inline dans le HTML */
+/* â”€â”€ COUNTER valeurs affichées directement en HTML */
+/* â”€â”€ TYPEWRITER script inline dans le HTML */
 /* â”€â”€ NAV SCROLL STATE */
 (function(){
   const nav = document.querySelector('nav');
@@ -3455,7 +3455,7 @@ function setView(mode, btn) {
   });
 })();
 
-/* â”€â”€ TYPEWRITER — voir script inline dans le HTML */
+/* â”€â”€ TYPEWRITER voir script inline dans le HTML */
 
 
 /* â”€â”€ PRESELECT FORM */
@@ -3582,7 +3582,7 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
       el.scrollLeft = scrollLeft - walk;
     });
 
-    // Touch — native scroll-snap handles this, but add momentum
+    // Touch native scroll-snap handles this, but add momentum
     let touchStartX = 0, touchScrollLeft = 0;
     el.addEventListener('touchstart', e => {
       touchStartX = e.touches[0].pageX;
