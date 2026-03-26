@@ -61,7 +61,7 @@ export const CinematicArc = () => {
         {/* Moins de particules pour alléger le calcul de transparence */}
         <Sparkles count={20} scale={15} size={1} speed={0.1} opacity={0.15} color="#F0EBE2" />
         
-        <EffectComposer disableNormalPass>
+        <EffectComposer enableNormalPass={false}>
           <Bloom luminanceThreshold={0.5} intensity={1} />
           <Noise opacity={0.2} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />

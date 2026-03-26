@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 .env
 .env.*
+
+# Claude Code — données internes
+.claude/
+# Fichiers diff git temporaires
+carat.txt
+carat8.txt
+# Notes dev personnelles
+tasks/
