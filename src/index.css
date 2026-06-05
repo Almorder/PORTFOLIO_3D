@@ -1,0 +1,673 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #050403;
+  --color-orange: #CC460C;
+  --color-dim: #C8C4BC;
+  --color-white: #F0EBE2;
+  
+  --font-yrsa: 'Yrsa', serif;
+  --font-syne: 'Syne', sans-serif;
+  --font-sans: 'DM Sans', sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-white);
+    font-family: var(--font-sans);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
+  }
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility glass {
+  background-color: rgba(5, 4, 3, 0.65);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@utility glass-heavy {
+  background-color: rgba(5, 4, 3, 0.85);
+  backdrop-filter: blur(40px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@utility magnetic {
+  cursor: pointer;
+}
+
+/* ────────────────────────────────────────────────────────
+   1. CHARTE DESIGN PREMIUM (QUIET LUXURY & CINEMA)
+   ──────────────────────────────────────────────────────── */
+
+/* Overrides de bordures fines globales */
+.thin, .marquee-wrap, .wf-btn, .work-filters, .work-grid, .service-card, .testi-card, .nom-senses, .nom-sense, .contact-dual, .contact-info, .foot-links a, footer, .contact-form-wrap, .cf-field, .cf-input, .cf-radio span, .sim-card {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Scroll padding pour la navbar */
+html {
+  scroll-padding-top: 100px;
+}
+
+/* Titres H1 et H2 typographie cinéma */
+.hero-title {
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.s-title {
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Effets de survol raffinés sur les liens de navigation */
+.nav-links a, .foot-links a {
+  position: relative;
+  transition: color 0.4s ease;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-orange);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-links a:hover::after, .nav-links a.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Hover Zoom & Glass sur la grille Portfolio */
+.work-item {
+  border-radius: 12px;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.work-item:hover {
+  transform: scale(0.985) !important;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(204, 70, 12, 0.08) !important;
+}
+
+.work-item .work-thumb-img {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.work-item:hover .work-thumb-img {
+  transform: scale(1.06) !important;
+}
+
+.work-item .work-overlay {
+  background: linear-gradient(to top, rgba(5,4,3, 0.95) 0%, rgba(5,4,3, 0.4) 60%, rgba(5,4,3, 0) 100%) !important;
+  transition: background 0.6s, backdrop-filter 0.6s !important;
+  padding: 2.2rem !important;
+}
+
+.work-item:hover .work-overlay {
+  background: linear-gradient(to top, rgba(5,4,3, 0.98) 0%, rgba(5,4,3, 0.6) 70%, rgba(5,4,3, 0.2) 100%) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.work-item .work-title {
+  font-family: var(--font-yrsa);
+  font-size: 1.6rem !important;
+  font-style: italic;
+  font-weight: 300;
+  transition: text-shadow 0.4s ease !important;
+}
+
+.work-item:hover .work-title {
+  text-shadow: 0 0 15px rgba(240, 235, 226, 0.3) !important;
+}
+
+.work-item .work-voir {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s !important;
+}
+
+.work-item:hover .work-voir {
+  transform: translateX(4px) !important;
+  background: rgba(255,255,255,0.15) !important;
+}
+
+/* ────────────────────────────────────────────────────────
+   2. RECHERCHE & FILTRES DU PORTFOLIO
+   ──────────────────────────────────────────────────────── */
+
+.portfolio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (min-width: 768px) {
+  .portfolio-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Barre de recherche minimaliste */
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: var(--color-white);
+  padding: 0.8rem 1rem 0.8rem 2.8rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--color-orange);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-dim);
+  opacity: 0.5;
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+}
+
+/* ────────────────────────────────────────────────────────
+   3. MODE CINÉMA (LIGHTBOX PLEIN ÉCRAN)
+   ──────────────────────────────────────────────────────── */
+
+.cinema-lightbox {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(2, 2, 2, 0.98);
+  backdrop-filter: blur(12px);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinema-lightbox.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cinema-close {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  background: none;
+  border: none;
+  color: var(--color-white);
+  font-family: var(--font-syne);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s, transform 0.3s;
+  padding: 0.5rem;
+}
+
+.cinema-close:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.cinema-content-wrapper {
+  position: relative;
+  width: min(1200px, 90vw);
+  aspect-ratio: 16/9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.9);
+  background-color: #020202;
+}
+
+.cinema-iframe-container {
+  width: 100%;
+  height: 100%;
+}
+
+.cinema-iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Navigation prev/next en cinéma */
+.cinema-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(5, 4, 3, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--color-white);
+  font-size: 1.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+  z-index: 10002;
+}
+
+.cinema-nav:hover {
+  background: rgba(204, 70, 12, 0.8);
+  border-color: var(--color-orange);
+}
+
+.cinema-nav.prev {
+  left: -70px;
+}
+
+.cinema-nav.next {
+  right: -70px;
+}
+
+@media (max-width: 1360px) {
+  .cinema-nav.prev { left: 1rem; }
+  .cinema-nav.next { right: 1rem; }
+}
+
+/* Informations bas de cinéma */
+.cinema-info {
+  margin-top: 2rem;
+  text-align: center;
+  max-width: 600px;
+}
+
+.cinema-title {
+  font-family: var(--font-yrsa);
+  font-size: 1.8rem;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+  color: var(--color-white);
+}
+
+.cinema-tag {
+  font-family: var(--font-syne);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-orange);
+}
+
+/* Affiche d'attente pour vidéos en placeholder */
+.cinema-placeholder-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #181512 0%, #050403 100%);
+  color: var(--color-white);
+  padding: 2rem;
+  text-align: center;
+  z-index: 10;
+}
+
+.cinema-placeholder-icon {
+  font-size: 2.5rem;
+  color: var(--color-orange);
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.cinema-placeholder-title {
+  font-family: var(--font-yrsa);
+  font-size: 2.2rem;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.cinema-placeholder-text {
+  font-size: 0.95rem;
+  color: var(--color-dim);
+  max-width: 420px;
+  line-height: 1.7;
+}
+
+.cinema-placeholder-btn {
+  margin-top: 2rem;
+  padding: 0.8rem 2rem;
+  background: var(--color-orange);
+  font-family: var(--font-syne);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #050403;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.cinema-placeholder-btn:hover {
+  transform: translateY(-2px);
+  background: #e04e0e;
+}
+
+/* ────────────────────────────────────────────────────────
+   4. PALETTE DE COMMANDES (⌘K / CTRL+K)
+   ──────────────────────────────────────────────────────── */
+
+.cmd-palette {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(2, 2, 2, 0.8);
+  backdrop-filter: blur(16px);
+  z-index: 11000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cmd-palette.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cmd-box {
+  width: min(640px, 94vw);
+  background-color: rgba(12, 10, 8, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(204, 70, 12, 0.05);
+  overflow: hidden;
+  transform: translateY(-20px) scale(0.98);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cmd-palette.active .cmd-box {
+  transform: none;
+}
+
+.cmd-search-wrap {
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cmd-search-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--color-white);
+  padding: 1.2rem 1.5rem 1.2rem 3.5rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  outline: none;
+}
+
+.cmd-search-icon {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-dim);
+  opacity: 0.5;
+  width: 18px;
+  height: 18px;
+}
+
+.cmd-kbd-hint {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-syne);
+  font-size: 0.6rem;
+  color: var(--color-dim);
+  opacity: 0.3;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cmd-results {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  scrollbar-width: none;
+}
+
+.cmd-results::-webkit-scrollbar {
+  display: none;
+}
+
+.cmd-group-title {
+  font-family: var(--font-syne);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-orange);
+  opacity: 0.6;
+  padding: 0.8rem 1rem 0.4rem;
+}
+
+.cmd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  color: var(--color-dim);
+}
+
+.cmd-item:hover, .cmd-item.selected {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-white);
+}
+
+.cmd-item:hover .cmd-item-icon, .cmd-item.selected .cmd-item-icon {
+  color: var(--color-orange);
+  opacity: 1;
+}
+
+.cmd-item-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cmd-item-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+  transition: color 0.2s, opacity 0.2s;
+}
+
+.cmd-item-name {
+  font-size: 0.9rem;
+}
+
+.cmd-item-badge {
+  font-family: var(--font-syne);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-orange);
+  background: rgba(204, 70, 12, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(204, 70, 12, 0.15);
+}
+
+.cmd-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  background: rgba(5, 4, 3, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
+.cmd-footer-keys {
+  display: flex;
+  gap: 1rem;
+}
+
+.cmd-key {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ────────────────────────────────────────────────────────
+   5. QUALIFICATION FORMULAIRE DE CONTACT
+   ──────────────────────────────────────────────────────── */
+
+.cf-radios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.cf-radio span {
+  display: block;
+  text-align: center;
+  border-radius: 4px;
+}
+
+/* Bouton Calendly moderne */
+.rdv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: var(--color-white);
+  text-decoration: none;
+  font-family: var(--font-syne);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: all 0.4s ease;
+}
+
+.rdv-btn:hover {
+  background: rgba(204, 70, 12, 0.06);
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  transform: translateY(-1px);
+}
+
+/* ────────────────────────────────────────────────────────
+   6. RESPONSIVE MOBILE AMÉLIORÉ
+   ──────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  nav {
+    padding: 1.2rem 5vw;
+  }
+  
+  .hero-title {
+    font-size: clamp(3rem, 11vw, 5.5rem) !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .hero-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  
+  .hero-right {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .hero-stats {
+    justify-content: space-between;
+    width: 100%;
+    gap: 1rem;
+  }
+  
+  .hstat-n {
+    font-size: 1.8rem;
+  }
+  
+  .hero-ctas {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .hero-cta-btn {
+    justify-content: center;
+    padding: 1rem 2rem;
+  }
+  
+  .hero-cta-link {
+    text-align: center;
+    padding: 0.8rem;
+  }
+  
+  /* Portfolio Mobile Thumb */
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .work-item.wide {
+    grid-column: span 1;
+  }
+  
+  /* Touch zone controls for mobile */
+  .wf-btn {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.7rem;
+  }
+  
+  .cf-field {
+    padding: 1.5rem;
+  }
+}
