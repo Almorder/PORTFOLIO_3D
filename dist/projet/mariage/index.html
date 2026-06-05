@@ -1642,6 +1642,38 @@ body{opacity:1;}
   }
 }
 
+/* Position Logo to the Right on Project Pages to prevent Back Button overlap */
+@media(min-width: 769px) {
+  nav {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 3rem !important;
+  }
+  .nav-logo {
+    order: 3;
+    margin-right: 0 !important;
+  }
+  .nav-links {
+    order: 2;
+  }
+  nav > div {
+    order: 1;
+  }
+}
+@media(max-width: 768px) {
+  nav {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 1.5rem !important;
+  }
+  .nav-logo {
+    order: 2;
+  }
+  nav > div {
+    order: 1;
+  }
+}
+
 /* ──/NEW PROJECT PAGES UI ELEMENTS ── */
 </style>
 <!-- Styles spécifiques page démarche -->
@@ -1661,8 +1693,8 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
   <script type="module" crossorigin src="/assets/vendor-drei-Dk7RqLf6.js"></script>
   <script type="module" crossorigin src="/assets/vendor-postprocessing-DEPx3u4S.js"></script>
   <script type="module" crossorigin src="/assets/vendor-react-16FoJUBH.js"></script>
-  <script type="module" crossorigin src="/assets/main-Cf3qtamm.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-DipVuPB5.css">
+  <script type="module" crossorigin src="/assets/main-BcbniFca.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-CH2hyt5K.css">
 </head>
 <body>
   <!-- BACK TO PORTFOLIO BUTTON -->

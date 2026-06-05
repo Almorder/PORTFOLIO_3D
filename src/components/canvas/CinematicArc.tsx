@@ -45,10 +45,12 @@ export const CinematicArc = () => {
           powerPreference: "high-performance", 
           antialias: false,
           stencil: false,
-          depth: true
+          depth: true,
+          alpha: false
         }}
       >
-        <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
+        <color attach="background" args={['#020202']} />
+        <PerformanceMonitor onDecline={() => setDpr(0.75)} onIncline={() => setDpr(1.25)} />
         <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
         
         <fog attach="fog" args={['#020202', 2, 12]} />
