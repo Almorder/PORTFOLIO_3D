@@ -3,35 +3,7 @@
 <head>
 <meta charset="UTF-8">
   <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EBFDQNBW60">
-/* ── SHARE BUTTON COPY */
-
-/* ── SHARE BUTTON COPY */
-(function() {
-  const btn = document.getElementById('shareCopy');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => {
-          const orig = btn.innerHTML;
-          btn.innerHTML = '✓ Copié !';
-          btn.style.borderColor = 'var(--orange)';
-          btn.style.color = 'var(--orange)';
-          setTimeout(() => {
-            btn.innerHTML = orig;
-            btn.style.borderColor = '';
-            btn.style.color = '';
-          }, 2000);
-        })
-        .catch(err => {
-          console.error('Could not copy text: ', err);
-        });
-    });
-  }
-})();
-
-/* ──/SHARE BUTTON COPY */
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EBFDQNBW60"></script>
   <script>
     window.dataLayer=window.dataLayer||[];
     function gtag(){dataLayer.push(arguments);}
@@ -2033,5 +2005,35 @@ if(cur){
   .arc-bg { display: none !important; opacity: 0; }
 </style>
 <div id="react-3d-root"></div>
+
+<script>
+/* ── SHARE BUTTON COPY */
+
+/* ── SHARE BUTTON COPY */
+(function() {
+  const btn = document.getElementById('shareCopy');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+          const orig = btn.innerHTML;
+          btn.innerHTML = '✓ Copié !';
+          btn.style.borderColor = 'var(--orange)';
+          btn.style.color = 'var(--orange)';
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('Could not copy text: ', err);
+        });
+    });
+  }
+})();
+
+/* ──/SHARE BUTTON COPY */
+</script>
 </body>
 </html>
