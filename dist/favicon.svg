@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <filter id="halo" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5" result="bl"/><feMerge><feMergeNode in="bl"/><feMergeNode in="bl"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="crisp" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.8" result="bl"/><feMerge><feMergeNode in="bl"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="cl"><rect x="0" y="0" width="62" height="100"/></clipPath>
+    <clipPath id="cr"><rect x="52" y="42" width="48" height="58"/></clipPath>
+  </defs>
+  <rect width="100" height="100" fill="#050404"/>
+  <ellipse cx="50" cy="52" rx="32" ry="20" fill="none" stroke="#cc460c" stroke-width="14" opacity="0.18" transform="rotate(-28 50 52)" filter="url(#halo)"/>
+  <ellipse cx="50" cy="52" rx="32" ry="20" fill="none" stroke="#f0ebe2" stroke-width="10" opacity="0.14" transform="rotate(-28 50 52)" filter="url(#halo)" clip-path="url(#cl)"/>
+  <ellipse cx="50" cy="52" rx="32" ry="20" fill="none" stroke="#ccc8c0" stroke-width="3.5" transform="rotate(-28 50 52)" filter="url(#glow)" clip-path="url(#cl)"/>
+  <ellipse cx="50" cy="52" rx="32" ry="20" fill="none" stroke="#cc460c" stroke-width="4.5" transform="rotate(-28 50 52)" filter="url(#glow)" clip-path="url(#cr)"/>
+  <ellipse cx="50" cy="52" rx="32" ry="20" fill="none" stroke="#e8e4dc" stroke-width="1.2" opacity="0.75" transform="rotate(-28 50 52)" filter="url(#crisp)" clip-path="url(#cl)"/>
+  <circle cx="25" cy="37" r="2.8" fill="#ffffff" opacity="0.95" filter="url(#glow)"/>
+</svg>
