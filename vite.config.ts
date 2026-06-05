@@ -22,6 +22,11 @@ export default defineConfig({
           'contenu-social': resolve(__dirname, 'projet/contenu-social/index.html'),
           'strategie-visuelle': resolve(__dirname, 'projet/strategie-visuelle/index.html'),
           'le-bol-den-face': resolve(__dirname, 'projet/le-bol-den-face/index.html'),
+          journal: resolve(__dirname, 'journal.html'),
+          'realisateur-paris': resolve(__dirname, 'realisateur-paris.html'),
+          'video-mariage-haut-de-gamme': resolve(__dirname, 'video-mariage-haut-de-gamme.html'),
+          'film-entreprise': resolve(__dirname, 'film-entreprise.html'),
+          'court-metrage-independant': resolve(__dirname, 'court-metrage-independant.html'),
         },
         output: {
           manualChunks(id) {

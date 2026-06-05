@@ -18,6 +18,7 @@
 <meta name="keywords" content="réalisateur, films de marque, vidéaste mariage, direction artistique, film institutionnel, vidéaste événementiel, France">
 <meta name="author" content="Nolan Arc">
 <meta name="robots" content="index, follow">
+<script src="/fluidity.js" defer></script>
 <link rel="canonical" href="https://nolanarc.com/projet/strategie-visuelle/">
 
 <!-- Open Graph -->
@@ -1737,11 +1738,11 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
 
 <section id="project-video">
   <div class="eyebrow reveal">La Réalisation</div>
-  <div class="glass-heavy p-4 rounded-2xl overflow-hidden shadow-2xl mt-10">
+  <div class="glass-heavy p-4 rounded-2xl overflow-hidden shadow-2xl mt-10" style="view-transition-name: project-image-strategie-visuelle;">
     <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; max-width:100%;">
       <iframe 
         style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"
-        src="https://www.youtube.com/embed/YOUTUBE_ID_ICI?rel=0" 
+        src="" data-src="https://www.youtube.com/embed/YOUTUBE_ID_ICI?rel=0" 
         title="Stratégie visuelle"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen>
@@ -1780,14 +1781,32 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
 <!-- CTA FINAL -->
 <section id="cta-demarche" style="background:var(--off);text-align:center;">
   <div class="eyebrow reveal" style="justify-content:center;">Prêt à collaborer ?</div>
-  <h2 class="s-title reveal">Tu as un projet.<br><em>Parlons-en.</em></h2>
+  <h2 class="s-title reveal">Définissons votre axe de communication.</h2>
   <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-top:3rem;" class="reveal">
-    <a href="/#contact" class="hero-cta-btn">Démarrer un projet <span>→</span></a>
+    <a href="/#contact" class="hero-cta-btn" onclick="preselectForm('Film de marque')">Lancer le projet B2B <span>→</span></a>
     <a href="/#work" class="hero-cta-link">Voir le travail</a>
   </div>
 </section>
 
 
+
+<section id="project-case-study" style="padding:5rem 6vw; background:var(--bg); border-top:1px solid var(--faint);">
+  <div class="eyebrow reveal">Étude de cas / Récit</div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:2.5rem; margin-top:2rem;">
+    <div class="reveal">
+      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Défi (Challenge)</h3>
+      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Aligner la stratégie marketing d'une entreprise avec un rendu vidéo percutant sur le long terme.</p>
+    </div>
+    <div class="reveal">
+      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">La Vision (Solution)</h3>
+      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Audit stratégique de la marque et écriture de scénarios ciblés sur les points de douleur des clients.</p>
+    </div>
+    <div class="reveal">
+      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Rendu (Impact)</h3>
+      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Une feuille de route visuelle claire garantissant l'homogénéité des futures productions.</p>
+    </div>
+  </div>
+</section>
 <section class="share-section reveal">
   <span class="share-label">Partager le projet</span>
   <div class="share-btns">
@@ -2061,5 +2080,65 @@ if(cur){
 
 /* ──/SHARE BUTTON COPY */
 </script>
+
+  /* ── SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
+  (function() {
+    // 1. Immersion mode (F key)
+    const hint = document.createElement('div');
+    hint.className = 'immersion-hint';
+    hint.textContent = "Mode Immersion actif · Appuie sur 'F' ou 'Échap' pour quitter";
+    document.body.appendChild(hint);
+
+    function toggleImmersion(forceClose = false) {
+      const active = document.body.classList.contains('immersion-active');
+      if (active || forceClose) {
+        document.body.classList.remove('immersion-active');
+      } else {
+        document.body.classList.add('immersion-active');
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleImmersion();
+      } else if (e.key === 'Escape') {
+        toggleImmersion(true);
+      }
+    });
+
+    // 2. Swipe navigation (Mobile)
+    let startX = 0;
+    const threshold = 100; // swipe length threshold in pixels
+    
+    document.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      const diffX = e.changedTouches[0].clientX - startX;
+      if (Math.abs(diffX) > threshold) {
+        if (diffX > 0) {
+          // Swipe right -> Go to Prev project
+          const prevLink = document.querySelector('.proj-nav-link.prev');
+          if (prevLink) {
+            const href = prevLink.getAttribute('href');
+            if (href && typeof doTransition === 'function') doTransition(href);
+            else if (href) window.location.href = href;
+          }
+        } else {
+          // Swipe left -> Go to Next project
+          const nextLink = document.querySelector('.proj-nav-link.next');
+          if (nextLink) {
+            const href = nextLink.getAttribute('href');
+            if (href && typeof doTransition === 'function') doTransition(href);
+            else if (href) window.location.href = href;
+          }
+        }
+      }
+    }, { passive: true });
+  })();
+  /* ──/SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
+  
 </body>
 </html>
