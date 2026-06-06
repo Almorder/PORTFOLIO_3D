@@ -110,7 +110,7 @@
 
   // 3. INTERACTIVE TIMECODE STAMP (Signature Visuelle)
   function initTimecodeStamp() {
-    const containers = document.querySelectorAll('#project-video, .hero-reel, .work-item');
+    const containers = document.querySelectorAll('#project-video, .hero-reel');
     containers.forEach(container => {
       if (container.querySelector('.timecode-stamp')) return;
       
