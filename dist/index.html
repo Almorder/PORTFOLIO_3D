@@ -842,7 +842,7 @@ section{padding:7rem 6vw;position:relative;}
 .wf-btn.active,.wf-btn:hover{color:var(--orange);background:rgba(204,70,12,.04);}
 .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--faint);}
 .work-item{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--card);cursor:pointer;}
-.work-item.wide{grid-column:span 2;grid-row:span 2;}
+.work-item.wide{grid-column:span 2; aspect-ratio:32/10;}
 .work-thumb{position:absolute;inset:0;background:linear-gradient(135deg,var(--card) 0%,var(--off) 100%);transition:transform .7s cubic-bezier(.16,1,.3,1);}
 .work-item:hover .work-thumb{transform:scale(1.03);}
 .work-thumb-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -1045,7 +1045,7 @@ footer{background:var(--bg);padding:2.5rem 6vw;border-top:1px solid var(--faint)
   #workGrid.list-view .work-voir{align-self:stretch !important; text-align:center !important; justify-content:center !important;}
 }
 .view-btn.active{color:var(--orange) !important;background:rgba(204,70,12,.06) !important;}
-.work-item.filtered-out{display:none !important;opacity:0 !important;pointer-events:none !important;}
+#workGrid .work-item.filtered-out, #workGrid.list-view .work-item.filtered-out {display:none !important;opacity:0 !important;pointer-events:none !important;}
 
 /* ─── FORMULAIRE CONTACT ─── */
 .contact-form-wrap{margin-top:5rem;border:1px solid var(--faint);background:var(--bg);}

@@ -158,11 +158,31 @@
     });
   }
 
+  // 4. REVEAL ANIMATIONS (Global fallback for project pages)
+  function initRevealAnimations() {
+    const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-stagger, .reveal-scale');
+    if (!reveals.length || !('IntersectionObserver' in window)) {
+      // Fallback: force visibility if no IO
+      reveals.forEach(r => r.classList.add('on'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if(e.isIntersecting) {
+          e.target.classList.add('on');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(r => io.observe(r));
+  }
+
   // Initialize all features on DOMContentLoaded
   function init() {
     initScrollPrefetch();
     initHoverPrefetch();
     initVisualStreaming();
+    initRevealAnimations();
     // initTimecodeStamp();
   }
 
