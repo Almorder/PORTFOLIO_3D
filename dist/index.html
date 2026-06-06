@@ -842,7 +842,7 @@ section{padding:7rem 6vw;position:relative;}
 .wf-btn.active,.wf-btn:hover{color:var(--orange);background:rgba(204,70,12,.04);}
 .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--faint);}
 .work-item{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--card);cursor:pointer;}
-.work-item.wide{grid-column:span 2;}
+.work-item.wide{grid-column:span 2;grid-row:span 2;}
 .work-thumb{position:absolute;inset:0;background:linear-gradient(135deg,var(--card) 0%,var(--off) 100%);transition:transform .7s cubic-bezier(.16,1,.3,1);}
 .work-item:hover .work-thumb{transform:scale(1.03);}
 .work-thumb-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -915,7 +915,8 @@ section{padding:7rem 6vw;position:relative;}
 .contact-sub{font-family:var(--body);font-size:.95rem;color:var(--muted);max-width:480px;margin:0 auto;}
 
 .contact-dual{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--faint);border:1px solid var(--faint);margin-top:5rem;}
-.contact-lane{padding:4rem 3.5rem;background:var(--bg);position:relative;overflow:hidden;transition:background .4s;}
+.contact-lane{padding:4rem 3.5rem;background:var(--bg);position:relative;overflow:hidden;transition:all .4s ease;cursor:pointer;}
+.contact-lane:hover{background:rgba(204,70,12,0.015);}
 .contact-lane::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .5s;}
 .contact-lane.brand::before{background:radial-gradient(ellipse at top left,rgba(204,70,12,.06) 0%,transparent 60%);}
 .contact-lane.event::before{background:radial-gradient(ellipse at top right,rgba(204,70,12,.06) 0%,transparent 60%);}
@@ -961,7 +962,7 @@ footer{background:var(--bg);padding:2.5rem 6vw;border-top:1px solid var(--faint)
 
 
 /* WORK THUMB IMAGE */
-.work-thumb-img{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#050403;opacity:0;transition:opacity .5s;}
+.work-thumb-img{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;background-position:center;background-color:#050403;opacity:0;transition:opacity .5s;}
 .work-item.has-thumb .work-placeholder{display:none;}
 .work-item.has-thumb .work-thumb-img{opacity:1;}
 .work-item.has-thumb:hover .work-thumb-img{transform:scale(1.03);}
@@ -1044,6 +1045,7 @@ footer{background:var(--bg);padding:2.5rem 6vw;border-top:1px solid var(--faint)
   #workGrid.list-view .work-voir{align-self:stretch !important; text-align:center !important; justify-content:center !important;}
 }
 .view-btn.active{color:var(--orange) !important;background:rgba(204,70,12,.06) !important;}
+.work-item.filtered-out{display:none !important;opacity:0 !important;pointer-events:none !important;}
 
 /* ─── FORMULAIRE CONTACT ─── */
 .contact-form-wrap{margin-top:5rem;border:1px solid var(--faint);background:var(--bg);}
@@ -1995,8 +1997,8 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <script type="module" crossorigin src="/assets/vendor-drei-DhOa2Ceb.js"></script>
   <script type="module" crossorigin src="/assets/vendor-postprocessing-Ci7b7dkL.js"></script>
   <script type="module" crossorigin src="/assets/vendor-react-v2T5U1rU.js"></script>
-  <script type="module" crossorigin src="/assets/main-BXegaH5L.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-uuknFz3_.css">
+  <script type="module" crossorigin src="/assets/main-sJ8DrHKZ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-DWC-VpPb.css">
 </head>
 <body>
 <!-- BACK TO TOP -->
@@ -2809,7 +2811,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   </div>
 
   <div class="contact-dual reveal">
-    <div class="contact-lane brand">
+    <div class="contact-lane brand" onclick="preselectForm('Film de marque')">
       <div class="cl-tag">Pour les marques</div>
       <div class="cl-title">Tu veux un film<br>qui dure dans le temps.</div>
       <div class="cl-desc">Restaurants, marques personnelles, services : je t'accompagne pour affiner ta vision et construire quelque chose de cohérent sur le long terme.</div>
@@ -2819,9 +2821,9 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
         <li>Stratégie contenu</li>
         <li>Direction artistique</li>
       </ul>
-      <a href="#contactFormWrap" class="cl-cta filled" onclick="preselectForm('Film de marque')"><span>Je suis une marque</span><span>→</span></a>
+      <a href="mailto:nolanribcontact@gmail.com?subject=Demande%20de%20projet%20-%20Film%20de%20marque%20%2F%20Publicit%C3%A9&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20vous%20contacte%20au%20sujet%20d%27un%20projet%20de%20film%20de%20marque%20ou%20de%20contenu%20pour%20notre%20entreprise.%0D%0A%0D%0AType%20de%20projet%20%3A%20Film%20de%20marque%20%2F%20Publicit%C3%A9%0D%0ABudget%20estim%C3%A9%20%3A%20%0D%0AD%C3%A9lai%20souhait%C3%A9%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta filled" onclick="event.stopPropagation();"><span>Je suis une marque</span><span>→</span></a>
     </div>
-    <div class="contact-lane event">
+    <div class="contact-lane event" onclick="preselectForm('Mariage / Événementiel')">
       <div class="cl-tag">Pour les moments de vie</div>
       <div class="cl-title">Tu veux capturer<br>ce qui ne se revit pas.</div>
       <div class="cl-desc">Mariage, demande en mariage, moments de vie : je me place dans ton rythme pour montrer ce qui est réfléchi, symbolique et beau.</div>
@@ -2831,7 +2833,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
         <li>Moments de vie</li>
         <li>Souvenir sur mesure</li>
       </ul>
-      <a href="#contactFormWrap" class="cl-cta" onclick="preselectForm('Mariage / Événementiel')"><span>J'ai un moment à capturer</span><span>→</span></a>
+      <a href="mailto:nolanribcontact@gmail.com?subject=Capture%20d%27%C3%A9v%C3%A9nement%20-%20Moment%20de%20vie%20%2F%20Mariage&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20souhaite%20vous%20faire%20part%20d%27un%20%C3%A9v%C3%A9nement%20%C3%A0%20venir%20%28mariage%2C%20demande%20en%20mariage%2C%20ou%20autre%20moment%20de%20vie%29%20que%20j%27aimerais%20immortaliser.%0D%0A%0D%0AType%20d%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ADate%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ALieu%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta" onclick="event.stopPropagation();"><span>J'ai un moment à capturer</span><span>→</span></a>
     </div>
   </div>
 
@@ -3418,14 +3420,7 @@ function closeModal(){
   modalFrame.src='';
   document.body.style.overflow='';
 }
-document.querySelectorAll('.work-item[data-video]').forEach(item=>{
-  item.addEventListener('click',()=>{
-    const id=item.dataset.video,platform=item.dataset.platform||'youtube';
-    if(!id||id.includes('_ICI'))return;
-    openModal(id,platform);
-  });
-  item.style.cursor='pointer';
-});
+// Old modal trigger removed to let cinemaLightbox handle clicks cleanly
 modalBackdrop.addEventListener('click',closeModal);
 modalClose.addEventListener('click',closeModal);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
@@ -4062,14 +4057,13 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
       const sub = (item.dataset.sub || '').toLowerCase();
       const searchMatches = !query || title.includes(query) || tag.includes(query) || sub.includes(query);
 
+      item.classList.toggle('filtered-out', !(catMatches && searchMatches));
       if (catMatches && searchMatches) {
-        item.style.display = '';
         item.style.opacity = '1';
         item.style.transform = 'scale(1)';
       } else {
         item.style.opacity = '0';
         item.style.transform = 'scale(0.95)';
-        item.style.display = 'none';
       }
     });
   }

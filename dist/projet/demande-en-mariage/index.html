@@ -1676,6 +1676,103 @@ body{opacity:1;}
 }
 
 /* ──/NEW PROJECT PAGES UI ELEMENTS ── */
+
+/* Project Dashboard Layout */
+.project-dashboard {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 4rem;
+  padding: 5rem 6vw;
+  background: var(--bg);
+  border-top: 1px solid var(--faint);
+  border-bottom: 1px solid var(--faint);
+}
+.dashboard-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+.dashboard-narrative {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.narrative-block h3 {
+  font-family: var(--head);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+.narrative-block p {
+  font-family: var(--body);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.specs-container {
+  background: rgba(18, 16, 14, 0.4);
+  border: 1px solid var(--faint);
+  backdrop-filter: blur(12px);
+  padding: 2.5rem;
+  border-radius: 8px;
+}
+.specs-title {
+  font-family: var(--head);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--white);
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--faint);
+  padding-bottom: 1rem;
+}
+.specs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.specs-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.8rem;
+}
+.specs-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.specs-label {
+  font-family: var(--head);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+}
+.specs-value {
+  font-family: var(--body);
+  font-size: 0.88rem;
+  color: var(--light);
+  text-align: right;
+}
+@media (max-width: 992px) {
+  .project-dashboard {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 4rem 6vw;
+  }
+}
 </style>
 <!-- Styles spécifiques page démarche -->
 <style>
@@ -1694,8 +1791,8 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
   <script type="module" crossorigin src="/assets/vendor-drei-DhOa2Ceb.js"></script>
   <script type="module" crossorigin src="/assets/vendor-postprocessing-Ci7b7dkL.js"></script>
   <script type="module" crossorigin src="/assets/vendor-react-v2T5U1rU.js"></script>
-  <script type="module" crossorigin src="/assets/main-BXegaH5L.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-uuknFz3_.css">
+  <script type="module" crossorigin src="/assets/main-sJ8DrHKZ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-DWC-VpPb.css">
 </head>
 <body>
   <!-- BACK TO PORTFOLIO BUTTON -->
@@ -1757,9 +1854,59 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
       </iframe>
     </div>
   </div>
-  <div class="mt-12 text-center">
-    <a href="/#work" class="section-cta-btn"><em>← Retour au portfolio</em></a>
+  
+<section class="project-dashboard">
+  <div class="dashboard-left">
+    <div class="eyebrow reveal">Étude de cas / Récit</div>
+    <div class="dashboard-narrative">
+      <div class="narrative-block reveal">
+        <h3>Le Défi (Challenge)</h3>
+        <p>Documenter l'instant magique et unique de la proposition en extérieur avec une discrétion absolue pour ne pas gâcher la surprise.</p>
+      </div>
+      <div class="narrative-block reveal">
+        <h3>La Vision (Solution)</h3>
+        <p>Positionnement à distance avec de longues focales lumineuses, microphones sans fil miniatures dissimulés pour un son parfait.</p>
+      </div>
+      <div class="narrative-block reveal">
+        <h3>Le Rendu (Impact)</h3>
+        <p>Un souvenir inestimable figé dans le temps avec une esthétique cinéma, préservant la spontanéité et la force de l'émotion.</p>
+      </div>
+    </div>
   </div>
+  <div class="dashboard-right">
+    <div class="specs-container reveal">
+      <h2 class="specs-title">Fiche technique</h2>
+      <ul class="specs-list">
+        
+          <li class="specs-item reveal">
+            <span class="specs-label">Catégorie</span>
+            <span class="specs-value">Capture surprise</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Rôle</span>
+            <span class="specs-value">Réalisation discrète</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Format</span>
+            <span class="specs-value">4K UHD · Cine-Profile</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Matériel</span>
+            <span class="specs-value">Sony FX3 · G-Master 70-200mm</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Lieu</span>
+            <span class="specs-value">Quais de Seine, Paris</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Année</span>
+            <span class="specs-value">2025</span>
+          </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 </section>
 
 
@@ -1798,23 +1945,7 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
 
 
 
-<section id="project-case-study" style="padding:5rem 6vw; background:var(--bg); border-top:1px solid var(--faint);">
-  <div class="eyebrow reveal">Étude de cas / Récit</div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:2.5rem; margin-top:2rem;">
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Défi (Challenge)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Capturer l'instant fatidique d'une demande surprise sans éveiller les soupçons et de façon esthétique.</p>
-    </div>
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">La Vision (Solution)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Positionnement discret à longue focale et micros-cravates cachés pour enregistrer les chuchotements.</p>
-    </div>
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Rendu (Impact)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">La capture éternelle et fidèle de la surprise, de l'émotion pure et du consentement.</p>
-    </div>
-  </div>
-</section>
+
 <section class="share-section reveal">
   <span class="share-label">Partager le projet</span>
   <div class="share-btns">
@@ -2056,7 +2187,7 @@ if(cur){
   #pageTransition { pointer-events: none !important; background: transparent !important; }
   .arc-bg { display: none !important; opacity: 0; }
 </style>
-<div id="react-3d-root"></div>
+<div id="react-3d-root"></div>
 
 <script>
 /* ── SHARE BUTTON COPY */
@@ -2088,6 +2219,7 @@ if(cur){
 /* ──/SHARE BUTTON COPY */
 </script>
 
+<script>
   /* ── SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
   (function() {
     // 1. Immersion mode (F key)
@@ -2146,6 +2278,7 @@ if(cur){
     }, { passive: true });
   })();
   /* ──/SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
-  
+</script>
+
 </body>
 </html>

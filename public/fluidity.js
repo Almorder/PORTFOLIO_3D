@@ -163,7 +163,7 @@
     initScrollPrefetch();
     initHoverPrefetch();
     initVisualStreaming();
-    initTimecodeStamp();
+    // initTimecodeStamp();
   }
 
   if (document.readyState === 'loading') {

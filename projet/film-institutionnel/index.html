@@ -1675,6 +1675,103 @@ body{opacity:1;}
 }
 
 /* ──/NEW PROJECT PAGES UI ELEMENTS ── */
+
+/* Project Dashboard Layout */
+.project-dashboard {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 4rem;
+  padding: 5rem 6vw;
+  background: var(--bg);
+  border-top: 1px solid var(--faint);
+  border-bottom: 1px solid var(--faint);
+}
+.dashboard-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+.dashboard-narrative {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.narrative-block h3 {
+  font-family: var(--head);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+.narrative-block p {
+  font-family: var(--body);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.specs-container {
+  background: rgba(18, 16, 14, 0.4);
+  border: 1px solid var(--faint);
+  backdrop-filter: blur(12px);
+  padding: 2.5rem;
+  border-radius: 8px;
+}
+.specs-title {
+  font-family: var(--head);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--white);
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--faint);
+  padding-bottom: 1rem;
+}
+.specs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.specs-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.8rem;
+}
+.specs-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.specs-label {
+  font-family: var(--head);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+}
+.specs-value {
+  font-family: var(--body);
+  font-size: 0.88rem;
+  color: var(--light);
+  text-align: right;
+}
+@media (max-width: 992px) {
+  .project-dashboard {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 4rem 6vw;
+  }
+}
 </style>
 <!-- Styles spécifiques page démarche -->
 <style>
@@ -1750,9 +1847,59 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
       </iframe>
     </div>
   </div>
-  <div class="mt-12 text-center">
-    <a href="/#work" class="section-cta-btn"><em>← Retour au portfolio</em></a>
+  
+<section class="project-dashboard">
+  <div class="dashboard-left">
+    <div class="eyebrow reveal">Étude de cas / Récit</div>
+    <div class="dashboard-narrative">
+      <div class="narrative-block reveal">
+        <h3>Le Défi (Challenge)</h3>
+        <p>Rendre attractif et captivant le message institutionnel d'une entreprise tout en valorisant le savoir-faire de ses collaborateurs.</p>
+      </div>
+      <div class="narrative-block reveal">
+        <h3>La Vision (Solution)</h3>
+        <p>Interviews soignées sous forme de discussions libres, plans de coupe dynamiques focalisés sur l'humain et habillage sonore immersif.</p>
+      </div>
+      <div class="narrative-block reveal">
+        <h3>Le Rendu (Impact)</h3>
+        <p>Une communication d'entreprise modernisée, renforçant la marque employeur et l'adhésion des partenaires commerciaux.</p>
+      </div>
+    </div>
   </div>
+  <div class="dashboard-right">
+    <div class="specs-container reveal">
+      <h2 class="specs-title">Fiche technique</h2>
+      <ul class="specs-list">
+        
+          <li class="specs-item reveal">
+            <span class="specs-label">Catégorie</span>
+            <span class="specs-value">Communication Corporate</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Rôle</span>
+            <span class="specs-value">Réalisation & Montage</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Format</span>
+            <span class="specs-value">4K UHD · Rec.709 16:9</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Matériel</span>
+            <span class="specs-value">Sony FX3 · G-Master Lenses</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Lieu</span>
+            <span class="specs-value">Lyon, France</span>
+          </li>
+          <li class="specs-item reveal">
+            <span class="specs-label">Année</span>
+            <span class="specs-value">2025</span>
+          </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 </section>
 
 
@@ -1791,23 +1938,7 @@ nav.page-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-
 
 
 
-<section id="project-case-study" style="padding:5rem 6vw; background:var(--bg); border-top:1px solid var(--faint);">
-  <div class="eyebrow reveal">Étude de cas / Récit</div>
-  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:2.5rem; margin-top:2rem;">
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Défi (Challenge)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Faire d'un film corporate un véritable outil de communication engageant et chaleureux.</p>
-    </div>
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">La Vision (Solution)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Focus sur l'humain et le savoir-faire brut, interviews menées sous forme de conversation pour libérer la parole.</p>
-    </div>
-    <div class="reveal">
-      <h3 style="font-family:var(--head); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:1rem;">Le Rendu (Impact)</h3>
-      <p style="font-size:0.95rem; line-height:1.75; color:var(--grey);">Une vidéo d'entreprise inspirante qui renforce la marque employeur et la confiance des partenaires.</p>
-    </div>
-  </div>
-</section>
+
 <section class="share-section reveal">
   <span class="share-label">Partager le projet</span>
   <div class="share-btns">
@@ -2082,6 +2213,7 @@ if(cur){
 /* ──/SHARE BUTTON COPY */
 </script>
 
+<script>
   /* ── SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
   (function() {
     // 1. Immersion mode (F key)
@@ -2140,6 +2272,7 @@ if(cur){
     }, { passive: true });
   })();
   /* ──/SWIPE NAVIGATION & IMMERSION MODE (F KEY) */
-  
+</script>
+
 </body>
 </html>
