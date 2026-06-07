@@ -557,7 +557,7 @@ section{padding:7rem 6vw;position:relative;}
 #hero{width:100%;display:flex;flex-direction:column;justify-content:center;padding:10rem 6vw 6rem !important;margin-top:0 !important;}
 .thin{border:none;border-top:1px solid var(--faint);margin:0 6vw;}
 .eyebrow{font-family:var(--head);font-size:.95rem;letter-spacing:.24em;text-transform:uppercase;color:var(--orange);display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;}
-.eyebrow::before{content:'';width:22px;height:1px;background:var(--orange);}
+.eyebrow::before{content:'•';color:var(--orange);font-weight:bold;}
 .s-title{font-family:var(--title);font-size:clamp(2rem,4.5vw,3.8rem);font-weight:400;line-height:1.08;letter-spacing:-.01em;margin-bottom:1.5rem;max-width:760px;}
 .s-title em{font-style:italic;color:var(--orange);}
 .s-body{font-family:var(--body);font-size:1.05rem;color:var(--muted);line-height:1.9;max-width:540px;}
@@ -1203,8 +1203,8 @@ body.is-transitioning{overflow:hidden;}
 .work-item:hover{transform:scale(1.01);}
 
 /* Eyebrow line — grow on section enter */
-.reveal.on .eyebrow::before{animation:lineGrow .6s cubic-bezier(.16,1,.3,1) both;}
-@keyframes lineGrow{from{width:0;}to{width:22px;}}
+
+
 
 
 
@@ -1237,9 +1237,9 @@ body.is-transitioning{overflow:hidden;}
 /* Nav logo subtle pulse on load */
 @keyframes logoPulse{0%,100%{opacity:1;}50%{opacity:.7;}}
 /* Eyebrow line grow */
-.eyebrow::before{transform-origin:left;animation:lineGrow .8s cubic-bezier(.16,1,.3,1) both;}
-.eyebrow.on::before{animation:lineGrow .8s cubic-bezier(.16,1,.3,1) both;}
-@keyframes lineGrow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+
+
+
 /* Stat number color flash on count end */
 .hstat-n.counted{animation:countFlash .4s ease;}
 @keyframes countFlash{0%{color:var(--white);}100%{color:var(--orange);}}
@@ -2667,57 +2667,6 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
     <a href="#contact" class="section-cta-btn"><em>Parlons de ton projet →</em></a>
   </div>
 
-<!-- PROCESS 5 ÉTAPES -->
-<section id="process">
-  <div class="process-eyebrow reveal">Comment je travaille</div>
-  <!-- Ligne horizontale HORS du scroll container -->
-  <div class="process-hline" aria-hidden="true"></div>
-  <div class="process-timeline reveal">
-    <div class="process-step">
-      <div class="ps-num">01</div>
-      <div>
-        <div class="ps-label">Découverte</div>
-        <div class="ps-sub">On comprend ce que tu veux transmettre</div>
-      </div>
-    </div>
-    <div class="process-step">
-      <div class="ps-num">02</div>
-      <div>
-        <div class="ps-label">Vision</div>
-        <div class="ps-sub">On définit l'angle, le ton, les intentions</div>
-      </div>
-    </div>
-    <div class="process-step">
-      <div class="ps-num">03</div>
-      <div>
-        <div class="ps-label">Tournage</div>
-        <div class="ps-sub">Seul sur le terrain. Disponible, concentré</div>
-      </div>
-    </div>
-    <div class="process-step">
-      <div class="ps-num">04</div>
-      <div>
-        <div class="ps-label">Montage</div>
-        <div class="ps-sub">Le film se construit. Chaque plan compte</div>
-      </div>
-    </div>
-    <div class="process-step">
-      <div class="ps-num">05</div>
-      <div>
-        <div class="ps-label">Livraison</div>
-        <div class="ps-sub">Rendu final. Propre, dans les délais</div>
-      </div>
-    </div>
-  </div>
-  <!-- Dots pagination mobile -->
-  <div class="process-dots" id="processDots">
-    <button class="process-dot active" data-idx="0"></button>
-    <button class="process-dot" data-idx="1"></button>
-    <button class="process-dot" data-idx="2"></button>
-    <button class="process-dot" data-idx="3"></button>
-    <button class="process-dot" data-idx="4"></button>
-  </div>
-</section>
 <section id="about">
   <div class="eyebrow reveal">À propos</div>
   <h2 class="s-title reveal">Je travaille pour les marques qui ont quelque chose à dire, <em>et pour les moments qui méritent de rester.</em></h2>
