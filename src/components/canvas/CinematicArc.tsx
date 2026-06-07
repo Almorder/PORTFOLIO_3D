@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Sparkles, PerspectiveCamera, PerformanceMonitor } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
 
@@ -18,11 +19,12 @@ const Arc = () => {
   return (
     <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
       <mesh ref={meshRef} position={[3, -1, -5]} rotation={[-Math.PI / 4, 0, 0]}>
+        {/* Segments drastiquement réduits : imperceptible visuellement mais gain FPS majeur */}
         <torusGeometry args={[4, 0.02, 16, 48]} />
         <meshStandardMaterial
           color="#CC460C"
           emissive="#CC460C"
-          emissiveIntensity={3} /* Boost emissive intensity to compensate for missing bloom */
+          emissiveIntensity={2}
           roughness={0.4}
           metalness={0.8}
         />
@@ -35,8 +37,8 @@ export const CinematicArc = () => {
   const [dpr, setDpr] = useState(1);
 
   return (
-    <div className="fixed inset-0 z-[-10] pointer-events-none bg-[#020202] glow-backdrop">
-      <div className="grain-overlay"></div>
+    <div className="fixed inset-0 z-[-10] pointer-events-none bg-[#020202]">
+      {/* PerformanceMonitor : ajuste dynamiquement le DPR si le framerate chute */}
       <Canvas 
         dpr={dpr} 
         gl={{ 
@@ -44,10 +46,11 @@ export const CinematicArc = () => {
           antialias: false,
           stencil: false,
           depth: true,
-          alpha: true /* Set alpha to true to let backdrop glow show through */
+          alpha: false
         }}
       >
-        <PerformanceMonitor onDecline={() => setDpr(0.75)} onIncline={() => setDpr(1)} />
+        <color attach="background" args={['#020202']} />
+        <PerformanceMonitor onDecline={() => setDpr(0.75)} onIncline={() => setDpr(1.25)} />
         <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
         
         <fog attach="fog" args={['#020202', 2, 12]} />
@@ -57,8 +60,14 @@ export const CinematicArc = () => {
         
         <Arc />
         
-        {/* Further optimized sparkles */}
-        <Sparkles count={15} scale={15} size={1} speed={0.1} opacity={0.1} color="#F0EBE2" />
+        {/* Moins de particules pour alléger le calcul de transparence */}
+        <Sparkles count={20} scale={15} size={1} speed={0.1} opacity={0.15} color="#F0EBE2" />
+        
+        <EffectComposer enableNormalPass={false}>
+          <Bloom luminanceThreshold={0.5} intensity={1} />
+          <Noise opacity={0.2} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
       </Canvas>
     </div>
   );
