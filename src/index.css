@@ -890,3 +890,5 @@ circle.el-fill { will-change: stroke-dashoffset; transform: translateZ(0); }
 .hero-cta-btn { font-weight: 600; text-shadow: 0 0 10px rgba(2,2,2,0.5); }
 .marquee-item { font-weight: 500; opacity: 1 !important; color: #F0EBE2 !important; }
 .foot-links a { font-weight: 500; opacity: 0.9 !important; }
+
+.hero-typewriter { min-height: 3.5em; }
