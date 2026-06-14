@@ -508,7 +508,8 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Yrsa:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Yrsa:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yrsa:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"></noscript>
 
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -2120,8 +2121,8 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 <!-- 1. HERO -->
 <section id="hero" role="main">
   <div class="arc-bg"></div><div class="arc-bg"></div><div class="arc-bg"></div><div class="arc-bg"></div>
-  <div class="hero-glow parallax-bg" style="position:absolute !important; z-index:0;" data-speed=".3"></div>
-  <div class="hero-glow2 parallax-bg" style="position:absolute !important; z-index:0;" data-speed=".15"></div>
+  <div class="hero-glow" style="position:absolute !important; z-index:0;"></div>
+  <div class="hero-glow2" style="position:absolute !important; z-index:0;"></div>
 
   <!--
     SHOWREEL BACKGROUND
