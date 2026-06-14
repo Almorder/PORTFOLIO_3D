@@ -34,7 +34,10 @@ const Arc = () => {
 
 export const CinematicArc = () => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isBot = typeof window !== 'undefined' && /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
   const [dpr, setDpr] = useState(isMobile ? 0.5 : 1);
+
+  if (isBot) return null;
 
   return (
     <div className="fixed inset-0 z-[-10] pointer-events-none bg-[#020202]">
@@ -60,11 +63,13 @@ export const CinematicArc = () => {
         <Suspense fallback={null}>
           <Arc />
           <Sparkles count={isMobile ? 10 : 20} scale={15} size={1} speed={0.1} opacity={0.15} color="#F0EBE2" />
-          <EffectComposer enableNormalPass={false} resolutionScale={isMobile ? 0.5 : 1}>
-            <Bloom luminanceThreshold={0.5} intensity={1} />
-            <Noise opacity={0.2} />
-            <Vignette eskil={false} offset={0.1} darkness={1.1} />
-          </EffectComposer>
+          {!isMobile && (
+            <EffectComposer enableNormalPass={false} resolutionScale={1}>
+              <Bloom luminanceThreshold={0.5} intensity={1} />
+              <Noise opacity={0.2} />
+              <Vignette eskil={false} offset={0.1} darkness={1.1} />
+            </EffectComposer>
+          )}
         </Suspense>
       </Canvas>
     </div>
