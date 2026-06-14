@@ -3,10 +3,10 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Sparkles, PerspectiveCamera, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { useRef, useState, Suspense } from 'react';
-import * as THREE from 'three';
+import type { Mesh } from 'three';
 
 const Arc = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   
   useFrame((state) => {
     if (meshRef.current) {
