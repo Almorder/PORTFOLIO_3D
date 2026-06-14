@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
 <meta charset="UTF-8">
   <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EBFDQNBW60"></script>
+  
   <script>
-    window.dataLayer=window.dataLayer||[];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js',new Date());
-    gtag('config','G-EBFDQNBW60');
+    window.addEventListener('scroll', function initGTM() {
+      const script = document.createElement('script');
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=G-EBFDQNBW60';
+      script.async = true;
+      document.head.appendChild(script);
+      window.dataLayer=window.dataLayer||[];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js',new Date());
+      gtag('config','G-EBFDQNBW60');
+      window.removeEventListener('scroll', initGTM);
+    }, {once: true, passive: true});
   </script>
+  
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Schema.org JSON-LD complet dans le bloc @graph ci-dessous -->
@@ -77,7 +88,7 @@
       },
       "contactPoint": {
         "@type": "ContactPoint",
-        "email": "nolanribcontact@gmail.com",
+        "email": "nolanribcontact&#64;gmail.com",
         "contactType": "customer service",
         "availableLanguage": "French"
       }
@@ -104,7 +115,7 @@
       "name": "Nolan Arc",
       "description": "Réalisateur freelance - films de marque, mariages, direction artistique. Basé en France, disponible partout.",
       "url": "https://nolanarc.com",
-      "email": "nolanribcontact@gmail.com",
+      "email": "nolanribcontact&#64;gmail.com",
       "priceRange": "À partir de 1500€",
       "currenciesAccepted": "EUR",
       "paymentAccepted": "Virement bancaire",
@@ -2000,12 +2011,12 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 <!-- NAV LATÉRALE -->
 <nav id="side-nav" aria-label="Navigation sections">
   <div id="sn-line"></div>
-  <a class="sn-item active" href="#scroll-top-anchor" data-label="Haut">    <span class="sn-label">Haut</span>         <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#work"          data-label="Work">         <span class="sn-label">Work</span>         <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#testimonials"  data-label="Témoignages">  <span class="sn-label">Témoignages</span>  <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#services"      data-label="Services">     <span class="sn-label">Services</span>     <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#about"         data-label="À propos">     <span class="sn-label">À propos</span>     <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#contact"       data-label="Contact">      <span class="sn-label">Contact</span>      <span class="sn-dot"></span></a>
+  <a class="sn-item active" href="#scroll-top-anchor" data-label="Haut" aria-label="Section navigation">    <span class="sn-label">Haut</span>         <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#work"          data-label="Work" aria-label="Section navigation">         <span class="sn-label">Work</span>         <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#testimonials"  data-label="Témoignages" aria-label="Section navigation">  <span class="sn-label">Témoignages</span>  <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#services"      data-label="Services" aria-label="Section navigation">     <span class="sn-label">Services</span>     <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#about"         data-label="À propos" aria-label="Section navigation">     <span class="sn-label">À propos</span>     <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#contact"       data-label="Contact" aria-label="Section navigation">      <span class="sn-label">Contact</span>      <span class="sn-dot"></span></a>
 </nav>
 
 <!-- PAGE TRANSITION -->
@@ -2080,7 +2091,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 
 <!-- NAV -->
 <nav>
-  <a href="#hero" class="nav-logo">Nolan<em>.Arc</em></a>
+  <a href="#hero" class="nav-logo" aria-hidden="true">Nolan<em>.Arc</em></a>
   <ul class="nav-links">
     <li><a href="#work">Work</a></li>
     <li><a href="#clients">Clients</a></li>
@@ -2256,7 +2267,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <div class="work-thumb">
         <div class="work-thumb-inner">
           <div class="work-placeholder">01</div>
-          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/YOUTUBE_ID_ICI/maxresdefault.jpg');"></div>
+          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg');"></div>
         </div>
       </div>
       <div class="work-glow"></div>
@@ -2285,7 +2296,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <div class="work-thumb">
         <div class="work-thumb-inner">
           <div class="work-placeholder">02</div>
-          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/YOUTUBE_ID_ICI/maxresdefault.jpg');"></div>
+          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg');"></div>
         </div>
       </div>
       <div class="work-glow"></div>
@@ -2341,7 +2352,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <div class="work-thumb">
         <div class="work-thumb-inner">
           <div class="work-placeholder">04</div>
-          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/YOUTUBE_ID_ICI/maxresdefault.jpg');"></div>
+          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg');"></div>
         </div>
       </div>
       <div class="work-glow"></div>
@@ -2369,7 +2380,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <div class="work-thumb">
         <div class="work-thumb-inner">
           <div class="work-placeholder">05</div>
-          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/YOUTUBE_ID_ICI/maxresdefault.jpg');"></div>
+          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg');"></div>
         </div>
       </div>
       <div class="work-glow"></div>
@@ -2425,7 +2436,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <div class="work-thumb">
         <div class="work-thumb-inner">
           <div class="work-placeholder">07</div>
-          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/YOUTUBE_ID_ICI/maxresdefault.jpg');"></div>
+          <div class="work-thumb-img" style="background-image:url('https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg');"></div>
         </div>
       </div>
       <div class="work-glow"></div>
@@ -2763,7 +2774,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
         <li>Stratégie contenu</li>
         <li>Direction artistique</li>
       </ul>
-      <a href="mailto:nolanribcontact@gmail.com?subject=Demande%20de%20projet%20-%20Film%20de%20marque%20%2F%20Publicit%C3%A9&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20vous%20contacte%20au%20sujet%20d%27un%20projet%20de%20film%20de%20marque%20ou%20de%20contenu%20pour%20notre%20entreprise.%0D%0A%0D%0AType%20de%20projet%20%3A%20Film%20de%20marque%20%2F%20Publicit%C3%A9%0D%0ABudget%20estim%C3%A9%20%3A%20%0D%0AD%C3%A9lai%20souhait%C3%A9%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta filled" onclick="event.stopPropagation();"><span>Je suis une marque</span><span>→</span></a>
+      <a href="mailto:nolanribcontact&#64;gmail.com?subject=Demande%20de%20projet%20-%20Film%20de%20marque%20%2F%20Publicit%C3%A9&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20vous%20contacte%20au%20sujet%20d%27un%20projet%20de%20film%20de%20marque%20ou%20de%20contenu%20pour%20notre%20entreprise.%0D%0A%0D%0AType%20de%20projet%20%3A%20Film%20de%20marque%20%2F%20Publicit%C3%A9%0D%0ABudget%20estim%C3%A9%20%3A%20%0D%0AD%C3%A9lai%20souhait%C3%A9%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta filled" onclick="event.stopPropagation();"><span>Je suis une marque</span><span>→</span></a>
     </div>
     <div class="contact-lane event" onclick="preselectForm('Mariage / Événementiel')">
       <div class="cl-tag">Pour les moments de vie</div>
@@ -2775,7 +2786,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
         <li>Moments de vie</li>
         <li>Souvenir sur mesure</li>
       </ul>
-      <a href="mailto:nolanribcontact@gmail.com?subject=Capture%20d%27%C3%A9v%C3%A9nement%20-%20Moment%20de%20vie%20%2F%20Mariage&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20souhaite%20vous%20faire%20part%20d%27un%20%C3%A9v%C3%A9nement%20%C3%A0%20venir%20%28mariage%2C%20demande%20en%20mariage%2C%20ou%20autre%20moment%20de%20vie%29%20que%20j%27aimerais%20immortaliser.%0D%0A%0D%0AType%20d%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ADate%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ALieu%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta" onclick="event.stopPropagation();"><span>J'ai un moment à capturer</span><span>→</span></a>
+      <a href="mailto:nolanribcontact&#64;gmail.com?subject=Capture%20d%27%C3%A9v%C3%A9nement%20-%20Moment%20de%20vie%20%2F%20Mariage&amp;body=Bonjour%20Nolan%2C%0D%0A%0D%0AJe%20souhaite%20vous%20faire%20part%20d%27un%20%C3%A9v%C3%A9nement%20%C3%A0%20venir%20%28mariage%2C%20demande%20en%20mariage%2C%20ou%20autre%20moment%20de%20vie%29%20que%20j%27aimerais%20immortaliser.%0D%0A%0D%0AType%20d%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ADate%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0ALieu%20de%20l%27%C3%A9v%C3%A9nement%20%3A%20%0D%0A%0D%0ACordialement%2C" class="cl-cta" onclick="event.stopPropagation();"><span>J'ai un moment à capturer</span><span>→</span></a>
     </div>
   </div>
 
@@ -2922,12 +2933,19 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 
     <!-- Tab 2: Calendly Direct Embed -->
     <div id="calendly-tab" class="tab-content" style="width:100%; height:680px; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.06); border-radius:12px; overflow:hidden;">
-      <iframe title="Calendly prise de rendez-vous"  src="https://calendly.com/nolanarc/30min?embed_domain=nolanarc.com&embed_type=inline&background_color=080706&text_color=f0ebe2&primary_color=cc460c" style="width:100%; height:100%; border:0;"></iframe>
+      <iframe title="Calendly prise de rendez-vous"  data-src="https://calendly.com/nolanarc/30min?embed_domain=nolanarc.com&embed_type=inline&background_color=080706&text_color=f0ebe2&primary_color=cc460c" style="width:100%; height:100%; border:0;"></iframe>
     </div>
 
     <!-- Script de gestion du formulaire progressif et des onglets -->
     <script>
       function switchContactTab(tabId, btn) {
+    if (tabId === 'calendly-tab') {
+      const iframe = document.querySelector('#calendly-tab iframe');
+      if (iframe && iframe.getAttribute('data-src')) {
+        iframe.setAttribute('src', iframe.getAttribute('data-src'));
+        iframe.removeAttribute('data-src');
+      }
+    }
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
@@ -3020,7 +3038,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <div class="contact-info reveal">
     <div class="cinfo-item"><div class="cinfo-label">Basé à</div><div class="cinfo-val">France · Disponible partout</div></div>
     <div class="cinfo-item"><div class="cinfo-label">Délai moyen</div><div class="cinfo-val"><strong>Réponse sous 48h</strong></div></div>
-    <div class="cinfo-item"><div class="cinfo-label">Contact direct</div><div class="cinfo-val"><a href="mailto:nolanribcontact@gmail.com" style="color:var(--white);text-decoration:none;transition:color .3s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--white)'">nolanribcontact@gmail.com</a></div></div>
+    <div class="cinfo-item"><div class="cinfo-label">Contact direct</div><div class="cinfo-val"><a href="mailto:nolanribcontact&#64;gmail.com" style="color:var(--white);text-decoration:none;transition:color .3s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--white)'">nolanribcontact&#64;gmail.com</a></div></div>
   </div>
 
   <!-- FAQ -->
@@ -3083,7 +3101,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 
 <!-- FOOTER -->
 <footer>
-  <a href="#hero" class="nav-logo" style="font-family:var(--title);font-size:1.05rem;color:var(--white);text-decoration:none;">Nolan<em style="font-style:italic;color:var(--cc460c, #cc460c);">.Arc</em></a>
+  <a href="#hero" class="nav-logo" aria-hidden="true" style="font-family:var(--title);font-size:1.05rem;color:var(--white);text-decoration:none;">Nolan<em style="font-style:italic;color:var(--cc460c, #cc460c);">.Arc</em></a>
   <ul class="foot-links">
     <li><a href="#work">Work</a></li>
     <li><a href="#services">Services</a></li>
@@ -3104,7 +3122,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
     </a>
   </div>
   <div class="foot-contact">
-    <a href="mailto:nolanribcontact@gmail.com" class="foot-email">nolanribcontact@gmail.com</a>
+    <a href="mailto:nolanribcontact&#64;gmail.com" class="foot-email">nolanribcontact&#64;gmail.com</a>
   </div>
   <div class="foot-copy">© <span id="footYear"></span> · Nolan Arc</div>
 </footer>
@@ -3738,7 +3756,7 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
     if(!grid || !dots.length) return;
     grid.addEventListener('scroll', function(){
       const idx = Math.round(grid.scrollLeft / (grid.clientWidth * .82));
-      dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(idx, dots.length-1)));
+      Array.from(dots).forEach((d, i) => d.classList.toggle('active', i === Math.min(idx, dots.length-1)));
     }, {passive:true});
   }
   document.addEventListener('DOMContentLoaded', function(){
@@ -3764,7 +3782,7 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
   function startAuto(){ timer = setInterval(function(){ goTo(cur+1); }, 3500); }
   function stopAuto(){ clearInterval(timer); }
 
-  dots.forEach(function(d){
+  Array.from(dots).forEach(function(d){
     d.addEventListener('click', function(){
       stopAuto();
       goTo(parseInt(d.dataset.idx));
@@ -3918,7 +3936,7 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
   if(!tl || !pdots.length || !steps.length) return;
 
   function setActive(idx){
-    pdots.forEach(function(d,i){ d.classList.toggle('active', i===idx); });
+    pArray.from(dots).forEach(function(d,i){ d.classList.toggle('active', i===idx); });
   }
 
   function calcActive(){
@@ -3938,7 +3956,7 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
   tl.addEventListener('scrollend', calcActive, {passive:true});
 
   // Clic sur dot → scroll vers la carte
-  pdots.forEach(function(dot, i){
+  pArray.from(dots).forEach(function(dot, i){
     dot.addEventListener('click', function(){
       var s = steps[i];
       var tlRect = tl.getBoundingClientRect();
@@ -4162,7 +4180,7 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Copier l\'adresse email de Nolan',
       type: 'action',
       action: () => {
-        navigator.clipboard.writeText('nolanribcontact@gmail.com')
+        navigator.clipboard.writeText('nolanribcontact&#64;gmail.com')
           .then(() => {
             results.innerHTML = '<div class="cmd-item" style="color:var(--color-orange);text-align:center;">✓ Email copié avec succès !</div>';
             setTimeout(() => renderResults(input.value), 1500);
@@ -4308,8 +4326,7 @@ document.addEventListener('DOMContentLoaded', () => {
   .arc-bg { display: none !important; opacity: 0; }
 </style>
 
-<div class="fallback-glow" style="position:fixed;inset:0;z-index:-10;background:radial-gradient(circle at center, rgba(204,70,12,0.15) 0%, transparent 50%);pointer-events:none;"></div>
-<video id="arc-bg-video" autoplay loop muted playsinline style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-10;opacity:0.6;pointer-events:none;"></video>
+<div id="react-3d-root" aria-hidden="true" style="position:fixed;inset:0;width:100vw;height:100vh;z-index:-10;pointer-events:none;"></div>
 
 
 
@@ -4349,5 +4366,6 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 
+<script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

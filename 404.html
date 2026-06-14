@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+<meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Page introuvable Nolan Arc</title>
@@ -106,9 +109,9 @@ if(cur){
   .arc-bg { display: none !important; opacity: 0; }
 </style>
 
-<div class="fallback-glow" style="position:fixed;inset:0;z-index:-10;background:radial-gradient(circle at center, rgba(204,70,12,0.15) 0%, transparent 50%);pointer-events:none;"></div>
-<video id="arc-bg-video" autoplay loop muted playsinline style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-10;opacity:0.6;pointer-events:none;"></video>
+<div id="react-3d-root" aria-hidden="true" style="position:fixed;inset:0;width:100vw;height:100vh;z-index:-10;pointer-events:none;"></div>
 
 
+<script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

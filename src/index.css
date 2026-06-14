@@ -879,3 +879,6 @@ body { -webkit-tap-highlight-color: transparent; }
   section { padding: 4rem 5vw !important; }
   .hero-reel iframe { height: 120vh; }
 }
+
+.sn-item { padding: 12px; margin: -12px; }
+.cinema-nav { padding: 16px; }
