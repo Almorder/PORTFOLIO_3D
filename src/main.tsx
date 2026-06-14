@@ -19,6 +19,7 @@ const init3D = () => {
 };
 
 // Start loading the 3D scene upon user interaction to guarantee 100/100 on PageSpeed.
+setTimeout(init3D, 2000);
 ['scroll', 'mousemove', 'touchstart', 'click'].forEach(evt => {
   window.addEventListener(evt, init3D, { once: true, passive: true });
 });
