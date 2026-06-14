@@ -6,7 +6,6 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    modulePreload: false,
     sourcemap: true,
     chunkSizeWarningLimit: 600,
     assetsInlineLimit: 0,
