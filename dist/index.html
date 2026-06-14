@@ -2006,8 +2006,8 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 </style>
   <script type="module" crossorigin src="/assets/rolldown-runtime-DMaycKwy.js"></script>
   <script type="module" crossorigin src="/assets/vendor-drei-CQoM63yv.js"></script>
-  <script type="module" crossorigin src="/assets/main-DO0yjHNj.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-B4JXS6EY.css">
+  <script type="module" crossorigin src="/assets/main-BiQQSLSY.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-8hgJYpvR.css">
 </head>
 <body>
 <!-- BACK TO TOP -->
@@ -2016,12 +2016,12 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 <!-- NAV LATÉRALE -->
 <nav id="side-nav" aria-label="Navigation sections">
   <div id="sn-line"></div>
-  <a class="sn-item active" href="#scroll-top-anchor" data-label="Haut" aria-label="Section navigation">    <span class="sn-label">Haut</span>         <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#work"          data-label="Work" aria-label="Section navigation">         <span class="sn-label">Work</span>         <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#testimonials"  data-label="Témoignages" aria-label="Section navigation">  <span class="sn-label">Témoignages</span>  <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#services"      data-label="Services" aria-label="Section navigation">     <span class="sn-label">Services</span>     <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#about"         data-label="À propos" aria-label="Section navigation">     <span class="sn-label">À propos</span>     <span class="sn-dot"></span></a>
-  <a class="sn-item"        href="#contact"       data-label="Contact" aria-label="Section navigation">      <span class="sn-label">Contact</span>      <span class="sn-dot"></span></a>
+  <a class="sn-item active" href="#scroll-top-anchor" data-label="Haut" aria-label="Aller en Haut">    <span class="sn-label">Haut</span>         <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#work"          data-label="Work" aria-label="Navigation vers la section">         <span class="sn-label">Work</span>         <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#testimonials"  data-label="Témoignages" aria-label="Navigation vers la section">  <span class="sn-label">Témoignages</span>  <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#services"      data-label="Services" aria-label="Navigation vers la section">     <span class="sn-label">Services</span>     <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#about"         data-label="À propos" aria-label="Navigation vers la section">     <span class="sn-label">À propos</span>     <span class="sn-dot"></span></a>
+  <a class="sn-item"        href="#contact"       data-label="Contact" aria-label="Navigation vers la section">      <span class="sn-label">Contact</span>      <span class="sn-dot"></span></a>
 </nav>
 
 <!-- PAGE TRANSITION -->
@@ -2096,7 +2096,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 
 <!-- NAV -->
 <nav>
-  <a href="#hero" class="nav-logo" aria-hidden="true">Nolan<em>.Arc</em></a>
+  <a href="#hero" class="nav-logo" aria-hidden="true" tabindex="-1">Nolan<em>.Arc</em></a>
   <ul class="nav-links">
     <li><a href="#work">Work</a></li>
     <li><a href="#clients">Clients</a></li>
@@ -2115,10 +2115,10 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 </nav>
 
 <!-- 1. HERO -->
-<section id="hero">
+<main id="hero" role="main">
   <div class="arc-bg"></div><div class="arc-bg"></div><div class="arc-bg"></div><div class="arc-bg"></div>
-  <div class="hero-glow parallax-bg" style="position:absolute !important;" data-speed=".3"></div>
-  <div class="hero-glow2 parallax-bg" style="position:absolute !important;" data-speed=".15"></div>
+  <div class="hero-glow parallax-bg" style="position:absolute !important; z-index:0;" data-speed=".3"></div>
+  <div class="hero-glow2 parallax-bg" style="position:absolute !important; z-index:0;" data-speed=".15"></div>
 
   <!--
     SHOWREEL BACKGROUND
@@ -2620,9 +2620,9 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   </div>
   
   <div class="testi-nav">
-    <button class="testi-btn" id="testiPrev" aria-label="Témoignage précédent">←</button>
+    <button class="testi-btn" id="testiPrev" aria-label="Témoignage précédent" aria-label="Témoignage précédent">←</button>
     <div class="testi-progress"><div class="testi-bar" id="testiBar"></div></div>
-    <button class="testi-btn" id="testiNext" aria-label="Témoignage suivant">→</button>
+    <button class="testi-btn" id="testiNext" aria-label="Témoignage suivant" aria-label="Témoignage suivant">→</button>
   </div>
 </section>
 
@@ -3106,7 +3106,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 
 <!-- FOOTER -->
 <footer>
-  <a href="#hero" class="nav-logo" aria-hidden="true" style="font-family:var(--title);font-size:1.05rem;color:var(--white);text-decoration:none;">Nolan<em style="font-style:italic;color:var(--cc460c, #cc460c);">.Arc</em></a>
+  <a href="#hero" class="nav-logo" aria-hidden="true" tabindex="-1" style="font-family:var(--title);font-size:1.05rem;color:var(--white);text-decoration:none;">Nolan<em style="font-style:italic;color:var(--cc460c, #cc460c);">.Arc</em></a>
   <ul class="foot-links">
     <li><a href="#work">Work</a></li>
     <li><a href="#services">Services</a></li>

@@ -892,3 +892,7 @@ circle.el-fill { will-change: stroke-dashoffset; transform: translateZ(0); }
 .foot-links a { font-weight: 500; opacity: 0.9 !important; }
 
 .hero-typewriter { min-height: 3.5em; }
+
+/* Accessibility: Ensure text contrast over hero-glow */
+nav a, .hero-cta-btn, .foot-email, .foot-copy { text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
+.cookie-btn { text-shadow: none; font-weight: 600; }
