@@ -654,13 +654,16 @@ section{padding:7rem 6vw;position:relative;}
 .sn-item{
   display:flex;
   align-items:center;
+  justify-content:flex-end;
   gap:8px;
   position:relative;
   z-index:2;
-  padding:5px 0;
+  padding:16px 12px;
+  margin-right:-12px; /* compensate for the added right padding so dots stay aligned to the edge */
   cursor:pointer;
   text-decoration:none;
   pointer-events:auto;
+  min-height:48px;
 }
 .sn-label{
   font-family:var(--head);
