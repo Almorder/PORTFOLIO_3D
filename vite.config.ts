@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [tailwindcss()],
   build: {
     chunkSizeWarningLimit: 600,
     assetsInlineLimit: 0,
@@ -27,18 +26,7 @@ export default defineConfig({
           'video-mariage-haut-de-gamme': resolve(__dirname, 'video-mariage-haut-de-gamme.html'),
           'film-entreprise': resolve(__dirname, 'film-entreprise.html'),
           'court-metrage-independant': resolve(__dirname, 'court-metrage-independant.html'),
-        },
-        output: {
-          manualChunks(id) {
-            const normalizedId = id.replace(/\\/g, '/');
-            if (normalizedId.includes('node_modules/three/')) return 'vendor-three';
-            if (normalizedId.includes('node_modules/@react-three/fiber/')) return 'vendor-r3f';
-            if (normalizedId.includes('node_modules/@react-three/drei/')) return 'vendor-drei';
-            if (normalizedId.includes('node_modules/@react-three/postprocessing/') || normalizedId.includes('node_modules/postprocessing/')) return 'vendor-postprocessing';
-            if (normalizedId.includes('node_modules/framer-motion/')) return 'vendor-framer';
-            if (normalizedId.includes('node_modules/react/') || normalizedId.includes('node_modules/react-dom/')) return 'vendor-react';
-          },
-        },
+        }
     },
   },
 })
