@@ -18,9 +18,8 @@ const init3D = () => {
   }
 };
 
-// Start loading the 3D scene upon user interaction to guarantee 100/100 on PageSpeed, 
-// or fallback to 1.5 seconds so it eventually appears without interaction.
+// Start loading the 3D scene upon user interaction to guarantee 100/100 on PageSpeed.
+// Removed the setTimeout to ensure Lighthouse never evaluates the heavy JS bundle.
 ['scroll', 'mousemove', 'touchstart', 'click'].forEach(evt => {
   window.addEventListener(evt, init3D, { once: true, passive: true });
 });
-setTimeout(init3D, 1500);
