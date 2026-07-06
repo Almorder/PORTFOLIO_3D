@@ -2807,10 +2807,133 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <button class="tab-btn" onclick="switchContactTab('calendly-tab', this)">Prendre RDV (15 min)</button>
     </div>
 
-        <!-- Tab 1: Progressive Form (Replaced by Tally) -->
+    <!-- Tab 1: Progressive Form -->
     <div id="form-tab" class="tab-content active">
-      <iframe data-tally-src="https://tally.so/embed/7R5DOa?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="400" frameborder="0" marginheight="0" marginwidth="0" title="Contact"></iframe>
-      <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}</script>
+      <div class="cf-progress-container">
+        <div class="cf-progress-track">
+          <div class="cf-progress-bar" id="cfProgressBar" style="width: 50%;"></div>
+        </div>
+        <div class="cf-progress-steps">
+          <span class="cf-progress-step active" data-step="1">1. Options du projet</span>
+          <span class="cf-progress-step" data-step="2">2. Vos coordonnées</span>
+        </div>
+      </div>
+      <form id="contactForm" action="https://formspree.io/f/myknyell" method="POST" novalidate>
+        <input type="hidden" name="_subject" value="Nouveau message, Nolan Arc">
+        <input type="hidden" name="_language" value="fr">
+        <input type="text" name="_gotcha" style="display:none">
+
+        <!-- Étape 1 : Qualification -->
+        <div class="form-step active" id="form-step-1">
+          <div class="cf-field">
+            <label class="cf-label">Type de projet</label>
+            <div class="cf-radios">
+              <label class="cf-radio">
+                <input type="radio" name="type" value="Film de marque" required>
+                <span>Film de marque</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="type" value="Mariage / Événementiel">
+                <span>Mariage · Événementiel</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="type" value="Direction artistique">
+                <span>Direction artistique</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="type" value="Autre">
+                <span>Autre</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label class="cf-label">Budget estimé</label>
+            <div class="cf-radios">
+              <label class="cf-radio">
+                <input type="radio" name="budget" value="< 1500€" required>
+                <span>&lt; 1500€</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="budget" value="1500€ - 3000€">
+                <span>1500€ - 3000€</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="budget" value="3000€ - 5000€">
+                <span>3000€ - 5000€</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="budget" value="> 5000€">
+                <span>&gt; 5000€</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label class="cf-label">Délai souhaité</label>
+            <div class="cf-radios">
+              <label class="cf-radio">
+                <input type="radio" name="timeline" value="Urgent (< 1 mois)" required>
+                <span>Urgent (&lt; 1 mois)</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="timeline" value="Confortable (1-3 mois)">
+                <span>Confortable</span>
+              </label>
+              <label class="cf-radio">
+                <input type="radio" name="timeline" value="Planification long terme">
+                <span>Long terme</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-nav-btns">
+            <span class="step-indicator">Étape 1 / 2</span>
+            <button type="button" class="cf-submit" onclick="nextFormStep()" style="padding: 1rem 2rem; font-size: 0.72rem;">
+              <span>Continuer →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Étape 2 : Coordonnées & Message -->
+        <div class="form-step" id="form-step-2">
+          <div class="cf-grid">
+            <div class="cf-field">
+              <label class="cf-label" for="cf-name">Ton prénom</label>
+              <input class="cf-input" type="text" id="cf-name" name="name" placeholder="Marie" required>
+            </div>
+            <div class="cf-field">
+              <label class="cf-label" for="cf-email">Ton email</label>
+              <input class="cf-input" type="email" id="cf-email" name="email" placeholder="marie@exemple.com" required>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label class="cf-label" for="cf-msg">Ton projet en quelques mots</label>
+            <textarea class="cf-input cf-textarea auto-grow" id="cf-msg" name="message" placeholder="Dis-moi ce que tu veux transmettre. On part de là." required rows="3"></textarea>
+          </div>
+
+          <div class="cf-footer" style="margin-top: 2rem;">
+            <div class="cf-rgpd">En envoyant ce message, tu acceptes que tes données soient utilisées pour te répondre. <a href="mentions-legales.html" target="_blank">Mentions légales</a></div>
+            <div style="display:flex; gap:1rem; align-items:center; width:100%; justify-content:flex-end; flex-wrap:wrap;">
+              <button type="button" class="cf-submit" onclick="prevFormStep()" style="background:transparent; border:1px solid rgba(255,255,255,0.15); color:var(--color-dim); padding: 1rem 2rem; font-size: 0.72rem;">
+                <span>← Retour</span>
+              </button>
+              <button type="submit" class="cf-submit" id="cfSubmit" style="padding: 1rem 2.5rem; font-size: 0.72rem;">
+                <span class="cf-submit-text">Envoyer</span>
+                <span class="cf-submit-arrow">→</span>
+                <span class="cf-submit-loading" style="display:none">···</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="cf-success" id="cfSuccess" style="display:none">
+        <div class="cf-success-icon">◆</div>
+        <div class="cf-success-title">Message envoyé.</div>
+        <div class="cf-success-text">Je reviens vers toi sous 48h. En attendant, <a href="https://instagram.com/nolan.arc_" target="_blank">@nolan.arc_</a></div>
+      </div>
     </div>
 
     <!-- Tab 2: Calendly Direct Embed -->
