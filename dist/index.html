@@ -31,6 +31,8 @@
 <meta name="author" content="Nolan Arc">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://nolanarc.com">
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="/fluidity.js" defer></script>
 
 <!-- Open Graph -->
@@ -2009,11 +2011,16 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 </style>
   <script type="module" crossorigin src="/assets/rolldown-runtime-DMaycKwy.js"></script>
   <script type="module" crossorigin src="/assets/vendor-drei-CQoM63yv.js"></script>
-  <script type="module" crossorigin src="/assets/main-ovyC3JV2.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-BgZHXDrw.css">
+  <script type="module" crossorigin src="/assets/main-vYb-2pa_.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-DVBnmo7X.css">
 </head>
 <body>
-<!-- BACK TO TOP -->
+<!-- CUSTOM CURSOR -->
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+<div class="cursor-text">PLAY</div>
+
+<!-- THREEJS CANVAS -->
 <button id="backTop" aria-label="Retour en haut">↑</button>
 
 <!-- NAV LATÉRALE -->
@@ -2167,6 +2174,8 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <div class="hero-bottom">
     <div class="hero-left">
       <div class="hero-typewriter"><span id="tw" style="color:#cc460c;font-style:italic;font-family:'Yrsa',serif;font-size:clamp(1.1rem,1.8vw,1.5rem);"></span><span id="tw-cursor" class="typewriter-cursor"></span></div>
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 (function(){
   var tw=document.getElementById('tw');
@@ -2502,39 +2511,68 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
       <span style="font-size:1.4em;font-weight:600;margin-right:4px;">100%</span> d'avis 5★
     </div>
   </div>
-  <div class="clients-grid">
-
-    <a href="https://www.ouilove-paris.com" target="_blank" rel="noopener" class="client-item reveal" style="transition-delay:.05s">
-      <div class="client-logo-wrap">
-        <img width="72" height="72"  src="/assets/asset-1.webp" loading="lazy" alt="Ouilove Proposal" class="client-logo">
-      </div>
-      <div class="client-name-text">Ouilove Proposal</div>
-      <div class="client-type">Direction artistique</div>
-    </a>
-
-    <a href="https://aonepermis.com" target="_blank" rel="noopener" class="client-item reveal" style="transition-delay:.15s">
-      <div class="client-logo-wrap client-logo-wide">
-        <img width="150" height="30"  src="/assets/asset-2.webp" loading="lazy" alt="A One Permis" class="client-logo">
-      </div>
-      <div class="client-name-text">A One Permis</div>
-      <div class="client-type">Contenu réseaux sociaux</div>
-    </a>
-
-    <a href="https://monteiro-carat-creation.com/" target="_blank" rel="noopener" class="client-item reveal" style="transition-delay:.25s">
-      <div class="client-logo-wrap">
-        <img width="72" height="72"  src="/assets/asset-3.webp" loading="lazy" alt="Carat Créations Paris" class="client-logo">
-      </div>
-      <div class="client-name-text">Carat Créations Paris</div>
-      <div class="client-type">Contenu réseaux sociaux</div>
-    </a>
-
-    <a href="https://www.reka-security.com/" target="_blank" rel="noopener" class="client-item reveal" style="transition-delay:.35s">
-      <div class="client-logo-wrap">
-        <img width="400" height="400"  src="/assets/asset-4.png" loading="lazy" alt="Reka Force Security" loading="lazy" style="width:auto;height:100%;max-width:100%;object-fit:contain;">
-      </div>
-      <div class="client-name-text">Reka Security</div>
-      <div class="client-type">Direction artistique</div>
-    </a>
+  <!-- MARQUEE CLIENTS -->
+  <div class="marquee-container reveal">
+    <div class="marquee-track">
+      <!-- SET 1 -->
+      <a href="https://www.ouilove-paris.com" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="72" height="72" src="/assets/asset-1.webp" loading="lazy" alt="Ouilove Proposal" class="client-logo">
+        </div>
+        <div class="client-name-text">Ouilove Proposal</div>
+        <div class="client-type">Direction artistique</div>
+      </a>
+      <a href="https://aonepermis.com" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap client-logo-wide">
+          <img width="150" height="30" src="/assets/asset-2.webp" loading="lazy" alt="A One Permis" class="client-logo">
+        </div>
+        <div class="client-name-text">A One Permis</div>
+        <div class="client-type">Contenu réseaux sociaux</div>
+      </a>
+      <a href="https://monteiro-carat-creation.com/" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="72" height="72" src="/assets/asset-3.webp" loading="lazy" alt="Carat Créations Paris" class="client-logo">
+        </div>
+        <div class="client-name-text">Carat Créations Paris</div>
+        <div class="client-type">Contenu réseaux sociaux</div>
+      </a>
+      <a href="https://www.reka-security.com/" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="400" height="400" src="/assets/asset-4.png" loading="lazy" alt="Reka Force Security" style="width:auto;height:100%;max-width:100%;object-fit:contain;">
+        </div>
+        <div class="client-name-text">Reka Security</div>
+        <div class="client-type">Direction artistique</div>
+      </a>
+      <!-- SET 2 (Duplicate for infinite loop) -->
+      <a href="https://www.ouilove-paris.com" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="72" height="72" src="/assets/asset-1.webp" loading="lazy" alt="Ouilove Proposal" class="client-logo">
+        </div>
+        <div class="client-name-text">Ouilove Proposal</div>
+        <div class="client-type">Direction artistique</div>
+      </a>
+      <a href="https://aonepermis.com" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap client-logo-wide">
+          <img width="150" height="30" src="/assets/asset-2.webp" loading="lazy" alt="A One Permis" class="client-logo">
+        </div>
+        <div class="client-name-text">A One Permis</div>
+        <div class="client-type">Contenu réseaux sociaux</div>
+      </a>
+      <a href="https://monteiro-carat-creation.com/" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="72" height="72" src="/assets/asset-3.webp" loading="lazy" alt="Carat Créations Paris" class="client-logo">
+        </div>
+        <div class="client-name-text">Carat Créations Paris</div>
+        <div class="client-type">Contenu réseaux sociaux</div>
+      </a>
+      <a href="https://www.reka-security.com/" target="_blank" rel="noopener" class="client-item">
+        <div class="client-logo-wrap">
+          <img width="400" height="400" src="/assets/asset-4.png" loading="lazy" alt="Reka Force Security" style="width:auto;height:100%;max-width:100%;object-fit:contain;">
+        </div>
+        <div class="client-name-text">Reka Security</div>
+        <div class="client-type">Direction artistique</div>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -2552,7 +2590,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Matthieu</strong></div>
             <div class="testi-role">Ouilove · Direction artistique</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2576,7 +2614,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Anthony</strong></div>
             <div class="testi-role">Cosmopol ISC Paris · Teaser d'association</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2588,7 +2626,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Lola</strong></div>
             <div class="testi-role">Modèle · Création de contenu bijoux</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2600,7 +2638,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Victoria</strong></div>
             <div class="testi-role">Modèle · Création de contenu bijoux</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2612,7 +2650,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>A One Permis</strong></div>
             <div class="testi-role">Contenu réseaux sociaux</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
 <div class="testi-card">
@@ -2624,7 +2662,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
             <div class="testi-name"><strong>Reka Force Security</strong></div>
             <div class="testi-role">Direction artistique</div>
           </div>
-          <div class="testi-source">📱 Instagram</div>
+          <div class="testi-source" style="display:flex;align-items:center;gap:6px;font-family:var(--font-syne);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-dim);opacity:0.6;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg> Instagram</div>
         </div>
       </div>
     </div>
@@ -2645,7 +2683,7 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
   <!-- MODULE 9 & 12: Social proof renforcée + CTA Instagram -->
   <div style="text-align:center;padding:2rem 5vw 0;">
     <a href="https://instagram.com/nolan.arc_" target="_blank" rel="noopener" class="insta-cta" style="display:inline-flex;align-items:center;gap:.6rem;font-family:var(--head);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .3s;">
-      <span>📸</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
       <span>Voir plus de retours sur @nolan.arc_ →</span>
     </a>
   </div>
@@ -2741,13 +2779,13 @@ body.menu-open #side-nav{opacity:0;pointer-events:none;}
 <!-- MODULE 10: SEGMENTATION B2B/B2C -->
 <div class="segment-cards reveal" style="padding: 4rem 5vw;">
   <div class="segment-card" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});preselectForm('Film de marque');">
-    <div class="segment-icon">🎬</div>
+    <div class="segment-icon" style="color:var(--orange);opacity:0.8;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"></path><path d="m3.2 7 4.8-4.8"></path><path d="m7 7 4.8-4.8"></path><path d="m11 7 4.8-4.8"></path><path d="m15 7 4.8-4.8"></path><path d="m19 7 3-3"></path><path d="M2 7h20"></path></svg></div>
     <div class="segment-title">Tu es une marque</div>
     <div class="segment-desc">Film institutionnel, contenu réseaux, direction artistique. Je t'accompagne pour construire une image qui dure.</div>
     <span style="font-family:var(--head);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-top:1rem;display:inline-block;">Découvrir →</span>
   </div>
   <div class="segment-card" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});preselectForm('Mariage / Événementiel');">
-    <div class="segment-icon">💍</div>
+    <div class="segment-icon" style="color:var(--orange);opacity:0.8;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M12 8L8 4h8l-4 4Z"></path></svg></div>
     <div class="segment-title">Tu as un moment à capturer</div>
     <div class="segment-desc">Mariage, demande en mariage, moment de vie. Ce qui ne se revit pas mérite d'être filmé.</div>
     <span style="font-family:var(--head);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-top:1rem;display:inline-block;">Découvrir →</span>

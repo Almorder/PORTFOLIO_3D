@@ -1,0 +1,1 @@
+const sharp = require('sharp'); const fs = require('fs'); const path = 'public/assets/nolan-portrait.jpg'; sharp(fs.readFileSync(path)).resize({width: 800, withoutEnlargement: true}).jpeg({quality: 80}).toFile('public/assets/nolan-portrait-optimized.jpg').then(() => { fs.renameSync('public/assets/nolan-portrait-optimized.jpg', path); console.log('Optimized'); });

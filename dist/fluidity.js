@@ -177,6 +177,109 @@
     reveals.forEach(r => io.observe(r));
   }
 
+  // 5. LENIS SMOOTH SCROLLING
+  function initLenis() {
+    if (typeof Lenis !== 'undefined') {
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // cinematic easeOutExpo
+        direction: 'vertical',
+        gestureDirection: 'vertical',
+        smooth: true,
+        mouseMultiplier: 1,
+        smoothTouch: false,
+        touchMultiplier: 2,
+        infinite: false,
+      });
+
+      function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+      
+      // Update reveal elements more smoothly
+      lenis.on('scroll', () => {
+        // Optionnel: update GSAP ScrollTrigger if used later
+      });
+    }
+  }
+
+  // 6. CUSTOM CURSOR
+  function initCustomCursor() {
+    if (window.innerWidth <= 992 || typeof gsap === 'undefined') return;
+    
+    const dot = document.querySelector('.cursor-dot');
+    const outline = document.querySelector('.cursor-outline');
+    const text = document.querySelector('.cursor-text');
+    if (!dot || !outline) return;
+
+    let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    let pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const speed = 0.2; // outline delay
+
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      gsap.to(dot, { x: mouse.x, y: mouse.y, duration: 0.1, ease: 'power2.out' });
+    });
+
+    const render = () => {
+      pos.x += (mouse.x - pos.x) * speed;
+      pos.y += (mouse.y - pos.y) * speed;
+      gsap.set(outline, { x: pos.x, y: pos.y });
+      gsap.set(text, { x: pos.x, y: pos.y });
+      requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+
+    // Hover effects on links/buttons
+    const hoverTargets = document.querySelectorAll('a, button, .work-item, .segment-card');
+    hoverTargets.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        const isPlay = el.classList.contains('work-item');
+        gsap.to(outline, { scale: isPlay ? 2 : 1.5, borderColor: isPlay ? '#CC460C' : 'rgba(255,255,255,0.8)', duration: 0.3 });
+        gsap.to(dot, { opacity: 0, duration: 0.2 });
+        if (isPlay) gsap.to(text, { opacity: 1, duration: 0.3 });
+      });
+      el.addEventListener('mouseleave', () => {
+        gsap.to(outline, { scale: 1, borderColor: 'rgba(255,255,255,0.4)', duration: 0.3 });
+        gsap.to(dot, { opacity: 1, duration: 0.2 });
+        gsap.to(text, { opacity: 0, duration: 0.3 });
+      });
+    });
+  }
+
+  // 7. MAGNETIC BUTTONS
+  function initMagneticButtons() {
+    if (window.innerWidth <= 992 || typeof gsap === 'undefined') return;
+    
+    const magnets = document.querySelectorAll('.hero-cta-btn, .cl-cta, .rdv-btn, .insta-cta');
+    magnets.forEach(magnet => {
+      magnet.addEventListener('mousemove', (e) => {
+        const position = magnet.getBoundingClientRect();
+        const x = e.clientX - position.left - position.width / 2;
+        const y = e.clientY - position.top - position.height / 2;
+        
+        gsap.to(magnet, {
+          x: x * 0.3,
+          y: y * 0.3,
+          duration: 0.4,
+          ease: 'power3.out'
+        });
+      });
+      
+      magnet.addEventListener('mouseleave', () => {
+        gsap.to(magnet, {
+          x: 0,
+          y: 0,
+          duration: 0.7,
+          ease: 'elastic.out(1, 0.3)'
+        });
+      });
+    });
+  }
+
   // Initialize all features on DOMContentLoaded
   function init() {
     initScrollPrefetch();
@@ -184,6 +287,9 @@
     initVisualStreaming();
     initRevealAnimations();
     // initTimecodeStamp();
+    initLenis();
+    initCustomCursor();
+    initMagneticButtons();
   }
 
   if (document.readyState === 'loading') {

@@ -1131,3 +1131,35 @@ nav a, .hero-cta-btn, .foot-email, .foot-copy { text-shadow: 0 2px 10px rgba(0,0
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* --------------------------------------------------------
+   10. AWWWARDS PREMIUM MODULES (Cursor, Marquee, Lenis)
+   -------------------------------------------------------- */
+
+/* LENIS SCROLL */
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }
+
+/* CUSTOM CURSOR */
+body { cursor: none; }
+.cursor-dot, .cursor-outline { position: fixed; top: 0; left: 0; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; z-index: 10000; }
+.cursor-dot { width: 6px; height: 6px; background: var(--orange); transition: opacity 0.3s; }
+.cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.4); mix-blend-mode: difference; }
+.cursor-text { position: fixed; top: 0; left: 0; transform: translate(-50%, -50%); pointer-events: none; z-index: 10001; font-family: var(--font-syne); font-size: 0.6rem; letter-spacing: 0.15em; font-weight: 700; color: #fff; opacity: 0; text-transform: uppercase; }
+@media (max-width: 992px) { body { cursor: auto; } .cursor-dot, .cursor-outline, .cursor-text { display: none; } }
+
+/* MAGNETIC CTA */
+.magnet { display: inline-block; }
+
+/* INFINITE MARQUEE */
+.marquee-container { width: 100%; overflow: hidden; white-space: nowrap; padding: 1rem 0; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
+.marquee-track { display: inline-flex; width: max-content; animation: marquee 30s linear infinite; gap: 3rem; align-items: center; }
+.marquee-track:hover { animation-play-state: paused; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 1.5rem)); } }
+.marquee-track .client-item { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 180px; text-decoration: none; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.marquee-track .client-item:hover { transform: scale(1.05); }
+
