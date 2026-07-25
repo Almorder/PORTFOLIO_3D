@@ -240,12 +240,12 @@
         const isPlay = el.classList.contains('work-item');
         gsap.to(outline, { scale: isPlay ? 2 : 1.5, borderColor: isPlay ? '#CC460C' : 'rgba(255,255,255,0.8)', duration: 0.3 });
         gsap.to(dot, { opacity: 0, duration: 0.2 });
-        if (isPlay) gsap.to(text, { opacity: 1, duration: 0.3 });
+        if (isPlay) gsap.to(text, { opacity: 1, duration: 0.3 }); const vid = el.querySelector('.work-hover-video'); if(vid) { vid.play().catch(e=>{}); vid.style.opacity = 1; }
       });
       el.addEventListener('mouseleave', () => {
         gsap.to(outline, { scale: 1, borderColor: 'rgba(255,255,255,0.4)', duration: 0.3 });
         gsap.to(dot, { opacity: 1, duration: 0.2 });
-        gsap.to(text, { opacity: 0, duration: 0.3 });
+        gsap.to(text, { opacity: 0, duration: 0.3 }); const vid = el.querySelector('.work-hover-video'); if(vid) { vid.pause(); vid.style.opacity = 0; }
       });
     });
   }
@@ -280,6 +280,63 @@
     });
   }
 
+  // 8. SHOWREEL MODAL
+  window.openShowreel = function() {
+    const modal = document.getElementById('showreelModal');
+    const container = modal.querySelector('.video-container');
+    // Inject iframe on demand
+    container.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/GbeOQ-hgrtU?autoplay=1&mute=0&controls=1&showinfo=0&rel=0&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>`;
+    
+    modal.style.display = 'flex';
+    // Small delay to allow display:flex to apply before animating opacity
+    setTimeout(() => {
+      modal.style.opacity = '1';
+    }, 10);
+    
+    if (typeof lenis !== 'undefined') lenis.stop();
+  };
+
+  window.closeShowreel = function() {
+    const modal = document.getElementById('showreelModal');
+    const container = modal.querySelector('.video-container');
+    modal.style.opacity = '0';
+    
+    setTimeout(() => {
+      modal.style.display = 'none';
+      container.innerHTML = ''; // Destroy iframe to stop audio
+      if (typeof lenis !== 'undefined') lenis.start();
+    }, 500);
+  };
+
+  // 9. MOOD FILTERS
+  function initMoodFilters() {
+    const buttons = document.querySelectorAll('.mood-btn');
+    const projects = document.querySelectorAll('.work-item');
+    if (!buttons.length || !projects.length) return;
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Active state
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const mood = btn.getAttribute('data-mood');
+
+        projects.forEach(proj => {
+          // If "all" or matching mood, reset opacity and scale
+          if (mood === 'all' || proj.getAttribute('data-mood') === mood || !proj.getAttribute('data-mood')) {
+            gsap.to(proj, { opacity: 1, scale: 1, filter: 'grayscale(0%)', duration: 0.5, ease: 'power2.out' });
+            proj.style.pointerEvents = 'auto';
+          } else {
+            // Dim non-matching projects
+            gsap.to(proj, { opacity: 0.15, scale: 0.95, filter: 'grayscale(100%)', duration: 0.5, ease: 'power2.out' });
+            proj.style.pointerEvents = 'none';
+          }
+        });
+      });
+    });
+  }
+
   // Initialize all features on DOMContentLoaded
   function init() {
     initScrollPrefetch();
@@ -290,6 +347,7 @@
     initLenis();
     initCustomCursor();
     initMagneticButtons();
+    initMoodFilters();
   }
 
   if (document.readyState === 'loading') {
@@ -299,3 +357,4 @@
   }
 
 })();
+
