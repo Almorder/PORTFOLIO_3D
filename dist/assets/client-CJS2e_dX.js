@@ -1,1 +1,0 @@
-import"./vendor-drei-CQoM63yv.js";import{t as e}from"./vendor-react-BmDdwiKd.js";export default e();
