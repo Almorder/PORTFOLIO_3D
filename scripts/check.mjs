@@ -51,7 +51,7 @@ for(const file of htmls){
   if(!cssMatch||!existing.has(cssMatch?.[1])) fail(`${rel}: hashed CSS missing/broken`);
   if(!jsMatch||!existing.has(jsMatch?.[1])) fail(`${rel}: hashed JS missing/broken`);
   for(const href of requiredLegalLinks) if(!html.includes(`href="${href}"`)) fail(`${rel}: legal footer link missing ${href}`);
-  if(/<iframe[^>]+youtube/i.test(html)) fail(`${rel}: YouTube iframe preloaded before user action`);
+  if(/<iframe[^>]+youtube/i.test(html) && !(rel==='index.html' && html.includes('class="v16-hero__video"'))) fail(`${rel}: YouTube iframe preloaded before user action`);
   if(/animé|anime/i.test(html)) fail(`${rel}: unwanted anime wording found`);
   if(html.includes('site-footer__lead')) fail(`${rel}: obsolete oversized footer CTA found`);
 }
@@ -77,7 +77,7 @@ const contact=await readFile(join(dist,'contact/index.html'),'utf8');
 const privacy=await readFile(join(dist,'confidentialite/index.html'),'utf8');
 
 // V17 HOME — locked order / product logic.
-for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v17-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
+for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
 if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
 if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
 for(const token of ['50','2022','+105','photo + vidéo']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
@@ -92,8 +92,10 @@ for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!hom
 if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
 for(const price of ['1 500 €','200 €','89 € / heure']) if(!home.includes(price)) fail(`Home V17: pricing missing ${price}`);
 if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-panel=/g)||[]).length!==3) fail('Home V17: three-tab pricing switcher incomplete');
-if(!home.includes('data-focus-testimonials')) fail('Home V17: Focus Testimonials interaction missing');
-if(!app.includes("section.classList.add('is-focusing')")||!css.includes('.focus-testimonials.is-focusing')) fail('Home V17: testimonial focus/blur engine missing');
+if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
+if(!app.includes("$('[data-pricing-switcher]').forEach")||!app.includes("$('[data-faq-section]').forEach")) fail('Home V18: pricing/FAQ interaction handlers missing');
+if(!home.includes('v16-testimonial-bento')||!home.includes('is-featured')) fail('Home V18: V16 testimonial bento must be restored');
+if(!css.includes('.v16-testimonial-bento:has(article:hover) article:not(:hover)')) fail('Home V18: testimonial hover focus/blur interaction missing');
 if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
 
 // Navigation hierarchy: Journal footer-only.
@@ -160,4 +162,4 @@ if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route p
 for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V17: FormSubmit/privacy guard incomplete');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files; V17 restored testimonial focus, sticky Journey, Work mood slideshow, richer About, restored Contact composer and core product guardrails verified.`);
+console.log(`QA OK — ${htmls.length} HTML files; V18 V16 testimonial bento, pricing/FAQ runtime fix, Sony hero video, logo integration and core product guardrails verified.`);

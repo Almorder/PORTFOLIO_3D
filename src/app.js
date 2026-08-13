@@ -2,6 +2,7 @@ const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 const clamp = (v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const showcaseState=new WeakMap();
 
 // Logo Preloader — minimal branded entrance on Home only.
 // The component follows the public Framer behaviour: entrance → optional hold → fade-out,
@@ -195,14 +196,33 @@ $$('[data-nolan-portrait]').forEach(img=>{
 });
 
 
+// Brand logo fallbacks — preserve clean cards even when a remote brand asset is unavailable.
+$$('.v16-logo-media img').forEach(img=>{
+  const fallback=img.nextElementSibling;
+  const fail=()=>{img.hidden=true;fallback?.classList.add('is-visible');};
+  img.addEventListener('error',fail,{once:true});
+  if(img.complete&&img.naturalWidth===0) fail();
+});
+
 // V16 pricing switcher — one compact pricing surface, three offers.
 $$('[data-pricing-switcher]').forEach(section=>{
   const tabs=$$('[data-pricing-tab]',section), panels=$$('[data-pricing-panel]',section);
-  const set=(key)=>{
-    tabs.forEach(tab=>tab.setAttribute('aria-selected',String(tab.dataset.pricingTab===key)));
+  if(!tabs.length||!panels.length) return;
+  const keys=new Set(tabs.map(tab=>tab.dataset.pricingTab));
+  const initial=tabs.find(tab=>tab.getAttribute('aria-selected')==='true')?.dataset.pricingTab||tabs[0].dataset.pricingTab;
+  const set=(key,focus=false)=>{
+    if(!keys.has(key)) return;
+    tabs.forEach(tab=>{const active=tab.dataset.pricingTab===key;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;if(active&&focus)tab.focus();});
     panels.forEach(panel=>{const active=panel.dataset.pricingPanel===key;panel.hidden=!active;panel.classList.toggle('is-active',active);});
   };
-  tabs.forEach(tab=>tab.addEventListener('click',()=>set(tab.dataset.pricingTab)));
+  tabs.forEach((tab,index)=>{
+    tab.addEventListener('click',()=>set(tab.dataset.pricingTab));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
+      event.preventDefault();const delta=['ArrowRight','ArrowDown'].includes(event.key)?1:-1;const next=(index+delta+tabs.length)%tabs.length;set(tabs[next].dataset.pricingTab,true);
+    });
+  });
+  set(initial);
 });
 
 // V16 expertise switcher — reused in Work and Services. Query string can preselect Services.
@@ -356,7 +376,6 @@ $$('[data-focus-testimonials]').forEach(section=>{
 // Glass Showcase Pro — independent implementation based on the public spec.
 // It uses our own Three.js scene for the physical glass layer and a canvas particle transition.
 // The paid Framer source is not bundled or reverse-copied. A DOM/image fallback is always present.
-const showcaseState=new WeakMap();
 async function mountShowcaseWebGL(showcase){
   const mount=$('[data-showcase-webgl]',showcase);
   if(!mount || reduced || !('WebGLRenderingContext' in window)) return;

@@ -2,13 +2,20 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, esc, projectMeta, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
+import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
   brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
   story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
   moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
+};
+
+// Sony France lists this creator film as an Alpha 7 IV showcase. It is used as a silent,
+// non-interactive background; the still remains underneath as a resilient fallback.
+const homeHeroVideo = {
+  id:'KCReyepzxGU',
+  title:'L’expédition prodigieuse sur l’île de Madère — Sony Alpha 7 IV'
 };
 
 
@@ -49,8 +56,8 @@ const ecosystem = [
   {name:'Sigma', role:'Optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sigma%27s_new_updated_logo_revealed%2C_February_2025.svg'},
   {name:'Adobe', role:'Post-production', logo:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Adobe_Logo_Standard.svg'},
   {name:'NiSi', role:'Filtres', logo:'https://images.squarespace-cdn.com/content/v1/5abbd54bd274cb288dbee575/1580147234198-OZKG3ETPSV8IJXDIYUFM/NiSi-logo-2018-01%403x-1.png'},
-  {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'https://www.smallrigreseller.com/img/static/smallrig-logo.png'},
-  {name:'PGYTECH', role:'Workflow média', logo:'https://cdn.shopify.com/s/files/1/0252/2395/4525/files/header_logo.png?height=628&pad_color=ffffff&v=1681727276&width=1200'}
+  {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'https://static.smallrig.com/mall/static/pc/common/svg/logo2023.svg', logoClass:'is-smallrig'},
+  {name:'PGYTECH', role:'Workflow média', logo:'https://www.adorama.com/col/UIimages/PGYTech-Logo.png', logoClass:'is-pgytech'}
 ];
 
 
@@ -63,7 +70,7 @@ export function homePage(){
   }) + header('/') + `
   <main id="main-content" class="v16-home">
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      <div class="v16-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:24,blur:86,opacity:.17,size:130,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high"><iframe class="v16-hero__video" src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" title="${esc(homeHeroVideo.title)}" tabindex="-1" loading="eager" allow="autoplay; encrypted-media; picture-in-picture"></iframe><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:24,blur:86,opacity:.17,size:130,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
       <div class="v16-hero__actions"><a href="#work-preview">Voir le Work <span>↘</span></a><a href="#quick-contact">Parler d’un projet <span>↗</span></a></div>
@@ -108,7 +115,7 @@ export function homePage(){
 
     <section class="brand-ecosystem v16-ecosystem motion-reveal" aria-labelledby="brand-ecosystem-title">
       <div class="brand-ecosystem__head"><span class="fab-dot-label">Écosystème de production</span><h2 id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain.</h2><p>Matériel de prise de vue, optiques, accessoires et post-production. Ce bloc montre mon environnement de travail, pas une liste de clients.</p></div>
-      <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card">${b.logo?`<img src="${b.logo}" alt="Logo ${b.name}" loading="lazy" referrerpolicy="no-referrer">`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
+      <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
     <section class="home-pricing v16-pricing motion-reveal" id="pricing" data-pricing-switcher>
@@ -122,8 +129,9 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="v17-testimonials" id="retours">
-      ${focusTestimonials(site.testimonials,{maxVisible:site.testimonials.length})}
+    <section class="v16-testimonials" id="retours">
+      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
+      <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}" tabindex="0"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong><span>${esc(t.role)}</span></footer></article>`).join('')}</div>
     </section>
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
