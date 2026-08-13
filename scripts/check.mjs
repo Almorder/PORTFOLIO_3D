@@ -76,13 +76,13 @@ for(const f of htmls){
     if(/Détails de production|La fiche technique/i.test(html)) errors.push(`${rel}: duplicate production-details section still visible`);
   }
   if(rel==='contact/index.html'){
-    if(!html.includes('Quel projet préparez-vous ?')) errors.push(`${rel}: compact contact intent heading missing`);
+    if(!html.includes('Ça concerne quoi ?')) errors.push(`${rel}: compact contact intent heading missing`);
     if(!html.includes('name="message"')) errors.push(`${rel}: message field missing`);
-    if(!html.includes('<details class="contact-more">')) errors.push(`${rel}: optional details disclosure missing`);
+    if(!html.includes('contact-more contact-more--composer')) errors.push(`${rel}: optional details disclosure missing`);
   }
 }
 
-// V9 component-system invariants: all 12 requested component behaviours must have real code/markup.
+// V10 component-system invariants: requested behaviours plus fail-safes and corrected placement.
 {
   const home=await readFile(join(dist,'index.html'),'utf8');
   const work=await readFile(join(dist,'work/index.html'),'utf8');
@@ -91,71 +91,82 @@ for(const f of htmls){
   const about=await readFile(join(dist,'a-propos/index.html'),'utf8');
 
   // 1 Page View Counter
-  if(!project.includes('data-page-view-counter')) errors.push('V9 Page View Counter: project markup missing');
-  if(!app.includes('rest/v1/page_views')) errors.push('V9 Page View Counter: Supabase REST wiring missing');
-  try{ await stat(join(root,'supabase/page_views.sql')); }catch{ errors.push('V9 Page View Counter: Supabase SQL setup missing'); }
+  if(!project.includes('data-page-view-counter')) errors.push('V10 Page View Counter: project markup missing');
+  if(!app.includes('rest/v1/page_views')) errors.push('V10 Page View Counter: Supabase REST wiring missing');
+  try{ await stat(join(root,'supabase/page_views.sql')); }catch{ errors.push('V10 Page View Counter: Supabase SQL setup missing'); }
 
   // 2 Hold Confirm
-  if(!project.includes('data-hold-confirm')) errors.push('V9 Hold Confirm: project control missing');
-  if(!app.includes("new CustomEvent('holdconfirm'")) errors.push('V9 Hold Confirm: completion event missing');
+  if(!project.includes('data-hold-confirm')) errors.push('V10 Hold Confirm: project control missing');
+  if(!app.includes("new CustomEvent('holdconfirm'")) errors.push('V10 Hold Confirm: completion event missing');
 
   // 3 Glassy Button
-  if(!css.includes('.button::before') || !css.includes('.button:active')) errors.push('V9 Glassy Button: frosted hover/pressed styles missing');
+  if(!css.includes('.button::before') || !css.includes('.button:active')) errors.push('V10 Glassy Button: frosted hover/pressed styles missing');
 
   // 4 Focus Testimonials
-  if(!home.includes('data-focus-testimonials')) errors.push('V9 Focus Testimonials: home markup missing');
-  if(!home.includes('data-testimonials-toggle')) errors.push('V9 Focus Testimonials: expand control missing');
-  if(!app.includes('positionBadge')) errors.push('V9 Focus Testimonials: smart badge positioning missing');
+  if(!home.includes('data-focus-testimonials')) errors.push('V10 Focus Testimonials: home markup missing');
+  if(!home.includes('data-testimonials-toggle')) errors.push('V10 Focus Testimonials: expand control missing');
+  if(!app.includes('positionBadge')) errors.push('V10 Focus Testimonials: smart badge positioning missing');
 
   // 5 Glass Showcase Pro behaviour recreation
-  if(!home.includes('data-glass-showcase')) errors.push('V9 Glass Showcase: home markup missing');
-  if(!home.includes('data-showcase-webgl')) errors.push('V9 Glass Showcase: WebGL mount missing');
-  if(!app.includes('three@0.180.0')) errors.push('V9 Glass Showcase: pinned Three.js WebGL implementation missing');
-  if(!app.includes('MeshPhysicalMaterial')) errors.push('V9 Glass Showcase: physical glass material missing');
+  if(!home.includes('data-glass-showcase')) errors.push('V10 Glass Showcase: home markup missing');
+  if(!home.includes('data-showcase-webgl')) errors.push('V10 Glass Showcase: WebGL mount missing');
+  if(!app.includes('three@0.180.0')) errors.push('V10 Glass Showcase: pinned Three.js WebGL implementation missing');
+  if(!app.includes('MeshPhysicalMaterial')) errors.push('V10 Glass Showcase: physical glass material missing');
 
   // 6 Logo Preloader
-  if(!home.includes('data-brand-preloader')) errors.push('V9 Logo Preloader: home markup missing');
-  if(!home.includes('data-preloader-hold')) errors.push('V9 Logo Preloader: hold configuration missing');
+  if(!home.includes('data-brand-preloader')) errors.push('V10 Logo Preloader: home markup missing');
+  if(!home.includes('data-preloader-hold')) errors.push('V10 Logo Preloader: hold configuration missing');
+  if(!app.includes('Hard fallback: even if another module throws later')) errors.push('V10 Logo Preloader: JS hard fallback missing');
+  if(!css.includes('@keyframes preloaderFailsafe')) errors.push('V10 Logo Preloader: CSS fail-safe missing');
+  if(app.indexOf('Logo Preloader — fail-safe first')>app.indexOf('updateScroll();')) errors.push('V10 Logo Preloader: fail-safe is not initialized before scroll modules');
 
   // 7 Ambient Video Player
-  if(!project.includes('data-ambient-player')) errors.push('V9 Ambient Video Player: project wrapper missing');
-  if(!css.includes('.ambient-video-player.is-playing')) errors.push('V9 Ambient Video Player: active glow state missing');
+  if(!project.includes('data-ambient-player')) errors.push('V10 Ambient Video Player: project wrapper missing');
+  if(!css.includes('.ambient-video-player.is-playing')) errors.push('V10 Ambient Video Player: active glow state missing');
 
   // 8 Stacked Flow
-  if(!work.includes('data-stacked-flow')) errors.push('V9 Stacked Flow: work markup missing');
-  if(!work.includes('data-stack-prev') || !work.includes('data-stack-next')) errors.push('V9 Stacked Flow: navigation controls missing');
-  if(!app.includes("flow.addEventListener('wheel'")) errors.push('V9 Stacked Flow: wheel interaction missing');
+  if(!work.includes('data-stacked-flow')) errors.push('V10 Stacked Flow: work markup missing');
+  if(!work.includes('data-stack-prev') || !work.includes('data-stack-next')) errors.push('V10 Stacked Flow: navigation controls missing');
+  if(!app.includes("flow.addEventListener('wheel'")) errors.push('V10 Stacked Flow: wheel interaction missing');
 
   // 9 Video Slide Show
-  if(!project.includes('data-video-slide-show')) errors.push('V9 Video Slide Show: project markup missing');
-  if((project.match(/data-video-slide/g)||[]).length<3) errors.push('V9 Video Slide Show: expected at least 3 slide entries');
-  if(!project.includes('data-video-prev') || !project.includes('data-video-next')) errors.push('V9 Video Slide Show: arrow navigation missing');
-  if(!project.includes('data-video-dot')) errors.push('V9 Video Slide Show: pagination dots missing');
+  if(!project.includes('data-video-slide-show')) errors.push('V10 Video Slide Show: project markup missing');
+  if((project.match(/data-video-slide/g)||[]).length<5) errors.push('V10 Video Slide Show: expected 5 portrait slide entries');
+  if(!project.includes('data-video-prev') || !project.includes('data-video-next')) errors.push('V10 Video Slide Show: arrow navigation missing');
+  if(!project.includes('data-video-dot')) errors.push('V10 Video Slide Show: pagination dots missing');
+  if(!project.includes('data-video-mute')) errors.push('V10 Video Slide Show: mute control missing');
+  if(!css.includes('aspect-ratio:9/16')) errors.push('V10 Video Slide Show: portrait card ratio missing');
   if(!app.includes('dataAutoplayInterval') && !app.includes('autoplayInterval')) {
     // Source uses dataset.autoplayInterval; accept the explicit dataset access below.
-    if(!app.includes('dataset.autoplayInterval')) errors.push('V9 Video Slide Show: autoplay timing missing');
+    if(!app.includes('dataset.autoplayInterval')) errors.push('V10 Video Slide Show: autoplay timing missing');
   }
 
   // 10 Animated Stats Pro
-  if(!home.includes('data-animated-stats')) errors.push('V9 Animated Stats: home markup missing');
-  for(const style of ['blur','slide','fade']) if(!home.includes(`data-stat-style="${style}"`)) errors.push(`V9 Animated Stats: ${style} style not represented`);
-  if(!app.includes('easeOutExpo')) errors.push('V9 Animated Stats: easeOutExpo missing');
+  if(!home.includes('data-animated-stats')) errors.push('V10 Animated Stats: home markup missing');
+  if(!home.includes('data-animation="blur"')) errors.push('V10 Animated Stats: chosen site animation missing');
+  for(const style of ['blur','slide','fade','scale']) if(!css.includes(`stat-style--${style}`)) errors.push(`V10 Animated Stats: ${style} engine missing`);
+  if(!app.includes('easeOutExpo')) errors.push('V10 Animated Stats: easeOutExpo missing');
 
   // 11 Line Menu TOC
-  if((project.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: project missing');
-  if((services.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: services missing');
-  if((about.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: about missing');
+  if((project.match(/data-line-toc/g)||[]).length!==1) errors.push('V10 Line TOC: project missing');
+  if((services.match(/data-line-toc/g)||[]).length!==1) errors.push('V10 Line TOC: services missing');
+  if((about.match(/data-line-toc/g)||[]).length!==1) errors.push('V10 Line TOC: about missing');
+  if(!css.includes('.line-toc{position:fixed') || !css.includes('left:14px') || !css.includes('flex-direction:column')) errors.push('V10 Line TOC: desktop vertical-left layout missing');
 
   // 12 Gradient Motion BG
-  for(const mode of ['drift','pulse','rotate','swirl']){
-    const haystack=home+services+about+(await readFile(join(dist,'contact/index.html'),'utf8'));
-    if(!haystack.includes(`data-motion-mode="${mode}"`)) errors.push(`V9 Gradient Motion BG: ${mode} mode not placed`);
+  const contact=await readFile(join(dist,'contact/index.html'),'utf8');
+  const gradientHaystack=home+services+about+contact;
+  if((gradientHaystack.match(/data-gradient-motion/g)||[]).length<4) errors.push('V10 Gradient Motion BG: expected placements missing');
+  for(const style of ['radial','conic','mesh','linear','diamond']){
+    if(!css.includes(`data-gradient-style="${style}"`)) errors.push(`V10 Gradient Motion BG: ${style} engine missing`);
   }
+  if(!gradientHaystack.includes('data-gradient-style="diamond"')) errors.push('V10 Gradient Motion BG: contact diamond placement missing');
 
   // Audit document must say what is original/adapted instead of claiming copied proprietary source.
-  const componentAudit=await readFile(join(root,'COMPONENT_IMPLEMENTATION_V9.md'),'utf8');
-  if(!componentAudit.includes('12 composants ont désormais une implémentation réelle')) errors.push('V9 component audit summary missing');
-  if(!componentAudit.includes('code source propriétaire')) errors.push('V9 component audit does not disclose source-code limitation');
+  const componentAudit=await readFile(join(root,'COMPONENT_IMPLEMENTATION_V10.md'),'utf8');
+  if(!componentAudit.includes('12 composants')) errors.push('V10 component audit summary missing');
+  if(!componentAudit.includes('code source propriétaire')) errors.push('V10 component audit does not disclose source-code limitation');
+  if(!componentAudit.includes('Gradient Motion')) errors.push('V10 component audit does not document the requested background');
 }
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}

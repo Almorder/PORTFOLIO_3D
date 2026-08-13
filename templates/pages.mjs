@@ -2,7 +2,7 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, esc, projectMeta, placeholderVisual, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter } from './components.mjs';
+import { head, header, footer, esc, projectMeta, placeholderVisual, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
@@ -84,7 +84,8 @@ export function homePage(){
       <div class="about-tease__copy"><span class="eyebrow">À propos</span><h2>Je n’aime pas<br>créer pour créer.</h2><p>J’ai passé du temps à comprendre ce qui avait vraiment du sens pour moi dans une image. Aujourd’hui, cette exigence me sert surtout à garder un fil clair dans les projets que l’on me confie.</p><a class="text-link" href="/a-propos/">Faire connaissance <span>↗</span></a></div>
     </section>
 
-    <section class="finale motion-reveal motion-gradient" data-motion-mode="drift">
+    <section class="finale motion-reveal motion-gradient" data-gradient-host>
+      ${gradientMotionBackground({style:'mesh',speed:20,blur:74,opacity:.48,size:122})}
       <span class="eyebrow">Un projet en tête ?</span><h2>Expliquez-moi<br>ce que vous préparez.</h2><p>Une idée, une date ou un problème à résoudre suffisent pour commencer.</p><a class="button button--light" href="/contact/">Écrire à Nolan <span>↗</span></a>
     </section>
   </main>` + footer();
@@ -124,17 +125,19 @@ export function projectPage(){
       <div class="project-story__decisions">${bol.decisions.map((d,i)=>`<article><span>0${i+1}</span><div><h3>${d.title}</h3><p>${d.text}</p></div></article>`).join('')}</div>
     </section>
     ${videoSlideShow([
-      { videoId: bol.videoId, start: 0, poster: bol.poster, kicker: 'Extrait 01', title: 'Ouverture' },
-      { videoId: bol.videoId, start: 20, poster: bol.poster, kicker: 'Extrait 02', title: '20 secondes' },
-      { videoId: bol.videoId, start: 40, poster: bol.poster, kicker: 'Extrait 03', title: '40 secondes' },
-    ], {autoplay:true, interval:5600})}
+      { videoId: bol.videoId, start: 0, poster: bol.poster, position: '42% center', kicker: '01', title: 'Ouverture' },
+      { videoId: bol.videoId, start: 12, poster: bol.poster, position: '35% center', kicker: '02', title: '12 secondes' },
+      { videoId: bol.videoId, start: 24, poster: bol.poster, position: '50% center', kicker: '03', title: '24 secondes' },
+      { videoId: bol.videoId, start: 36, poster: bol.poster, position: '62% center', kicker: '04', title: '36 secondes' },
+      { videoId: bol.videoId, start: 48, poster: bol.poster, position: '72% center', kicker: '05', title: '48 secondes' },
+    ], {autoplay:true, interval:5200, muted:true})}
     <section class="project-next" id="next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Explorer</small><strong>Voir les autres travaux.</strong><span>↗</span></a><a href="/services/"><small>Comprendre</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Commencer</small><strong>Me parler du projet.</strong><span>↗</span></a></section>
   </main>` + footer();
 }
 
 export function servicesPage(){
   return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
-    <section class="services-hero motion-reveal motion-gradient" data-motion-mode="swirl"><span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
+    <section class="services-hero motion-reveal motion-gradient" data-gradient-host>${gradientMotionBackground({style:'radial',speed:17,blur:72,opacity:.42,size:126,colors:['#E97736','#F0C7A5','#CC460C','#6E3C28']})}<span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
     ${lineToc([{id:'marques',label:'Marques'},{id:'recits',label:'Récits'},{id:'moments',label:'Moments'}])}
 
     <section class="service-chapter service-chapter--brand" id="marques">
@@ -177,7 +180,7 @@ export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
   return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
-    <section class="about-story-hero motion-gradient" data-motion-mode="rotate" id="nolan">
+    <section class="about-story-hero motion-gradient" data-gradient-host id="nolan">${gradientMotionBackground({style:'conic',speed:24,blur:78,opacity:.32,size:132,colors:['#E97736','#F0EBE2','#B85A2D','#3B2118']})}
       <div class="about-story-hero__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Ajoutez ici un portrait de Nolan</small></div></div>
       <div class="about-story-hero__copy motion-reveal"><span class="eyebrow">Nolan Ribeiro · réalisateur & directeur artistique</span><h1>Je n’aime pas forcément<br>faire de longs discours.<br><em>Mais j’aime parler quand il le faut.</em></h1><p class="about-hook">Moi, c’est Nolan. Depuis petit, ce qui m’attire, c’est de créer des vidéos, raconter mes propres histoires et mettre ma vision du monde en avant.</p><a class="text-link" href="#about-turn">Continuer <span>↓</span></a></div>
     </section>
@@ -216,15 +219,25 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main>
-    <section class="contact-hero contact-hero--compact motion-gradient" data-motion-mode="pulse"><span class="eyebrow">Contact</span><h1>Qu’est-ce que<br><em>vous préparez ?</em></h1><p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p></section>
-    <section class="contact-experience contact-experience--compact"><form class="contact-form contact-form--glass" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST"><input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-      <div class="contact-glass__head"><span class="eyebrow">Quel projet préparez-vous ?</span><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Film / image de marque</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="story">Récit / collaboration</button><button type="button" data-form-intent="other">Autre projet</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></div>
-      <label class="contact-message"><span>Votre message</span><textarea required name="message" rows="5" placeholder="Le projet, la date si vous l’avez, le lieu et ce que vous attendez de moi…"></textarea></label>
-      <div class="contact-fields contact-fields--essential"><label>Votre nom<input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label>Votre email<input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
-      <details class="contact-more"><summary>Ajouter des précisions <span>optionnel</span></summary><div class="contact-fields"><label>Entreprise<input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label>Budget<select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
-      <div class="contact-submit contact-submit--compact"><button class="button button--light" type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><p class="form-status" role="status" data-form-status></p></div>
-    </form><aside class="contact-direct contact-direct--glass"><span class="eyebrow">Direct</span><a href="mailto:${site.email}">${site.email}</a><p>${site.responseTime}</p><div><a href="${site.calendly}" target="_blank" rel="noreferrer">Réserver 30 min ↗</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></div></aside></section>
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main class="contact-page">
+    <section class="contact-composer motion-gradient" data-gradient-host>
+      ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.5,size:130,colors:['#E97736','#F0C7A5','#CC460C','#A77D67']})}
+      <div class="contact-composer__intro motion-reveal">
+        <span class="eyebrow">Contact</span>
+        <h1>Dites-moi simplement<br><em>ce que vous préparez.</em></h1>
+        <p>Je n’ai pas besoin d’un brief parfait. Dites-moi ce que vous voulez faire, pour qui, et ce qui compte. Je vous réponds sous 48 h ouvrées.</p>
+        <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
+      </div>
+      <form class="contact-form contact-form--composer motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot">
+        <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
+        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
+        <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
+        <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
+        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+        <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
+      </form>
+    </section>
   </main>` + footer();
 }
 

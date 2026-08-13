@@ -1,10 +1,10 @@
-# ASSET MANIFEST — Nolan Arc 2026 · V9
+# ASSET MANIFEST — Nolan Arc 2026 · V7
 
 ## Médias branchés
 
 | Asset | Usage actuel | Source | Statut |
 |---|---|---|---|
-| YouTube `GbeOQ-hgrtU` + poster | Home Work, Work, case study, Video Slide Show et Services/Récits pour *Le bol d’en face* | Projet existant | VERIFIED |
+| YouTube `GbeOQ-hgrtU` + poster | Home Work, Work, case study et Services/Récits pour *Le bol d’en face* | Projet existant | VERIFIED |
 | Image studio / production | Home hero, séquence méthode, carte Marques, Services/Marques | Unsplash · Bianca Maria | TEMPORARY / LICENSED PLACEHOLDER |
 | Image caméra cinéma | Carte Récit et image sociale générique | Unsplash · Redd Francisco | TEMPORARY / LICENSED PLACEHOLDER |
 | Image événement | Carte Moments et Services/Moments | Unsplash · Leo_Visions | TEMPORARY / LICENSED PLACEHOLDER |
@@ -37,9 +37,3 @@ Les images Unsplash servent à juger le rythme et la direction visuelle. Elles n
 ## Règle
 
 Aucun média d'illustration, stock ou généré ne doit être présenté comme une réalisation Nolan Arc.
-
-## Dépendance visuelle chargée à la demande
-
-- `three@0.180.0` via jsDelivr : uniquement pour la couche WebGL décorative du Glass Showcase.
-- le HTML/image fallback reste fonctionnel si le module externe ne peut pas être chargé.
-- aucun média de projet n’est servi par cette dépendance.

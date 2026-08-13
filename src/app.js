@@ -3,6 +3,31 @@ const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 const clamp = (v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Logo Preloader — fail-safe first.
+// This runs before every other interactive module so a later runtime error can never trap the visitor.
+const preloader=$('[data-brand-preloader]');
+if(preloader){
+  const navEntry=performance.getEntriesByType?.('navigation')?.[0];
+  const internalRef=document.referrer && (()=>{try{return new URL(document.referrer).origin===location.origin}catch{return false}})();
+  const skip=internalRef || navEntry?.type==='back_forward' || reduced;
+  const hold=Math.max(0,Number(preloader.dataset.preloaderHold||120));
+  let removed=false;
+  const leave=()=>{
+    if(removed) return;
+    preloader.classList.add('is-leaving');
+    preloader.style.pointerEvents='none';
+    setTimeout(()=>{
+      if(document.contains(preloader)) preloader.remove();
+      removed=true;
+    },620);
+  };
+  if(skip) requestAnimationFrame(leave);
+  else setTimeout(leave,620+hold);
+  // Hard fallback: even if another module throws later, the overlay is removed.
+  setTimeout(leave,1500);
+  addEventListener('pageshow',e=>{if(e.persisted) leave();},{once:true});
+}
+
 // Scroll progress + scene choreography. Native scroll remains the source of truth.
 const scenes = $$('.scroll-scene');
 let ticking = false;
@@ -106,7 +131,7 @@ if(form){
   const buttons=$$('[data-form-intent]',form);
   const input=$('[data-intent-input]',form);
   const initialIntent=new URLSearchParams(location.search).get('intent') || 'other';
-  const map={brand:'Film / image de marque',moment:'Mariage / moment',story:'Récit / collaboration',other:'Autre projet'};
+  const map={brand:'Marque',moment:'Mariage / moment',story:'Film / récit',other:'Autre'};
   const setIntent=(key='other')=>{
     const safe=map[key]?key:'other';
     input.value=map[safe];
@@ -177,19 +202,6 @@ if('IntersectionObserver' in window && !reduced){
 }
 
 // Home entry cards use a three-column desktop grid and native horizontal swipe on narrow screens.
-
-// Logo Preloader — entrance → optional hold → fade. Skipped on internal/back-forward navigation.
-const preloader=$('[data-brand-preloader]');
-if(preloader){
-  const navEntry=performance.getEntriesByType?.('navigation')?.[0];
-  const internalRef=document.referrer && (()=>{try{return new URL(document.referrer).origin===location.origin}catch{return false}})();
-  const skip=internalRef || navEntry?.type==='back_forward' || reduced;
-  const hold=Math.max(0,Number(preloader.dataset.preloaderHold||180));
-  const leave=()=>preloader.classList.add('is-leaving');
-  if(skip) leave();
-  else setTimeout(leave,760+hold);
-  preloader.addEventListener('transitionend',()=>{if(preloader.classList.contains('is-leaving')) preloader.remove();},{once:true});
-}
 
 // Animated Stats Pro — independent implementation of the public behaviour: scroll trigger,
 // easeOutExpo, stagger, decimal support and Blur / Slide / Fade / Scale entrance styles.
@@ -436,11 +448,12 @@ $$('[data-stacked-flow]').forEach(flow=>{
   flow.tabIndex=0; render();
 });
 
-// Video Slide Show — full carousel engine inspired by the public Framer feature list:
-// layered perspective, arrows, dots, autoplay, touch navigation and per-slide video playback.
+// Video Slide Show — layered portrait carousel.
+// The active card stays crisp while neighbouring cards recede through scale, depth, blur and opacity.
 $$('[data-video-slide-show]').forEach(slider=>{
   const slides=$$('[data-video-slide]',slider); if(!slides.length) return;
   const dots=$$('[data-video-dot]',slider);
+  const muteButton=$('[data-video-mute]',slider);
   const autoplay=slider.dataset.autoplay==='true'&&!reduced;
   const interval=Math.max(2200,Number(slider.dataset.autoplayInterval||5200));
   let active=0,timer=0,touch=null,paused=false;
@@ -448,6 +461,25 @@ $$('[data-video-slide-show]').forEach(slider=>{
     const frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
     frame?.replaceChildren();poster?.classList.remove('is-hidden');slide.classList.remove('is-playing');
   });
+  const updateMuteControl=()=>{
+    if(!muteButton) return;
+    const muted=slider.dataset.videoMuted==='true';
+    muteButton.setAttribute('aria-pressed',String(muted));
+    muteButton.setAttribute('aria-label',muted?'Activer le son':'Couper le son');
+    muteButton.classList.toggle('is-muted',muted);
+  };
+  const loadActiveVideo=()=>{
+    const slide=slides[active],frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
+    const id=slide?.dataset.videoId,start=Math.max(0,Number(slide?.dataset.videoStart||0)); if(!id||!frame)return;
+    const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';
+    const iframe=document.createElement('iframe');
+    const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});
+    if(loop) params.set('playlist',id);
+    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;
+    iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;
+    iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;
+    frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
+  };
   const render=()=>{
     slides.forEach((slide,i)=>{
       let d=i-active;const half=slides.length/2;if(d>half)d-=slides.length;if(d<-half)d+=slides.length;
@@ -459,7 +491,7 @@ $$('[data-video-slide-show]').forEach(slider=>{
       if(select) select.tabIndex=isActive?-1:0;
     });
     dots.forEach((dot,i)=>{if(i===active)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});
-    unloadVideos();
+    unloadVideos();updateMuteControl();
   };
   const restart=()=>{clearInterval(timer);if(autoplay&&!paused)timer=setInterval(()=>go(active+1),interval);};
   const go=i=>{active=(i+slides.length)%slides.length;render();restart();};
@@ -469,18 +501,14 @@ $$('[data-video-slide-show]').forEach(slider=>{
   $$('[data-slide-select]',slider).forEach((button,i)=>button.addEventListener('click',()=>{if(i!==active)go(i)}));
   $$('[data-slide-play]',slider).forEach((button,i)=>button.addEventListener('click',()=>{
     if(i!==active){go(i);return;}
-    clearInterval(timer);paused=true;unloadVideos();
-    const slide=slides[i], frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
-    const id=slide.dataset.videoId,start=Math.max(0,Number(slide.dataset.videoStart||0)); if(!id||!frame)return;
-    const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';
-    const iframe=document.createElement('iframe');
-    const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});
-    if(loop) params.set('playlist',id);
-    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;
-    iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;
-    iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;
-    frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
+    clearInterval(timer);paused=true;unloadVideos();loadActiveVideo();
   }));
+  muteButton?.addEventListener('click',()=>{
+    const wasPlaying=slides[active]?.classList.contains('is-playing');
+    slider.dataset.videoMuted=slider.dataset.videoMuted==='true'?'false':'true';
+    updateMuteControl();
+    if(wasPlaying){unloadVideos();loadActiveVideo();}
+  });
   slider.addEventListener('pointerenter',()=>{paused=true;clearInterval(timer)});
   slider.addEventListener('pointerleave',()=>{paused=false;restart()});
   slider.addEventListener('focusin',()=>{paused=true;clearInterval(timer)});
