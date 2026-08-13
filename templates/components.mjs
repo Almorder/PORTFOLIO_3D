@@ -56,11 +56,11 @@ const activeFor = (active, href) => {
 
 export function header(active='') {
   const nav = site.nav.map(item => `<a class="site-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
-  return `<div class="page-progress" aria-hidden="true"><i></i></div><header class="site-header" data-header>
+  return `<a class="skip-link" href="#main-content">Aller au contenu</a><div class="page-progress" aria-hidden="true"><i></i></div><header class="site-header" data-header>
     <a class="brand" href="/" aria-label="Nolan Arc — Accueil"><span>Nolan</span><b>.</b><span>Arc</span></a>
     <nav class="site-nav" aria-label="Navigation principale">${nav}</nav>
     <a class="header-cta" href="/contact/">Parler d’un projet <span aria-hidden="true">↗</span></a>
-    <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button><span>Menu</span><i></i><i></i></button>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button><span data-menu-label>Menu</span></button>
   </header>
   <div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
     <div class="mobile-menu__inner">
@@ -80,7 +80,6 @@ export function header(active='') {
 
 export function footer() {
   return `<footer class="site-footer">
-    <div class="site-footer__lead"><span class="eyebrow">Un projet en tête ?</span><p>Vous pouvez m’écrire avec un brief précis ou simplement m’expliquer ce que vous cherchez.</p><a class="text-link text-link--large" href="/contact/">Parler à Nolan <span>↗</span></a></div>
     <div class="site-footer__cols">
       <div><strong>Nolan Arc</strong><span>${site.role}</span><span>${site.location}</span></div>
       <div><strong>Explorer</strong><a href="/work/">Work</a><a href="/services/">Services</a><a href="/a-propos/">À propos</a><a href="/journal/">Journal</a></div>
@@ -122,7 +121,7 @@ export function animatedStats(stats=[], {theme='dark', layout='auto', replay=fal
     const value=Number(stat.value)||0;
     const decimals=Number.isInteger(value)?0:String(value).split('.')[1]?.length||0;
     const style=styles.includes(stat.animation)?stat.animation:selected;
-    return `<article class="stat-style--${esc(style)}" data-stat-card data-stat-order="${i}" data-stat-style="${esc(style)}"><strong><span>${esc(stat.prefix||'')}</span><b data-counter data-counter-target="${value}" data-counter-decimals="${decimals}">0${decimals?'.'+'0'.repeat(decimals):''}</b><span>${esc(stat.suffix||'')}</span></strong><small>${esc(stat.label)}</small></article>`;
+    return `<article class="stat-style--${esc(style)}" data-stat-card data-stat-order="${i}" data-stat-style="${esc(style)}"><strong><span>${esc(stat.prefix||'')}</span><b data-counter data-counter-target="${value}" data-counter-decimals="${decimals}">${value.toFixed(decimals)}</b><span>${esc(stat.suffix||'')}</span></strong><small>${esc(stat.label)}</small></article>`;
   }).join('')}</section>`;
 }
 

@@ -17,7 +17,7 @@ export function homePage(){
     description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films, direction visuelle et récits construits autour d’une intention claire.",
     path:'/', bodyClass:'page-home'
   }) + header('/') + logoPreloader() + `
-  <main>
+  <main id="main-content">
     <section class="home-hero scroll-scene" data-scene="hero">
       <div class="home-hero__sticky scene-sticky">
         <div class="home-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="home-hero__shade"></div></div>
@@ -32,12 +32,13 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="trust-strip motion-reveal" aria-label="Collaborations">
-      <span class="eyebrow">Collaborations</span>
-      <div>${site.clients.map(esc).join('<i>·</i>')}</div>
+    <section class="proof-cluster" aria-label="Repères et collaborations">
+      <div class="trust-strip motion-reveal" aria-label="Collaborations">
+        <span class="eyebrow">Collaborations</span>
+        <div>${site.clients.map(esc).join('<i>·</i>')}</div>
+      </div>
+      ${animatedStats(site.proofStats)}
     </section>
-
-    ${animatedStats(site.proofStats)}
 
     <section class="project-rift" id="work-preview">
       <div class="project-rift__intro motion-reveal">
@@ -61,7 +62,7 @@ export function homePage(){
         <div class="journey__counter"><span>02</span><b data-journey-count>01 / 03</b></div>
         <div class="journey__stage">
           <div class="journey__object"><div class="journey__halo"></div>${glassShowcase([visuals.brand, visuals.story, visuals.moment])}<div class="journey__ring"></div></div>
-          <article class="journey-copy is-active" data-journey-step="0"><small>COMPRENDRE</small><h2>Qu’est-ce que vous voulez<br><em>faire comprendre, ressentir ou garder ?</em></h2><p>C’est la question qui évite de tourner pour tourner.</p></article>
+          <article class="journey-copy is-active" data-journey-step="0"><small>COMPRENDRE</small><h2>Qu’est-ce que vous voulez<br><em>faire comprendre, ressentir ou garder ?</em></h2><p>Elle évite de choisir un format ou une image avant de savoir ce qu’ils doivent produire chez le spectateur.</p></article>
           <article class="journey-copy" data-journey-step="1"><small>CHOISIR</small><h2>Le cadre vient<br><em>après.</em></h2><p>Lumière, mouvement, son et rythme servent l’idée. Pas l’inverse.</p></article>
           <article class="journey-copy" data-journey-step="2"><small>TENIR LE FIL</small><h2>La même idée,<br><em>du brief au montage.</em></h2><p>Je garde la direction jusqu’au rendu final pour éviter qu’elle se dilue en route.</p></article>
         </div>
@@ -94,17 +95,18 @@ export function homePage(){
 export function workPage(){
   const verified = projects.filter(p=>p.status==='verified');
   const collaborations = projects.filter(p=>p.status!=='verified');
-  return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work'}) + header('/work/') + `<main>
+  return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work'}) + header('/work/') + `<main id="main-content">
     <section class="page-hero page-hero--work motion-reveal"><span class="eyebrow">Work</span><h1>Le travail,<br><em>sans détour.</em></h1><p>Le film d’abord. Puis mon rôle, le contexte et les choix qui ont réellement changé le résultat.</p></section>
     <section class="work-field" data-work-field>
       ${verified.map((p,i)=>`<article class="work-entry is-verified" data-territory="${p.territory}"><div class="work-entry__index">0${i+1}</div><a class="work-entry__visual" href="${p.href}"><img src="${p.poster}" alt="${esc(p.title)}" loading="lazy"></a><div class="work-entry__copy"><span>${p.territory} · ${p.year}</span><h2>${esc(p.title)}</h2><p>${esc(p.summary)}</p><small>${esc(p.role)}</small><a class="text-link" href="${p.href}">Voir le projet <span>↗</span></a></div></article>`).join('')}
     </section>
     <section class="work-collabs"><div class="work-collabs__intro motion-reveal"><span class="eyebrow">Autres collaborations</span><h2>D’autres contextes.<br>Le même besoin de cohérence.</h2><p>Direction artistique, contenu social ou moments personnels : le format change, mais je pars toujours de ce que le projet doit faire comprendre, ressentir ou garder.</p></div>${stackedFlow(collaborations.map((p)=>({href:p.href,kicker:p.type,title:p.title,text:p.summary,image:p.slug==='moments'?visuals.moment:(p.slug==='a-one-permis'?visuals.story:visuals.brand)})))}</section>
+    <section class="work-route motion-reveal"><span class="eyebrow">Votre contexte n’est pas dans la liste ?</span><div><p>Je peux d’abord regarder le besoin, puis vous dire si je suis la bonne personne et sous quelle forme intervenir.</p><a class="text-link" href="/services/">Voir comment j’interviens <span>↗</span></a><a class="text-link" href="/contact/">M’expliquer le projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project'}) + header('/projet/le-bol-den-face/') + `<main>
+  return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project'}) + header('/projet/le-bol-den-face/') + `<main id="main-content">
     <section class="project-intro">
       <a class="back-link" href="/work/">← Work</a><span class="eyebrow">${bol.type} · ${bol.year}</span>
       <div class="project-intro__grid"><h1>${bol.title}</h1><div><p>${bol.summary}</p><span>${bol.role}</span></div></div>
@@ -136,7 +138,7 @@ export function projectPage(){
 }
 
 export function servicesPage(){
-  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
+  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main id="main-content">
     <section class="services-hero motion-reveal motion-gradient" data-gradient-host>${gradientMotionBackground({style:'radial',speed:17,blur:72,opacity:.42,size:126,colors:['#E97736','#F0C7A5','#CC460C','#6E3C28']})}<span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
     ${lineToc([{id:'marques',label:'Marques'},{id:'recits',label:'Récits'},{id:'moments',label:'Moments'}])}
 
@@ -179,7 +181,7 @@ export function marquesPage(){ return servicesPage(); }
 export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
+  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main id="main-content">
     <section class="about-story-hero motion-gradient" data-gradient-host id="nolan">${gradientMotionBackground({style:'conic',speed:24,blur:78,opacity:.32,size:132,colors:['#E97736','#F0EBE2','#B85A2D','#3B2118']})}
       <div class="about-story-hero__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Ajoutez ici un portrait de Nolan</small></div></div>
       <div class="about-story-hero__copy motion-reveal"><span class="eyebrow">Nolan Ribeiro · réalisateur & directeur artistique</span><h1>Je n’aime pas forcément<br>faire de longs discours.<br><em>Mais j’aime parler quand il le faut.</em></h1><p class="about-hook">Moi, c’est Nolan. Depuis petit, ce qui m’attire, c’est de créer des vidéos, raconter mes propres histoires et mettre ma vision du monde en avant.</p><a class="text-link" href="#about-turn">Continuer <span>↓</span></a></div>
@@ -193,7 +195,7 @@ export function aboutPage(){
 
     <section class="about-identity" id="about-identity">
       <div class="about-identity__visual motion-reveal"><div><small>CE QUI M’ATTIRE</small><strong>Les univers qui ont une identité, une histoire, quelque chose qui leur est propre.</strong></div></div>
-      <div class="about-identity__copy motion-reveal"><span class="eyebrow">Ce qui relie mes goûts à mon travail</span><h2>Je peux passer d’un animé à un parfum de niche pour la même raison.</h2><p>Ce qui m’accroche n’est pas seulement le format ou ce qui est populaire. C’est l’univers derrière : sa personnalité, ses détails, sa cohérence.</p><p>Sur un projet, je cherche la même chose. <strong>Pas simplement faire « beau », mais trouver ce qui peut le rendre identifiable et juste pour son contexte.</strong></p></div>
+      <div class="about-identity__copy motion-reveal"><span class="eyebrow">Ce qui relie mes goûts à mon travail</span><h2>Je remarque vite quand un univers tient jusque dans ses détails.</h2><p>Ce qui m’accroche, c’est la cohérence : une manière de cadrer, une matière, un rythme, une façon de parler ou de montrer les choses qui finit par devenir reconnaissable.</p><p>Sur un projet, je cherche la même chose. <strong>Pas simplement faire « beau », mais trouver les décisions qui lui donnent une identité juste pour son contexte.</strong></p></div>
     </section>
 
     <section class="about-client-value" id="about-value">
@@ -207,19 +209,20 @@ export function aboutPage(){
 
     <section class="about-arc motion-reveal"><span class="eyebrow">Pourquoi « Arc » ?</span><div><h2>Parce qu’une image<br>n’est jamais seule.</h2><p>Il y a un point de départ, des choix, une évolution et un résultat. « Arc » me rappelle cette trajectoire : ce que l’on décide au début doit encore se sentir à la fin.</p></div></section>
 
-    <section class="about-proof motion-reveal"><div><span class="eyebrow">Vu de l’extérieur</span><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote></div><a class="button button--light" href="/work/">Voir le travail <span>↗</span></a></section>
+    <section class="about-proof motion-reveal"><div><span class="eyebrow">Vu de l’extérieur</span><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote></div><div class="about-proof__actions"><a class="button button--light" href="/work/">Voir le travail <span>↗</span></a><a class="text-link text-link--on-ember" href="/contact/">Parler d’un projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
 
 export function journalPage(){
-  return head({title:'Journal — Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main>
+  return head({title:'Journal — Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main id="main-content">
     <section class="journal-hero motion-reveal"><span class="eyebrow">Journal</span><h1>Ce que je regarde<br><em>avant d’appuyer sur REC.</em></h1><p>Préparation, cadrage, rythme : des décisions concrètes que j’utilise pour éviter de tourner ou monter au hasard.</p></section>
     <section class="journal-stack">${notes.map((n,i)=>`<article id="${n.slug}" class="motion-reveal"><span>0${i+1}</span><small>${n.category} · ${n.date}</small><h2>${n.title}</h2><p>${n.excerpt}</p></article>`).join('')}</section>
+    <section class="journal-bridge motion-reveal"><span class="eyebrow">Dans un vrai projet</span><div><h2>Voir ces choix appliqués dans un film.</h2><a class="text-link" href="/projet/le-bol-den-face/">Le bol d’en face <span>↗</span></a></div></section>
   </main>` + footer();
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main class="contact-page">
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main id="main-content" class="contact-page">
     <section class="contact-composer motion-gradient" data-gradient-host>
       ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.5,size:130,colors:['#E97736','#F0C7A5','#CC460C','#A77D67']})}
       <div class="contact-composer__intro motion-reveal">
@@ -247,7 +250,7 @@ const legalValue = (value, fallback='À compléter avant publication') => value 
 
 export function legalPage(){
   const vat = legal.vat ? esc(legal.vat) : 'Non renseigné / à confirmer selon le régime fiscal réel';
-  return head({title:'Mentions légales — Nolan Arc',description:'Mentions légales du site Nolan Arc.',path:'/mentions-legales/',bodyClass:'page-legal'}) + header() + `<main class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Informations légales</span><h1>Mentions légales</h1>
+  return head({title:'Mentions légales — Nolan Arc',description:'Mentions légales du site Nolan Arc.',path:'/mentions-legales/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Informations légales</span><h1>Mentions légales</h1>
   <h2>Éditeur du site</h2><p><strong>${esc(site.legalName)}</strong>${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, exerçant sous l’identité professionnelle <strong>${esc(site.name)}</strong>.<br>Adresse professionnelle : ${legalValue(legal.registeredAddress)}.<br>Téléphone : ${legalValue(legal.phone)}.<br>Email : <a href="mailto:${site.email}">${esc(site.email)}</a>.<br>SIREN : ${legalValue(legal.siren)}.<br>SIRET : ${legalValue(legal.siret)}.<br>Code APE : ${legalValue(legal.ape)}.<br>TVA : ${vat}.</p>
   <h2>Directeur de la publication</h2><p>${esc(legal.publicationDirector)}.</p>
   <h2>Hébergement</h2><p>${esc(legal.host.name)}, ${esc(legal.host.address)} — <a href="${esc(legal.host.website)}" rel="noreferrer">${esc(legal.host.website)}</a>.</p>
@@ -258,7 +261,7 @@ export function legalPage(){
 }
 
 export function privacyPage(){
-  return head({title:'Confidentialité — Nolan Arc',description:'Politique de confidentialité et traitement des données personnelles sur nolanarc.com.',path:'/confidentialite/',bodyClass:'page-legal'}) + header() + `<main class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Vie privée</span><h1>Politique de confidentialité</h1>
+  return head({title:'Confidentialité — Nolan Arc',description:'Politique de confidentialité et traitement des données personnelles sur nolanarc.com.',path:'/confidentialite/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Vie privée</span><h1>Politique de confidentialité</h1>
   <h2>Responsable du traitement</h2><p>${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, adresse : ${legalValue(legal.registeredAddress)}, contact : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>.</p>
   <h2>Formulaire de contact</h2><p>Lorsque vous utilisez le formulaire, sont traitées les informations que vous renseignez : nom, adresse email, entreprise éventuelle, catégorie et description du projet, budget éventuel, ainsi que les informations librement ajoutées dans le message. La finalité est de répondre à votre demande, d’évaluer la possibilité d’une collaboration et, le cas échéant, de prendre des mesures précontractuelles à votre demande.</p>
   <p>Les champs obligatoires sont signalés dans le formulaire. Sans nom, adresse email et description du projet, il n’est pas possible de traiter correctement la demande.</p>
@@ -272,7 +275,7 @@ export function privacyPage(){
 }
 
 export function cookiesPage(){
-  return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
+  return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
   <h2>Principe</h2><p>Cette version de nolanarc.com n’utilise pas d’outil publicitaire, de profilage ni d’analytics tiers. Le site n’enregistre pas votre parcours dans le navigateur pour personnaliser la visite.</p>
   <h2>Vidéo YouTube</h2><p>Le lecteur vidéo externe n’est créé qu’après votre clic sur le bouton permettant de charger YouTube. Avant cette action, aucun iframe YouTube n’est présent dans la page. En activant le lecteur, votre navigateur communique avec YouTube et ce service peut traiter des informations conformément à ses propres règles.</p>
   <h2>Polices et liens externes</h2><p>Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts. Ce chargement crée une connexion vers les serveurs du fournisseur afin de récupérer les fichiers nécessaires. Les liens vers Instagram, YouTube et Calendly n’activent pas ces services tant que vous ne les ouvrez pas. Une fois le site tiers ouvert, ses propres règles en matière de cookies et de données personnelles s’appliquent.</p>
@@ -282,7 +285,7 @@ export function cookiesPage(){
 
 export function cgvPage(){
   const mediator = legal.mediator.name ? `${esc(legal.mediator.name)} — ${esc(legal.mediator.address)} — <a href="${esc(legal.mediator.website)}" rel="noreferrer">${esc(legal.mediator.website)}</a>` : `Coordonnées du médiateur de la consommation non encore renseignées. Pour toute réclamation préalable : <a href="mailto:${site.email}">${esc(site.email)}</a>.`;
-  return head({title:'CGV — Nolan Arc',description:'Conditions générales de vente et de prestation de services Nolan Arc.',path:'/cgv/',bodyClass:'page-legal'}) + header() + `<main class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Conditions commerciales</span><h1>Conditions générales de vente et de prestation de services</h1>
+  return head({title:'CGV — Nolan Arc',description:'Conditions générales de vente et de prestation de services Nolan Arc.',path:'/cgv/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Conditions commerciales</span><h1>Conditions générales de vente et de prestation de services</h1>
   <h2>1. Prestataire et champ d’application</h2><p>Les présentes conditions encadrent les prestations proposées par ${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, sous l’identité professionnelle ${esc(site.name)}. Elles s’appliquent aux clients professionnels et, lorsqu’une prestation est conclue avec un consommateur, sous réserve des dispositions impératives du Code de la consommation. Le devis ou contrat accepté précise le périmètre du projet et prévaut sur les présentes conditions pour les modalités particulières.</p>
   <h2>2. Formation du contrat</h2><p>La prise de contact via le site ne vaut pas commande. Le contrat est formé lorsque le devis, bon de commande ou contrat transmis par Nolan Arc est accepté selon les modalités qui y sont indiquées. Le document accepté précise au minimum la nature de la mission, les livrables, le calendrier estimatif et le prix ou son mode de calcul.</p>
   <h2>3. Prix</h2><p>Les prestations sont principalement réalisées sur devis, en fonction du périmètre, de la durée de production, des livrables, des droits demandés et des frais éventuels. Lorsque le prix exact ne peut être calculé à l’avance, son mode de calcul et les frais connus sont communiqués avant l’engagement du client. Pour les consommateurs, les montants communiqués sont exprimés TTC lorsque la TVA est applicable.</p>
@@ -299,7 +302,7 @@ export function cgvPage(){
 }
 
 export function withdrawalPage(){
-  return head({title:'Rétractation — Nolan Arc',description:'Informations et modèle de formulaire de rétractation pour les contrats à distance conclus avec un consommateur.',path:'/retractation/',bodyClass:'page-legal'}) + header() + `<main class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Consommateurs</span><h1>Droit de rétractation</h1>
+  return head({title:'Rétractation — Nolan Arc',description:'Informations et modèle de formulaire de rétractation pour les contrats à distance conclus avec un consommateur.',path:'/retractation/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Consommateurs</span><h1>Droit de rétractation</h1>
   <h2>Principe</h2><p>Pour un contrat de prestation de services conclu à distance avec un consommateur, un droit de rétractation de quatorze jours à compter de la conclusion du contrat s’applique en principe, sauf exception prévue par la loi. Les conditions particulières applicables à votre projet sont rappelées avant la conclusion du contrat.</p>
   <h2>Demande d’exécution anticipée</h2><p>Si vous souhaitez que la prestation commence avant l’expiration du délai de rétractation, une demande expresse peut être nécessaire. Lorsque les conditions légales d’une perte du droit de rétractation sont réunies après exécution complète, une information et un accord spécifiques sont recueillis avant le commencement de la prestation.</p>
   <h2>Exercer votre droit</h2><p>Vous pouvez envoyer une déclaration dénuée d’ambiguïté à <a href="mailto:${site.email}">${esc(site.email)}</a>, ou utiliser le modèle ci-dessous.</p>
@@ -308,5 +311,5 @@ export function withdrawalPage(){
 }
 
 export function notFoundPage(){
-  return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main class="not-found"><span>404</span><h1>Ce plan<br><em>n’existe pas.</em></h1><a class="button" href="/work/">Retour au Work <span>↗</span></a></main>` + footer();
+  return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="not-found"><span>404</span><h1>Ce plan<br><em>n’existe pas.</em></h1><a class="button" href="/work/">Retour au Work <span>↗</span></a></main>` + footer();
 }

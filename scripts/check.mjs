@@ -163,10 +163,41 @@ for(const f of htmls){
   if(!gradientHaystack.includes('data-gradient-style="diamond"')) errors.push('V10 Gradient Motion BG: contact diamond placement missing');
 
   // Audit document must say what is original/adapted instead of claiming copied proprietary source.
-  const componentAudit=await readFile(join(root,'COMPONENT_IMPLEMENTATION_V10.md'),'utf8');
-  if(!componentAudit.includes('12 composants')) errors.push('V10 component audit summary missing');
-  if(!componentAudit.includes('code source propriétaire')) errors.push('V10 component audit does not disclose source-code limitation');
-  if(!componentAudit.includes('Gradient Motion')) errors.push('V10 component audit does not document the requested background');
+  const componentAudit=await readFile(join(root,'COMPONENT_IMPLEMENTATION_V11.md'),'utf8');
+  if(!componentAudit.includes('12 composants')) errors.push('V11 component audit summary missing');
+  if(!componentAudit.includes('code source propriétaire')) errors.push('V11 component audit does not disclose source-code limitation');
+  if(!componentAudit.includes('Gradient Motion')) errors.push('V11 component audit does not document the requested background');
+}
+
+
+// V11 coherence + journey invariants from the latest UX audit.
+{
+  const home=await readFile(join(dist,'index.html'),'utf8');
+  const work=await readFile(join(dist,'work/index.html'),'utf8');
+  const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
+  const services=await readFile(join(dist,'services/index.html'),'utf8');
+  const about=await readFile(join(dist,'a-propos/index.html'),'utf8');
+  const journal=await readFile(join(dist,'journal/index.html'),'utf8');
+  const contact=await readFile(join(dist,'contact/index.html'),'utf8');
+
+  for(const [rel,html] of [['home',home],['work',work],['project',project],['services',services],['about',about],['journal',journal],['contact',contact]]){
+    if(!html.includes('id="main-content"')) errors.push(`V11 ${rel}: main-content anchor missing`);
+    if(!html.includes('class="skip-link"')) errors.push(`V11 ${rel}: skip link missing`);
+    if(html.includes('site-footer__lead')) errors.push(`V11 ${rel}: duplicated oversized footer CTA still rendered`);
+    if(/animé|anime/i.test(html)) errors.push(`V11 ${rel}: unwanted anime reference still visible`);
+  }
+  if(!home.includes('class="proof-cluster"')) errors.push('V11 Home: collaborations + stats proof cluster missing');
+  if(!home.includes('data-scene="journey"')) errors.push('V11 Home: journey scene missing');
+  if(!app.includes('--journey-shift') || !app.includes('--journey-ring')) errors.push('V11 Home: journey scroll motion variables missing');
+  if(!css.includes('@keyframes journeyHalo')) errors.push('V11 Home: journey ambient motion missing');
+  if(!app.includes("counter.textContent=(0).toFixed(decimals)")) errors.push('V11 Stats: numeric count-up initialization missing');
+  if(!css.includes('.animated-stats article{') || !css.includes('opacity:1')) errors.push('V11 Stats: no-JS readable fallback missing');
+  if(!css.includes('.line-toc.is-open') || !app.includes('scheduleClose(1900)')) errors.push('V11 Line TOC: delayed hover expansion missing');
+  if(!css.includes('grid-column:3') || !contact.includes('data-menu-label')) errors.push('V11 Mobile menu: top-right menu placement hook missing');
+  if(!css.includes('.mobile-menu{position:fixed') || !css.includes('color:var(--paper)')) errors.push('V11 Mobile menu: readable overlay styling missing');
+  if(!work.includes('class="work-route motion-reveal"')) errors.push('V11 Work: explicit Services/Contact continuation missing');
+  if(!journal.includes('class="journal-bridge motion-reveal"')) errors.push('V11 Journal: bridge to concrete work missing');
+  if(!about.includes('Parler d’un projet')) errors.push('V11 About: contact continuation missing');
 }
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}

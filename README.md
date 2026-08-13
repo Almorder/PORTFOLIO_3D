@@ -1,21 +1,25 @@
 # Nolan Arc — Portfolio 2026
-## V10 · Components + fiabilité
+## V11 · Cohérence, parcours et stabilité
 
 Repository complet de `nolanarc.com`.
 
-La V10 corrige le blocage du preloader et consolide les composants Framer demandés dans une architecture HTML/CSS/JS statique compatible GitHub Pages.
+La V11 part de la V10 mais corrige les incohérences relevées en usage réel : CTA géant répété dans le footer, scène « Comprendre » trop statique, statistiques pouvant apparaître comme un bloc vide, Line Menu TOC trop ouvert par défaut et menu mobile illisible/mal positionné.
 
-### Changements V10
+### Changements V11
 
-- preloader avec sortie JS prioritaire + fail-safe CSS ;
-- Gradient Motion Background reconstruit avec styles Radial / Conic / Mesh / Linear / Diamond ;
-- Animated Stats Pro conservé avec `easeOutExpo`, stagger et bandeau responsive ;
-- Line Menu TOC vertical et fixe à gauche sur desktop ;
-- Video Slide Show en éventail de 5 cartes portrait, proche de la référence fournie ;
-- formulaire Contact transformé en composer glass compact ;
-- navigation mobile et barre de progression horizontale conservées.
+- suppression du grand CTA générique répété dans le footer de toutes les pages ;
+- footer réduit à la navigation, au contact et aux pages légales ;
+- scène Home `Comprendre → Choisir → Tenir le fil` remise en mouvement avec déplacement continu, rotation, halo et changement de média pilotés par le scroll ;
+- `Animated Stats` rendu lisible même si JavaScript ou IntersectionObserver ne s'exécute pas ;
+- regroupement collaborations + statistiques dans un seul cluster de preuve ;
+- `Line Menu TOC` replié au repos, ouverture au survol/focus puis fermeture différée ;
+- menu mobile corrigé : `Menu` réellement en haut à droite, overlay lisible, fermeture accessible ;
+- suppression de la référence aux animés dans la page À propos ;
+- ajout de sorties logiques Work → Services/Contact, Journal → projet réel et À propos → Contact ;
+- transitions entre sections adoucies : chevauchements arrondis, révélation des médias et continuité visuelle ;
+- ajout d'un lien d'évitement accessibilité vers `#main-content`.
 
-Le détail des 12 composants est dans `COMPONENT_IMPLEMENTATION_V10.md`.
+L'audit complet est dans `AUDIT_V11.md`. Les composants demandés restent documentés dans `COMPONENT_IMPLEMENTATION_V11.md`.
 
 ## Installation
 
@@ -32,19 +36,17 @@ Serveur local : `http://127.0.0.1:4173`
 npm run check
 ```
 
-Cette commande reconstruit le site, vérifie les routes, les assets hashés, la syntaxe JS, les liens internes, les H1, les alt, les pages légales, le formulaire et les invariants des composants V10.
-
 Le build de production est généré dans `dist/`. Ne modifie pas `dist/` manuellement.
 
 ## Remplacer le repository actuel
 
 Garde le repository GitHub `Almorder/PORTFOLIO_3D` et son dossier `.git`.
 
-1. Décompresse le ZIP V10.
-2. Dans ton dossier local cloné `PORTFOLIO_3D`, supprime l'ancien contenu **sans supprimer `.git`**.
+1. Décompresse le ZIP V11.
+2. Dans le dossier local cloné `PORTFOLIO_3D`, supprime l'ancien contenu **sans supprimer `.git`**.
 3. Copie le contenu du ZIP directement à la racine.
 4. Dans GitHub Desktop : `Commit to main` puis `Push origin`.
-5. GitHub Pages doit rester configuré sur `Settings → Pages → Source → GitHub Actions`.
+5. GitHub Pages reste configuré sur `Settings → Pages → Source → GitHub Actions`.
 
 ## Fichiers principaux
 
@@ -55,8 +57,13 @@ Garde le repository GitHub `Almorder/PORTFOLIO_3D` et son dossier `.git`.
 - `templates/components.mjs` : composants ;
 - `src/styles.css` : UI ;
 - `src/app.js` : interactions ;
-- `scripts/check.mjs` : QA.
+- `scripts/check.mjs` : QA ;
+- `AUDIT_V11.md` : audit parcours / cohérence / manques.
 
-## Médias à remplacer progressivement
+## Manques qui ne doivent pas être inventés
 
-Les illustrations génériques Home / Services restent temporaires. Le portrait Nolan est attendu sous `public/assets/nolan-portrait.jpg`.
+- portrait réel de Nolan : `public/assets/nolan-portrait.jpg` ;
+- médias réels supplémentaires pour Ouilove, A One Permis et Moments ;
+- davantage de vrais case studies documentés ;
+- credentials Supabase si le compteur de vues doit être activé ;
+- test live FormSubmit depuis `nolanarc.com`.

@@ -42,6 +42,11 @@ function updateScroll(){
     scene.style.setProperty('--p', p.toFixed(4));
     if(scene.dataset.scene === 'journey'){
       const idx = Math.min(2, Math.floor(p*3));
+      scene.dataset.journeyStep=String(idx);
+      scene.style.setProperty('--journey-shift',((p-.5)*11).toFixed(3));
+      scene.style.setProperty('--journey-y',(Math.sin(p*Math.PI*2)*1.8).toFixed(3));
+      scene.style.setProperty('--journey-rot',`${((p-.5)*5.5).toFixed(2)}deg`);
+      scene.style.setProperty('--journey-ring',`${(p*220).toFixed(1)}deg`);
       $$('[data-journey-step]', scene).forEach((el,i)=>el.classList.toggle('is-active',i===idx));
       const count = $('[data-journey-count]', scene);
       if(count) count.textContent = `0${idx+1} / 03`;
@@ -81,10 +86,12 @@ const mobileMenu=$('[data-mobile-menu]');
 if(menuButton && mobileMenu){
   let returnFocus=null;
   const focusable=()=>$$('a,button,[tabindex]:not([tabindex="-1"])',mobileMenu).filter(el=>!el.hidden);
+  const menuLabel=$('[data-menu-label]',menuButton);
   const closeMenu=()=>{
     menuButton.setAttribute('aria-expanded','false');
     mobileMenu.hidden=true;
     document.body.classList.remove('menu-open');
+    if(menuLabel) menuLabel.textContent='Menu';
     returnFocus?.focus?.();
   };
   const openMenu=()=>{
@@ -92,6 +99,7 @@ if(menuButton && mobileMenu){
     menuButton.setAttribute('aria-expanded','true');
     mobileMenu.hidden=false;
     document.body.classList.add('menu-open');
+    if(menuLabel) menuLabel.textContent='Fermer';
     requestAnimationFrame(()=>focusable()[0]?.focus());
   };
   menuButton.addEventListener('click',()=>menuButton.getAttribute('aria-expanded')==='true'?closeMenu():openMenu());
@@ -208,6 +216,14 @@ if('IntersectionObserver' in window && !reduced){
 $$('[data-animated-stats]').forEach(section=>{
   const cards=$$('[data-stat-card]',section);
   const replay=section.dataset.replay==='true';
+  if(!reduced){
+    cards.forEach(card=>{
+      const counter=$('[data-counter]',card); if(!counter) return;
+      const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
+      card.classList.add('is-stat-prep');
+      counter.textContent=(0).toFixed(decimals);
+    });
+  }
   let hasRun=false;
   const easeOutExpo=p=>p>=1?1:1-Math.pow(2,-10*p);
   const run=()=>{
@@ -218,8 +234,11 @@ $$('[data-animated-stats]').forEach(section=>{
       const target=Number(counter.dataset.counterTarget||0);
       const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
       card.classList.remove('is-stat-visible');
+      card.classList.add('is-stat-prep');
+      counter.textContent=(0).toFixed(decimals);
       const startDelay=reduced?0:index*95;
       setTimeout(()=>{
+        card.classList.remove('is-stat-prep');
         card.classList.add('is-stat-visible');
         if(reduced){counter.textContent=target.toFixed(decimals);return;}
         const start=performance.now(), duration=1050;
@@ -233,7 +252,7 @@ $$('[data-animated-stats]').forEach(section=>{
       },startDelay);
     });
   };
-  const reset=()=>{if(!replay)return;cards.forEach(card=>card.classList.remove('is-stat-visible'));};
+  const reset=()=>{if(!replay)return;cards.forEach(card=>{card.classList.remove('is-stat-visible');card.classList.add('is-stat-prep');});};
   if('IntersectionObserver' in window && !reduced){
     const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
       if(entry.isIntersecting) run(); else reset();
@@ -518,11 +537,19 @@ $$('[data-video-slide-show]').forEach(slider=>{
   render();restart();
 });
 
-// Line Menu TOC — reduced line indicators, proportional expansion, label reveal and active-section tracking.
+// Line Menu TOC — collapsed rail at rest. It opens on hover/focus and closes a moment after the pointer leaves.
 $$('[data-line-toc]').forEach(toc=>{
   const links=$$('a[data-toc-target]',toc);
   const targets=links.map(a=>document.getElementById(a.dataset.tocTarget)).filter(Boolean);
   if(!targets.length) return;
+  let closeTimer=0;
+  const open=()=>{clearTimeout(closeTimer);toc.classList.add('is-open')};
+  const scheduleClose=(delay=1800)=>{clearTimeout(closeTimer);closeTimer=setTimeout(()=>toc.classList.remove('is-open'),delay)};
+  toc.addEventListener('pointerenter',open);
+  toc.addEventListener('pointerleave',()=>scheduleClose(1900));
+  toc.addEventListener('focusin',open);
+  toc.addEventListener('focusout',e=>{if(!toc.contains(e.relatedTarget))scheduleClose(900)});
+  links.forEach(a=>a.addEventListener('click',()=>scheduleClose(1200)));
   const setActive=id=>links.forEach(a=>{
     const active=a.dataset.tocTarget===id;a.classList.toggle('is-active',active);
     if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');
