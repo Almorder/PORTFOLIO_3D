@@ -82,5 +82,23 @@ for(const f of htmls){
   }
 }
 
+// V8 component-system invariants. These verify placement and graceful integration, not visual similarity.
+{
+  const home=await readFile(join(dist,'index.html'),'utf8');
+  const work=await readFile(join(dist,'work/index.html'),'utf8');
+  const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
+  const services=await readFile(join(dist,'services/index.html'),'utf8');
+  const about=await readFile(join(dist,'a-propos/index.html'),'utf8');
+  if(!home.includes('data-brand-preloader')) errors.push('index.html: logo preloader missing');
+  if(!home.includes('class="animated-stats')) errors.push('index.html: animated stats missing');
+  if(!home.includes('data-focus-testimonials')) errors.push('index.html: focus testimonials missing');
+  if(!home.includes('data-glass-showcase')) errors.push('index.html: glass showcase missing');
+  if(!work.includes('data-stacked-flow')) errors.push('work/index.html: stacked flow missing');
+  if(!project.includes('data-ambient-player')) errors.push('project: ambient video player missing');
+  if((project.match(/data-line-toc/g)||[]).length!==1) errors.push('project: line TOC missing');
+  if((services.match(/data-line-toc/g)||[]).length!==1) errors.push('services: line TOC missing');
+  if((about.match(/data-line-toc/g)||[]).length!==1) errors.push('about: line TOC missing');
+}
+
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 console.log(`QA OK — ${htmls.length} HTML files, hashed assets wired, JS syntax valid, no duplicate IDs.`);

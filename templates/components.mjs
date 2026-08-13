@@ -22,6 +22,8 @@ export function head({ title, description, path='/', image='https://images.unspl
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080706">
+<meta name="nolanarc-supabase-url" content="${esc(process.env.SUPABASE_URL || '')}">
+<meta name="nolanarc-supabase-key" content="${esc(process.env.SUPABASE_ANON_KEY || '')}">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
@@ -101,4 +103,33 @@ export function projectMeta(project) {
 
 export function placeholderVisual(label, index=1) {
   return `<div class="media-placeholder" role="img" aria-label="Média à rattacher pour ${esc(label)}"><span>0${index}</span><strong>${esc(label)}</strong><small>${esc(label)}</small></div>`;
+}
+
+export function logoPreloader(){
+  return `<div class="brand-preloader" data-brand-preloader aria-hidden="true"><div class="brand-preloader__mark"><span>Nolan</span><b>.</b><span>Arc</span></div><i></i></div>`;
+}
+
+export function lineToc(items=[]){
+  if(!items.length) return '';
+  return `<nav class="line-toc" data-line-toc aria-label="Sommaire de la page">${items.map((item,i)=>`<a href="#${esc(item.id)}" data-toc-target="${esc(item.id)}"><span class="line-toc__line"><i></i></span><small>${esc(item.label)}</small><b>0${i+1}</b></a>`).join('')}</nav>`;
+}
+
+export function animatedStats(stats=[]){
+  if(!stats.length) return '';
+  return `<section class="animated-stats motion-reveal" aria-label="Repères concrets">${stats.map((stat)=>`<article><strong><span>${esc(stat.prefix||'')}</span><b data-counter="${Number(stat.value)||0}">0</b><span>${esc(stat.suffix||'')}</span></strong><small>${esc(stat.label)}</small></article>`).join('')}</section>`;
+}
+
+export function focusTestimonials(items=[]){
+  if(!items.length) return '';
+  return `<section class="focus-testimonials motion-reveal" data-focus-testimonials aria-labelledby="focus-testimonials-title"><div class="focus-testimonials__head"><span class="eyebrow">Retours</span><h2 id="focus-testimonials-title">Quelques phrases<br><em>qui comptent.</em></h2></div><div class="focus-testimonials__stream">${items.map((item,i)=>`<button type="button" data-testimonial-index="${i}"><span>« ${esc(item.quote)} »</span><small>${esc(item.name)} · ${esc(item.role)}</small></button>`).join('<i aria-hidden="true"> / </i>')}</div></section>`;
+}
+
+export function glassShowcase(images=[]){
+  if(!images.length) return '';
+  return `<div class="glass-showcase" data-glass-showcase aria-hidden="true"><div class="glass-showcase__shell">${images.map((img,i)=>`<img class="glass-showcase__frame${i===0?' is-active':''}" data-showcase-frame="${i}" src="${esc(img)}" alt="">`).join('')}<canvas data-showcase-particles></canvas><div class="glass-showcase__sheen"></div></div></div>`;
+}
+
+export function stackedFlow(items=[]){
+  if(!items.length) return '';
+  return `<div class="stacked-flow" data-stacked-flow>${items.map((item,i)=>`<a class="stacked-flow__card" href="${esc(item.href)}" style="--stack:${i};--stack-image:url('${esc(item.image)}')"><span>0${i+1}</span><small>${esc(item.kicker)}</small><strong>${esc(item.title)}</strong><p>${esc(item.text)}</p><i>Explorer →</i></a>`).join('')}</div>`;
 }

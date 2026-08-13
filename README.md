@@ -1,9 +1,18 @@
 # Nolan Arc — Portfolio 2026
-## V7 · refonte UX, densité et copywriting
+## V8 · système d’interactions premium, sans surcharge
 
 Ce dossier est le repository complet de `nolanarc.com`.
 
-La V7 corrige les problèmes observés sur la V6 en vue desktop et mobile : espaces morts créés par les grilles, hiérarchie trop éditoriale au détriment du Work, Services trop descriptifs, À propos trop abstrait et textes qui parlaient parfois du portfolio au lieu de parler au visiteur.
+La V8 conserve la hiérarchie et le copywriting de la V7, puis ajoute une couche d’interactions inspirée des composants Framer sélectionnés : verre, profondeur, préloader, témoignages focalisés, TOC, statistiques animées, lecteur vidéo ambiant et cartes empilées. Les effets sont placés en fonction du parcours utilisateur, pas ajoutés partout.
+
+
+## Composants V8
+
+L’audit complet des 12 composants demandés est dans `COMPONENT_AUDIT_V8.md`.
+
+Actifs : Glassy Button, Focus Testimonials, Glass Showcase, Logo Preloader, Ambient Video Player, Stacked Flow, Animated Stats, Line Menu TOC, Gradient Motion BG et Hold Confirm sur le lecteur externe.
+
+Le Page View Counter est câblé mais désactivé tant que Supabase n’est pas configuré. Video Slide Show est volontairement différé jusqu’à l’ajout de plusieurs vrais médias vidéo.
 
 ### Principes de cette version
 
@@ -70,7 +79,8 @@ La commande reconstruit le site et contrôle notamment :
 - l'absence d'iframe YouTube avant action explicite ;
 - la barre de progression horizontale ;
 - l'absence de l'ancien rail vertical ;
-- la structure Home / Services / À propos / case study.
+- la structure Home / Services / À propos / case study ;
+- la présence et le câblage des composants V8 principaux.
 
 Le build de production est généré dans `dist/`. Ne modifie pas `dist/` manuellement.
 

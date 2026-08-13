@@ -2,7 +2,7 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, esc, projectMeta, placeholderVisual } from './components.mjs';
+import { head, header, footer, esc, projectMeta, placeholderVisual, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
@@ -16,7 +16,7 @@ export function homePage(){
     title:'Nolan Arc — Réalisateur & directeur artistique',
     description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films, direction visuelle et récits construits autour d’une intention claire.",
     path:'/', bodyClass:'page-home'
-  }) + header('/') + `
+  }) + header('/') + logoPreloader() + `
   <main>
     <section class="home-hero scroll-scene" data-scene="hero">
       <div class="home-hero__sticky scene-sticky">
@@ -36,6 +36,8 @@ export function homePage(){
       <span class="eyebrow">Collaborations</span>
       <div>${site.clients.map(esc).join('<i>·</i>')}</div>
     </section>
+
+    ${animatedStats(site.proofStats)}
 
     <section class="project-rift" id="work-preview">
       <div class="project-rift__intro motion-reveal">
@@ -58,7 +60,7 @@ export function homePage(){
       <div class="journey__sticky scene-sticky">
         <div class="journey__counter"><span>02</span><b data-journey-count>01 / 03</b></div>
         <div class="journey__stage">
-          <div class="journey__object"><div class="journey__halo"></div><figure class="journey__frame"><img src="${visuals.brand}" alt="Coulisses d’une production visuelle" loading="lazy"></figure><div class="journey__ring"></div></div>
+          <div class="journey__object"><div class="journey__halo"></div>${glassShowcase([visuals.brand, visuals.story, visuals.moment])}<div class="journey__ring"></div></div>
           <article class="journey-copy is-active" data-journey-step="0"><small>COMPRENDRE</small><h2>Qu’est-ce que vous voulez<br><em>faire comprendre, ressentir ou garder ?</em></h2><p>C’est la question qui évite de tourner pour tourner.</p></article>
           <article class="journey-copy" data-journey-step="1"><small>CHOISIR</small><h2>Le cadre vient<br><em>après.</em></h2><p>Lumière, mouvement, son et rythme servent l’idée. Pas l’inverse.</p></article>
           <article class="journey-copy" data-journey-step="2"><small>TENIR LE FIL</small><h2>La même idée,<br><em>du brief au montage.</em></h2><p>Je garde la direction jusqu’au rendu final pour éviter qu’elle se dilue en route.</p></article>
@@ -75,17 +77,14 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="proof-tape motion-reveal" aria-label="Témoignage client">
-      <div class="proof-tape__top"><span class="eyebrow">Ouilove Proposal</span><p>Direction artistique</p></div>
-      <blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote>
-    </section>
+    ${focusTestimonials(site.testimonials)}
 
     <section class="about-tease motion-reveal">
       <div class="about-tease__word">N</div>
       <div class="about-tease__copy"><span class="eyebrow">À propos</span><h2>Je n’aime pas<br>créer pour créer.</h2><p>J’ai passé du temps à comprendre ce qui avait vraiment du sens pour moi dans une image. Aujourd’hui, cette exigence me sert surtout à garder un fil clair dans les projets que l’on me confie.</p><a class="text-link" href="/a-propos/">Faire connaissance <span>↗</span></a></div>
     </section>
 
-    <section class="finale motion-reveal">
+    <section class="finale motion-reveal motion-gradient">
       <span class="eyebrow">Un projet en tête ?</span><h2>Expliquez-moi<br>ce que vous préparez.</h2><p>Une idée, une date ou un problème à résoudre suffisent pour commencer.</p><a class="button button--light" href="/contact/">Écrire à Nolan <span>↗</span></a>
     </section>
   </main>` + footer();
@@ -99,7 +98,7 @@ export function workPage(){
     <section class="work-field" data-work-field>
       ${verified.map((p,i)=>`<article class="work-entry is-verified" data-territory="${p.territory}"><div class="work-entry__index">0${i+1}</div><a class="work-entry__visual" href="${p.href}"><img src="${p.poster}" alt="${esc(p.title)}" loading="lazy"></a><div class="work-entry__copy"><span>${p.territory} · ${p.year}</span><h2>${esc(p.title)}</h2><p>${esc(p.summary)}</p><small>${esc(p.role)}</small><a class="text-link" href="${p.href}">Voir le projet <span>↗</span></a></div></article>`).join('')}
     </section>
-    <section class="work-collabs"><div class="work-collabs__intro motion-reveal"><span class="eyebrow">Autres collaborations</span><h2>D’autres contextes.<br>Le même besoin de cohérence.</h2><p>Direction artistique, contenu social ou moments personnels : le format change, mais je pars toujours de ce que le projet doit faire comprendre, ressentir ou garder.</p></div><div class="work-collabs__list">${collaborations.map((p,i)=>`<a href="${p.href}"><span>0${i+2}</span><strong>${esc(p.title)}</strong><small>${esc(p.type)}</small><p>${esc(p.summary)}</p></a>`).join('')}</div></section>
+    <section class="work-collabs"><div class="work-collabs__intro motion-reveal"><span class="eyebrow">Autres collaborations</span><h2>D’autres contextes.<br>Le même besoin de cohérence.</h2><p>Direction artistique, contenu social ou moments personnels : le format change, mais je pars toujours de ce que le projet doit faire comprendre, ressentir ou garder.</p></div>${stackedFlow(collaborations.map((p)=>({href:p.href,kicker:p.type,title:p.title,text:p.summary,image:p.slug==='moments'?visuals.moment:(p.slug==='a-one-permis'?visuals.story:visuals.brand)})))}</section>
   </main>` + footer();
 }
 
@@ -109,10 +108,12 @@ export function projectPage(){
       <a class="back-link" href="/work/">← Work</a><span class="eyebrow">${bol.type} · ${bol.year}</span>
       <div class="project-intro__grid"><h1>${bol.title}</h1><div><p>${bol.summary}</p><span>${bol.role}</span></div></div>
     </section>
-    <section class="project-film-first">
-      <div class="external-media project-player" data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')">
-        <div class="external-media__gate"><span class="eyebrow">Film · ${bol.year}</span><h2>Regarder<br>Le bol d’en face</h2><button class="button button--light" type="button" data-load-video>Lire le film <span>▶</span></button></div>
+    ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
+    <section class="project-film-first" id="film">
+      <div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')">
+        <div class="external-media__gate"><span class="eyebrow">Film · ${bol.year}</span><h2>Regarder<br>Le bol d’en face</h2><button class="button button--light hold-confirm" type="button" data-hold-confirm data-hold-ms="650" data-load-video><span>Maintenir pour lire</span><b aria-hidden="true">▶</b><i aria-hidden="true"></i></button></div>
       </div>
+      <div class="project-meta-head"><span>Fiche du film</span><span class="page-view-counter" data-page-view-counter hidden><b>0</b> vues</span></div>
       ${projectMeta(bol)}
     </section>
     <section class="project-story" id="story">
@@ -122,13 +123,14 @@ export function projectPage(){
       </div>
       <div class="project-story__decisions">${bol.decisions.map((d,i)=>`<article><span>0${i+1}</span><div><h3>${d.title}</h3><p>${d.text}</p></div></article>`).join('')}</div>
     </section>
-    <section class="project-next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Explorer</small><strong>Voir les autres travaux.</strong><span>↗</span></a><a href="/services/"><small>Comprendre</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Commencer</small><strong>Me parler du projet.</strong><span>↗</span></a></section>
+    <section class="project-next" id="next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Explorer</small><strong>Voir les autres travaux.</strong><span>↗</span></a><a href="/services/"><small>Comprendre</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Commencer</small><strong>Me parler du projet.</strong><span>↗</span></a></section>
   </main>` + footer();
 }
 
 export function servicesPage(){
   return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
-    <section class="services-hero motion-reveal"><span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
+    <section class="services-hero motion-reveal motion-gradient"><span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
+    ${lineToc([{id:'marques',label:'Marques'},{id:'recits',label:'Récits'},{id:'moments',label:'Moments'}])}
 
     <section class="service-chapter service-chapter--brand" id="marques">
       <div class="service-chapter__head motion-reveal"><span class="eyebrow">01 · Marques & organisations</span><h2>Faire comprendre<br>avant de chercher à impressionner.</h2><p>Une vidéo ou une direction artistique n’a de valeur que si elle aide votre public à mieux comprendre, reconnaître ou retenir ce que vous faites.</p></div>
@@ -170,22 +172,23 @@ export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
   return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
-    <section class="about-story-hero">
+    <section class="about-story-hero motion-gradient" id="nolan">
       <div class="about-story-hero__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Ajoutez ici un portrait de Nolan</small></div></div>
       <div class="about-story-hero__copy motion-reveal"><span class="eyebrow">Nolan Ribeiro · réalisateur & directeur artistique</span><h1>Je n’aime pas forcément<br>faire de longs discours.<br><em>Mais j’aime parler quand il le faut.</em></h1><p class="about-hook">Moi, c’est Nolan. Depuis petit, ce qui m’attire, c’est de créer des vidéos, raconter mes propres histoires et mettre ma vision du monde en avant.</p><a class="text-link" href="#about-turn">Continuer <span>↓</span></a></div>
     </section>
+    ${lineToc([{id:'nolan',label:'Nolan'},{id:'about-turn',label:'Déclic'},{id:'about-identity',label:'Regard'},{id:'about-value',label:'Valeur'}])}
 
     <section class="about-turn" id="about-turn">
       <div class="about-turn__statement motion-reveal"><span class="eyebrow">Le truc moins joli</span><h2>J’ai parfois passé plus de temps<br>à me structurer qu’à réellement créer.</h2></div>
       <div class="about-turn__copy motion-reveal"><p>J’aurais pu créer pour créer, produire des choses sans forcément réfléchir derrière. Mais si je ne trouve pas de sens dans quelque chose, si je ne ressens pas d’impact, j’ai du mal à le faire juste pour remplir.</p><p><strong>Ça m’a ralenti.</strong> Aujourd’hui, c’est aussi devenu une force dans mon travail : je cherche d’abord pourquoi une image doit exister avant de décider comment la produire.</p></div>
     </section>
 
-    <section class="about-identity">
+    <section class="about-identity" id="about-identity">
       <div class="about-identity__visual motion-reveal"><div><small>CE QUI M’ATTIRE</small><strong>Les univers qui ont une identité, une histoire, quelque chose qui leur est propre.</strong></div></div>
       <div class="about-identity__copy motion-reveal"><span class="eyebrow">Ce qui relie mes goûts à mon travail</span><h2>Je peux passer d’un animé à un parfum de niche pour la même raison.</h2><p>Ce qui m’accroche n’est pas seulement le format ou ce qui est populaire. C’est l’univers derrière : sa personnalité, ses détails, sa cohérence.</p><p>Sur un projet, je cherche la même chose. <strong>Pas simplement faire « beau », mais trouver ce qui peut le rendre identifiable et juste pour son contexte.</strong></p></div>
     </section>
 
-    <section class="about-client-value">
+    <section class="about-client-value" id="about-value">
       <header class="motion-reveal"><span class="eyebrow">Et pour vous, concrètement ?</span><h2>Un seul fil<br>du besoin au rendu.</h2></header>
       <div class="about-client-value__list">
         <article class="motion-reveal"><span>01</span><h3>Avant</h3><p>On clarifie ce qu’il faut faire comprendre, ressentir ou garder. Ça évite de partir trop vite sur un format ou une idée qui répond mal au besoin.</p></article>
@@ -209,7 +212,7 @@ export function journalPage(){
 
 export function contactPage(){
   return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main>
-    <section class="contact-hero contact-hero--compact"><span class="eyebrow">Contact</span><h1>Qu’est-ce que<br><em>vous préparez ?</em></h1><p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p></section>
+    <section class="contact-hero contact-hero--compact motion-gradient"><span class="eyebrow">Contact</span><h1>Qu’est-ce que<br><em>vous préparez ?</em></h1><p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p></section>
     <section class="contact-experience contact-experience--compact"><form class="contact-form contact-form--glass" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST"><input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
       <div class="contact-glass__head"><span class="eyebrow">Quel projet préparez-vous ?</span><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Film / image de marque</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="story">Récit / collaboration</button><button type="button" data-form-intent="other">Autre projet</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></div>
       <label class="contact-message"><span>Votre message</span><textarea required name="message" rows="5" placeholder="Le projet, la date si vous l’avez, le lieu et ce que vous attendez de moi…"></textarea></label>
