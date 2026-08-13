@@ -11,6 +11,15 @@ const visuals = {
   moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
 };
 
+
+const workMoodSlides = [
+  { poster:'https://images.unsplash.com/photo-1727451139462-cd34008cd50b?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'center', kicker:'Plateau', title:'Lumière & espace', credit:'Joshua Wann · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'50% center', kicker:'Image', title:'Caméra & rig', credit:'Redd Francisco · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1740350631567-5d813fe78adf?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'58% center', kicker:'Tournage', title:'Cadre en situation', credit:'Alex Lam · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1779896412277-c4fd15c7a89c?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'48% center', kicker:'Post-production', title:'Montage & étalonnage', credit:'SanDisk · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1772945492345-ee8d17e9a74b?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'center', kicker:'Moment', title:'Événement & émotion', credit:'Brooke Balentine · Unsplash' },
+];
+
 const expertiseTabs = [
   {
     key:'realisation', label:'Réalisation', index:'01',
@@ -85,17 +94,15 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="v16-journey scroll-scene" data-scene="journey" id="journey">
-      <div class="v16-journey__sticky">
-        <div class="v16-journey__copy">
-          <span class="fab-dot-label">Une même direction du début à la fin</span>
-          <div class="v16-journey__steps">
-            <article data-journey-step class="is-active"><small>01</small><h2>Comprendre.</h2><p>Quel résultat le projet doit réellement produire.</p></article>
-            <article data-journey-step><small>02</small><h2>Choisir.</h2><p>Les décisions qui servent cet objectif — pas celles qui décorent.</p></article>
-            <article data-journey-step><small>03</small><h2>Tenir le fil.</h2><p>Préserver cette direction entre stratégie, production et livraison.</p></article>
-          </div>
+    <section class="journey v17-journey scroll-scene" data-scene="journey" id="journey">
+      <div class="journey__sticky scene-sticky">
+        <div class="journey__counter"><span>Comment je travaille</span><b data-journey-count>01 / 03</b></div>
+        <div class="journey__stage">
+          <div class="journey__object"><div class="journey__halo"></div>${glassShowcase([visuals.brand, visuals.story, visuals.moment])}<div class="journey__ring"></div></div>
+          <article class="journey-copy is-active" data-journey-step="0"><small>COMPRENDRE</small><h2>Qu’est-ce que le projet doit<br><em>faire comprendre ou ressentir ?</em></h2><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p></article>
+          <article class="journey-copy" data-journey-step="1"><small>CHOISIR</small><h2>Le cadre vient<br><em>après.</em></h2><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p></article>
+          <article class="journey-copy" data-journey-step="2"><small>TENIR LE FIL</small><h2>La même idée,<br><em>jusqu’au rendu.</em></h2><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p></article>
         </div>
-        <div class="v16-journey__visual">${glassShowcase([visuals.brand,bol.poster,visuals.moment])}<span class="v16-journey__count" data-journey-count>01 / 03</span></div>
       </div>
     </section>
 
@@ -115,9 +122,8 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
-      <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong><span>${esc(t.role)}</span></footer></article>`).join('')}</div>
+    <section class="v17-testimonials" id="retours">
+      ${focusTestimonials(site.testimonials,{maxVisible:site.testimonials.length})}
     </section>
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
@@ -137,16 +143,10 @@ export function homePage(){
 }
 
 export function workPage(){
-  const filmSlides=[
-    { videoId: bol.videoId, start: 0, poster: bol.poster, position: '42% center', kicker: '01', title: 'Ouverture' },
-    { videoId: bol.videoId, start: 12, poster: bol.poster, position: '35% center', kicker: '02', title: 'Le repas' },
-    { videoId: bol.videoId, start: 24, poster: bol.poster, position: '50% center', kicker: '03', title: 'Les indices' },
-    { videoId: bol.videoId, start: 36, poster: bol.poster, position: '62% center', kicker: '04', title: 'Le silence' },
-    { videoId: bol.videoId, start: 48, poster: bol.poster, position: '72% center', kicker: '05', title: 'La résolution' },
-  ];
+  const filmSlides=workMoodSlides;
   return head({title:'Work — Nolan Arc', description:'Films et projets sélectionnés de Nolan Ribeiro.', path:'/work/', bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
     <section class="fab-page-title motion-reveal"><div><span>(04)</span><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
-    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'En mouvement',heading:'Le film avant l’explication.',intro:'Faites glisser les cartes. Plus le geste est rapide, plus le carrousel prend de l’inertie.'})}
+    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'Références visuelles',heading:'Explorer une direction, pas répéter un seul projet.',intro:'Faites glisser les cartes. Ces images d’ambiance servent uniquement à illustrer le carrousel ; elles ne sont pas présentées comme mes réalisations.'})}
     <section class="fab-work-grid v16-project-gallery">
       <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
       <a class="fab-project-card motion-reveal" href="/services/?expertise=direction"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration temporaire Ouilove Proposal" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
@@ -189,13 +189,28 @@ export function servicesPage(){
 }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, curiosité et manière de travailler.',path:'/a-propos/',bodyClass:'page-about page-fabrica page-v16'}) + header('/a-propos/') + `<main id="main-content" class="v16-about-page">
-    <section class="v16-about-hero" id="nolan"><figure><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure><div><span class="fab-dot-label">Nolan Ribeiro</span><h1>Nolan.</h1><p>Réalisateur, directeur artistique et stratège de marque. Trois disciplines différentes, mais une même façon de regarder un projet : comprendre ce qui compte avant de choisir comment le montrer.</p></div></section>
-    <section class="v16-about-story motion-reveal"><span class="fab-dot-label">Le point de départ</span><h2>Curieux par nature.</h2><p>Je passe facilement d’un sujet à un autre parce que j’aime comprendre comment les choses fonctionnent et pourquoi certaines réussissent mieux que d’autres. Entrer dans un nouvel univers n’est pas une contrainte pour moi : c’est généralement la partie qui m’intéresse le plus.</p><p>Quand un sujet devient une vraie passion, apprendre n’est plus un effort. C’est ce qui m’a amené à développer plusieurs façons de regarder le même problème — par l’image, par la direction d’un univers et par la stratégie.</p></section>
-    <section class="v16-about-why"><header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Pourquoi ces trois disciplines ?</h2></div><p>Les détails sont dans Services. Ici, le plus important est pourquoi elles se sont retrouvées au même endroit.</p></header><div>${expertiseTabs.map(x=>`<article class="motion-reveal"><span>${x.index}</span><h3>${x.label}</h3><p>${x.key==='realisation'?'Parce que j’aime construire et donner vie à une idée.':x.key==='direction'?'Parce que j’aime les univers qui tiennent ensemble.':'Parce que créer quelque chose de beau qui ne sert pas le projet ne m’intéresse pas.'}</p></article>`).join('')}</div></section>
-    <section class="v16-about-workstyle motion-reveal"><span class="fab-dot-label">Travailler avec moi</span><h2>Direct. Curieux. Autonome.</h2><div><p>Quand la direction est claire, j’aime avancer vite. Je préfère une décision appliquée puis mesurée à une longue phase d’attente qui n’améliore pas le résultat.</p><p>Je peux aussi entrer dans un projet déjà lancé, travailler avec une équipe existante ou prendre davantage de responsabilités quand il faut garder une cohérence de bout en bout.</p></div></section>
-    <section class="fab-about-quote motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
-    <section class="fab-contact-band motion-reveal"><div><small>Deux façons de continuer</small><h2>Regarder ou parler.</h2></div><p>Le Work montre ce que je produis. Le contact permet de voir ce que cela peut devenir dans votre contexte.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
+  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, curiosité et manière de travailler.',path:'/a-propos/',bodyClass:'page-about page-fabrica page-v17'}) + header('/a-propos/') + `<main id="main-content" class="v17-about-page">
+    <section class="v17-about-hero" id="nolan">
+      <figure class="v17-about-portrait"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure>
+      <div class="v17-about-hero__copy"><span class="fab-dot-label">Nolan Ribeiro · Nolan Arc</span><h1>Je ne suis pas arrivé à ces trois disciplines <em>par plan de carrière.</em></h1><p>J’ai surtout continué à suivre les problèmes que j’avais envie de résoudre : raconter mieux, rendre un univers cohérent, puis comprendre pourquoi certaines idées fonctionnent réellement.</p><div class="v17-about-hero__links"><a href="/work/">Voir le Work ↗</a><a href="/contact/">Parler d’un projet ↗</a></div></div>
+    </section>
+
+    <section class="v17-about-origin motion-reveal"><span class="fab-dot-label">Depuis 2022</span><div><h2>La vidéo m’a appris à penser avant, pendant et après l’image.</h2><p>Plus de cinquante vidéos plus tard, ce que je retiens n’est pas seulement la technique. C’est la capacité à anticiper ce qu’il faudra obtenir sur le terrain, à décider vite quand le réel ne suit pas le plan et à garder assez de matière pour réécrire proprement au montage.</p></div></section>
+
+    <section class="v17-about-turn motion-reveal"><div class="v17-about-turn__statement"><small>Le tournant</small><h2>À force de produire des images, j’ai commencé à regarder ce qu’il y avait <em>autour.</em></h2></div><div class="v17-about-turn__copy"><p>Pourquoi une marque paraît cohérente avant même qu’on lise son nom ? Pourquoi deux contenus techniquement corrects ne racontent pas la même chose ? Pourquoi certaines idées avancent vite alors que d’autres restent bloquées dans une présentation ?</p><p>C’est ce qui m’a amené vers la direction artistique puis la stratégie : pas pour empiler des titres, mais parce que ces questions apparaissaient déjà dans mes projets.</p></div></section>
+
+    <section class="v17-about-lenses"><header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Trois angles.<br><em>La même personne.</em></h2></div><p>Les prestations sont détaillées dans Services. Ici, l’important est ce que ces trois regards changent dans ma manière d’aborder un sujet.</p></header><div class="v17-about-lenses__grid">
+      <article class="motion-reveal"><span>01</span><h3>Construire</h3><p>J’aime partir d’une idée et lui donner une forme réelle, avec les contraintes du terrain plutôt qu’en restant au stade du concept.</p></article>
+      <article class="motion-reveal"><span>02</span><h3>Relier</h3><p>Je remarque vite quand une image, un ton, une couleur ou un support ne semble plus appartenir au même univers.</p></article>
+      <article class="motion-reveal"><span>03</span><h3>Décider</h3><p>Quand la direction est suffisamment claire, je préfère avancer, mesurer puis corriger plutôt que prolonger une réflexion qui n’ajoute plus de valeur.</p></article>
+    </div></section>
+
+    <section class="v17-about-curiosity motion-reveal"><div><span class="fab-dot-label">Curieux par nature</span><h2>Entrer dans un nouvel univers est souvent la partie qui m’intéresse le plus.</h2></div><div class="v17-about-curiosity__bento"><article><strong>Je creuse vite.</strong><p>Quand un sujet m’intéresse, comprendre son vocabulaire, ses références et ses contraintes ne ressemble pas à une corvée.</p></article><article><strong>Je change d’échelle.</strong><p>Je peux regarder un détail de cadre puis revenir à la perception globale d’une marque ou à son objectif business.</p></article><article><strong>Je reste concret.</strong><p>Une idée devient intéressante lorsqu’on sait comment la produire, où la diffuser et ce qu’elle doit améliorer.</p></article><article><strong>Je m’adapte sans lisser.</strong><p>Comprendre un nouvel univers ne veut pas dire le rendre générique : l’objectif est justement d’identifier ce qui lui appartient.</p></article></div></section>
+
+    <section class="v17-about-workstyle motion-reveal"><span class="fab-dot-label">Travailler avec moi</span><h2>Direct quand il faut trancher.<br>Autonome quand il faut avancer.</h2><div><p>Je peux rejoindre un projet déjà lancé, travailler avec une équipe existante ou prendre davantage de responsabilités quand il faut garder une cohérence de bout en bout.</p><p>Je n’ai pas besoin qu’un projet soit parfaitement défini pour commencer à réfléchir. En revanche, une fois la direction choisie, j’aime que les décisions deviennent rapidement des actions.</p></div></section>
+
+    <section class="v17-about-proof motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
+    <section class="fab-contact-band motion-reveal"><div><small>La suite dépend de ce que vous cherchez</small><h2>Regarder ou parler.</h2></div><p>Le Work montre ce que je produis. Services précise ce que je peux prendre en charge. Le contact sert à voir ce que cela peut devenir dans votre contexte.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/services/">Voir les Services <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
 
@@ -208,20 +223,26 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un projet à Nolan Ribeiro.',path:'/contact/',bodyClass:'page-contact page-fabrica page-v16'}) + header('/contact/') + `<main id="main-content" class="v16-contact-page">
-    <section class="v16-contact-split">
-      <form class="v16-contact-card motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
-        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-        <small>Nolan.Arc</small><h1>Un projet en tête ?</h1>
-        <label><span>Votre nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
-        <label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label>
-        <label><span>Message</span><textarea required name="message" rows="5" placeholder="Votre message"></textarea></label>
-        <details><summary>Ajouter des précisions <span>optionnel</span></summary><div><label><span>Type de projet</span><select name="type_de_projet"><option>Réalisation</option><option>Direction artistique</option><option>Stratégie de marque</option><option>Autre</option></select></label><label><span>Entreprise</span><input name="entreprise" autocomplete="organization"></label><label><span>Budget</span><select name="budget"><option value="">À définir</option><option>&lt; 500 €</option><option>500 – 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 € +</option></select></label></div></details>
-        <button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">En envoyant, vous acceptez que les informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p>
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un projet de marque à Nolan Arc.',path:'/contact/',bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
+    <section class="contact-composer motion-gradient" data-gradient-host>
+      ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
+      <div class="contact-composer__intro motion-reveal">
+        <span class="eyebrow">Contact</span>
+        <h1>Dites-moi simplement<br><em>ce que vous préparez.</em></h1>
+        <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer. Je vous réponds généralement sous 48 h ouvrées.</p>
+        <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
+      </div>
+      <form class="contact-form contact-form--composer motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot">
+        <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
+        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
+        <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
+        <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
+        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+        <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
       </form>
-      <div class="v16-contact-story">${gradientMotionBackground({style:'diamond',speed:20,blur:88,opacity:.34,size:130,colors:['#E97736','#CC460C','#2B1710','#080706']})}<span class="fab-dot-label">Contact</span><h2>Parlons.</h2><p>Un brief précis ou juste le début d’une réflexion : les deux me vont.</p><div class="v16-contact-story__points"><article><strong>Réponse généralement sous 48 h</strong><p>Je reviens avec les premières questions utiles.</p></article><article><strong>Une suite claire</strong><p>Si le projet colle, on cadre les livrables, le calendrier, le prix et les droits.</p></article></div><div class="v16-nolan-card v16-nolan-card--contact"><div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro"></div><div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div></div></div>
     </section>
-    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ Contact',title:'FAQ.',intro:'Les dernières questions avant d’envoyer votre message.'})}
+    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ Contact',title:'FAQ.',intro:'Ce qu’il est utile de savoir avant d’envoyer votre message.'})}
   </main>` + footer();
 }
 

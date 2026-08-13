@@ -1,4 +1,4 @@
-# CONTENT MANIFEST — Nolan Arc 2026 · V16
+# CONTENT MANIFEST — Nolan Arc 2026 · V17
 
 ## Identité
 
@@ -9,7 +9,7 @@
 - Email : `nolanribcontact@gmail.com`
 - France / déplacements possibles
 
-## Repères de crédibilité déclarés pour V16
+## Repères de crédibilité déclarés pour V17
 
 - **50+ vidéos réalisées** depuis le début de la pratique vidéo ;
 - pratique vidéo **depuis 2022** ;
@@ -46,7 +46,7 @@ Ces données viennent des informations explicitement données par Nolan pour cet
 
 Les étoiles du bento sont un motif graphique de satisfaction et ne doivent pas être décrites comme une note Google / Trustpilot / plateforme.
 
-## Architecture éditoriale V16
+## Architecture éditoriale V17
 
 ### Home
 Hero → Work → Stats → 3 dimensions → Journey → Écosystème → Pricing → Retours → FAQ → Quick Contact.

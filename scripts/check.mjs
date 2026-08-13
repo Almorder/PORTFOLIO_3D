@@ -76,68 +76,72 @@ const journal=await readFile(join(dist,'journal/index.html'),'utf8');
 const contact=await readFile(join(dist,'contact/index.html'),'utf8');
 const privacy=await readFile(join(dist,'confidentialite/index.html'),'utf8');
 
-// V16 HOME — locked order / product logic.
-for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V16: missing ${token}`);
-if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V16: old collaborations strip must be removed');
-if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V16: exactly four stats expected');
-for(const token of ['50','2022','+105','photo + vidéo']) if(!home.includes(token)) fail(`Home V16: proof stat/context missing ${token}`);
-if(!home.includes('croissance de chiffre d’affaires observée sur Ouilove')) fail('Home V16: +105% must be contextualized as Ouilove observation');
-if((home.match(/class="v16-dimension/g)||[]).length<3) fail('Home V16: three professional dimensions missing');
-for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V16: professional dimension missing ${label}`);
-if(!home.includes('data-glass-showcase')) fail('Home V16: Comprendre/Choisir/Tenir le fil visual engine missing');
-if((home.match(/data-journey-step/g)||[]).length!==3) fail('Home V16: three journey steps expected');
-for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V16: ecosystem missing ${brand}`);
-if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V16: six ecosystem cards expected');
-for(const price of ['1 500 €','200 €','89 € / heure']) if(!home.includes(price)) fail(`Home V16: pricing missing ${price}`);
-if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-panel=/g)||[]).length!==3) fail('Home V16: three-tab pricing switcher incomplete');
-if(!home.includes('v16-testimonial-bento')) fail('Home V16: bento testimonials missing');
-if((home.match(/class="v16-stars"/g)||[]).length<3) fail('Home V16: testimonial satisfaction motif missing');
-if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V16: quick contact form missing');
+// V17 HOME — locked order / product logic.
+for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v17-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
+if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
+if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
+for(const token of ['50','2022','+105','photo + vidéo']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
+if(!home.includes('croissance de chiffre d’affaires observée sur Ouilove')) fail('Home V17: +105% must be contextualized as Ouilove observation');
+if((home.match(/class="v16-dimension/g)||[]).length<3) fail('Home V17: three professional dimensions missing');
+for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V17: professional dimension missing ${label}`);
+if(!home.includes('data-glass-showcase')) fail('Home V17: Comprendre/Choisir/Tenir le fil visual engine missing');
+if(!home.includes('class="journey v17-journey scroll-scene"')||!css.includes('.v17-journey .journey__sticky{position:sticky')) fail('Home V17: restored sticky journey choreography missing');
+if(!app.includes('--journey-shift')||!app.includes('--journey-ring')) fail('Home V17: journey motion variables missing');
+if((home.match(/data-journey-step/g)||[]).length!==3) fail('Home V17: three journey steps expected');
+for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V17: ecosystem missing ${brand}`);
+if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
+for(const price of ['1 500 €','200 €','89 € / heure']) if(!home.includes(price)) fail(`Home V17: pricing missing ${price}`);
+if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-panel=/g)||[]).length!==3) fail('Home V17: three-tab pricing switcher incomplete');
+if(!home.includes('data-focus-testimonials')) fail('Home V17: Focus Testimonials interaction missing');
+if(!app.includes("section.classList.add('is-focusing')")||!css.includes('.focus-testimonials.is-focusing')) fail('Home V17: testimonial focus/blur engine missing');
+if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
 
 // Navigation hierarchy: Journal footer-only.
 const headerChunk=home.slice(home.indexOf('<header'),home.indexOf('</header>')+9);
-if(/Journal/.test(headerChunk)) fail('Navigation V16: Journal must not be in main header');
-if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V16: Journal must remain in footer');
+if(/Journal/.test(headerChunk)) fail('Navigation V17: Journal must not be in main header');
+if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V17: Journal must remain in footer');
 
 // WORK — exploration first, projects, compact 3-hat selector.
-if(!work.includes('data-video-slide-show')) fail('Work V16: Video Slide Show missing');
-if((work.match(/data-video-slide(?=\s|>)/g)||[]).length<5) fail('Work V16: five slideshow cards expected');
-if(project.includes('data-video-slide-show')) fail('Project V16: Video Slide Show must not live in project page');
-if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) fail('Work V16: velocity/inertia slideshow engine missing');
-if((work.match(/class="fab-project-card/g)||[]).length<4) fail('Work V16: temporary project gallery incomplete');
-if(!work.includes('data-expertise-switcher')||(work.match(/data-expertise-tab=/g)||[]).length!==3||(work.match(/data-expertise-panel=/g)||[]).length!==3) fail('Work V16: compact three-expertise switcher incomplete');
-if(work.includes('data-stacked-flow')) fail('Work V16: obsolete stacked collaboration component should not render');
+if(!work.includes('data-video-slide-show')) fail('Work V17: Video Slide Show missing');
+if((work.match(/data-video-slide(?=\s|>)/g)||[]).length<5) fail('Work V17: five slideshow cards expected');
+for(const src of ['photo-1727451139462-cd34008cd50b','photo-1709316132989-55ef2437b920','photo-1740350631567-5d813fe78adf','photo-1779896412277-c4fd15c7a89c']) if(!work.includes(src)) fail(`Work V17: mood image missing ${src}`);
+if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
+if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');
+if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) fail('Work V17: velocity/inertia slideshow engine missing');
+if((work.match(/class="fab-project-card/g)||[]).length<4) fail('Work V17: temporary project gallery incomplete');
+if(!work.includes('data-expertise-switcher')||(work.match(/data-expertise-tab=/g)||[]).length!==3||(work.match(/data-expertise-panel=/g)||[]).length!==3) fail('Work V17: compact three-expertise switcher incomplete');
+if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
 // PROJECT — film first, one compact technical grid.
-if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-hold-confirm')) fail('Project V16: film-first player missing');
-if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V16: project metadata must appear once');
-if(/Détails de production|La fiche technique/i.test(project)) fail('Project V16: duplicate production-detail section found');
+if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-hold-confirm')) fail('Project V17: film-first player missing');
+if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V17: project metadata must appear once');
+if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17: duplicate production-detail section found');
 
 // SERVICES — one compact switcher, deeper value, combined expertise, dedicated FAQ.
-if(!services.includes('data-expertise-switcher')||(services.match(/data-expertise-tab=/g)||[]).length!==3||(services.match(/data-expertise-panel=/g)||[]).length!==3) fail('Services V16: three-expertise switcher incomplete');
-if(!services.includes('v16-combined-expertise')) fail('Services V16: combined-expertise value section missing');
-if(!services.includes('id="faq-services"')||!services.includes('data-faq-section')) fail('Services V16: dedicated FAQ missing');
-for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session de stratégie à 89 € ?']) if(!services.includes(q)) fail(`Services V16: FAQ question missing ${q}`);
-if(/id="marques"|id="recits"|id="moments"/.test(services)) fail('Services V16: obsolete stacked context chapters found');
+if(!services.includes('data-expertise-switcher')||(services.match(/data-expertise-tab=/g)||[]).length!==3||(services.match(/data-expertise-panel=/g)||[]).length!==3) fail('Services V17: three-expertise switcher incomplete');
+if(!services.includes('v16-combined-expertise')) fail('Services V17: combined-expertise value section missing');
+if(!services.includes('id="faq-services"')||!services.includes('data-faq-section')) fail('Services V17: dedicated FAQ missing');
+for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session de stratégie à 89 € ?']) if(!services.includes(q)) fail(`Services V17: FAQ question missing ${q}`);
+if(/id="marques"|id="recits"|id="moments"/.test(services)) fail('Services V17: obsolete stacked context chapters found');
 
 // ABOUT — human, portrait, no duplicated sales proof.
-if(!about.includes('/assets/nolan-portrait.jpg')) fail('About V16: Nolan portrait path missing');
-for(const token of ['v16-about-hero','v16-about-story','v16-about-why','v16-about-workstyle']) if(!about.includes(token)) fail(`About V16: missing ${token}`);
-if(about.includes('data-stat-card')) fail('About V16: commercial stats must not be duplicated');
-if(/animé|anime/i.test(about)) fail('About V16: unwanted anime wording found');
-if(!about.includes('/work/')||!about.includes('/contact/')) fail('About V16: Work/Contact continuations missing');
+if(!about.includes('/assets/nolan-portrait.jpg')) fail('About V17: Nolan portrait path missing');
+for(const token of ['v17-about-hero','v17-about-origin','v17-about-turn','v17-about-lenses','v17-about-curiosity','v17-about-workstyle']) if(!about.includes(token)) fail(`About V17: missing ${token}`);
+if(about.includes('data-stat-card')) fail('About V17: commercial stats must not be duplicated');
+if(/animé|anime/i.test(about)) fail('About V17: unwanted anime wording found');
+if(!about.includes('/work/')||!about.includes('/contact/')) fail('About V17: Work/Contact continuations missing');
 
 // CONTACT — immediate split composer + optional details + dedicated FAQ.
-if(!contact.includes('v16-contact-split')||!contact.includes('v16-contact-card')) fail('Contact V16: split composer missing');
-for(const name of ['name="nom"','name="email"','name="message"']) if(!contact.includes(name)) fail(`Contact V16: immediate field missing ${name}`);
-if(!contact.includes('<details')||!contact.includes('Ajouter des précisions')) fail('Contact V16: optional detail disclosure missing');
-if(!contact.includes('id="faq-contact"')) fail('Contact V16: dedicated FAQ missing');
-if(contact.includes('data-brand-preloader')) fail('Contact V16: preloader must not delay internal route');
+if(!contact.includes('contact-composer')||!contact.includes('contact-form--composer')) fail('Contact V17: restored composer missing');
+for(const name of ['name="nom"','name="email"','name="message"']) if(!contact.includes(name)) fail(`Contact V17: immediate field missing ${name}`);
+if(!contact.includes('Budget / entreprise')||!contact.includes('data-form-intent')) fail('Contact V17: V15 optional detail/intent system missing');
+if(!contact.includes('id="faq-contact"')) fail('Contact V17: dedicated FAQ missing');
+if(contact.includes('data-brand-preloader')) fail('Contact V17: preloader must not delay internal route');
 
 // Public privacy preference.
 for(const html of [home,work,project,services,about,journal,contact,privacy]){
-  if(/1\s+all[eé]e\s+Mirabeau/i.test(html)) fail('Privacy V16: street address exposed in built HTML');
-  if(/(?:\+33\s*\(0\)?\s*7|07[ .-]?82[ .-]?04[ .-]?89[ .-]?25|0782048925)/i.test(html)) fail('Privacy V16: phone exposed in built HTML');
+  if(/1\s+all[eé]e\s+Mirabeau/i.test(html)) fail('Privacy V17: street address exposed in built HTML');
+  if(/(?:\+33\s*\(0\)?\s*7|07[ .-]?82[ .-]?04[ .-]?89[ .-]?25|0782048925)/i.test(html)) fail('Privacy V17: phone exposed in built HTML');
 }
 
 // Component engines and design system.
@@ -148,12 +152,12 @@ if(!components.includes('data-custom-cursor')||!css.includes('.custom-cursor.is-
 if(!components.includes('class="mobile-tabs"')) fail('Mobile glass dock missing');
 if(!css.includes('.line-toc{position:fixed')||!css.includes('left:14px')||!app.includes('scheduleClose(1900)')) fail('Line TOC: left hover/reclose behavior missing');
 for(const token of ['--ink:#080706','--paper:#f0ebe2','--ember:#cc460c',"--serif:'Yrsa'", "--ui:'Syne'", "--body:'DM Sans'"]) if(!css.includes(token)) fail(`Nolan Arc DA token missing: ${token}`);
-if(!css.includes('V16 —')) fail('V16 integration CSS block missing');
+if(!css.includes('V17 —')) fail('V17 integration CSS block missing');
 if(!css.includes('content-visibility:auto')) fail('V16 performance: offscreen rendering guard missing');
 if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route prefetch missing');
 
 // Form wiring and external-content restraint.
-for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V16: FormSubmit/privacy guard incomplete');
+for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V17: FormSubmit/privacy guard incomplete');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files; V16 locked IA, privacy guardrails, pricing, Work/Services switches, project film-first structure, mobile shell and component engines verified.`);
+console.log(`QA OK — ${htmls.length} HTML files; V17 restored testimonial focus, sticky Journey, Work mood slideshow, richer About, restored Contact composer and core product guardrails verified.`);

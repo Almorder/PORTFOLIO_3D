@@ -72,20 +72,15 @@ function updateScroll(){
     const p = clamp(-rect.top / travel);
     scene.style.setProperty('--p', p.toFixed(4));
     if(scene.dataset.scene === 'journey'){
+      const idx=Math.min(2,Math.floor(p*3));
       const phase=Math.min(2.999,p*3);
-      const idx=Math.min(2,Math.floor(phase));
       const local=phase-idx;
-      const smooth=local*local*(3-2*local);
-      const xBase=[0,-3.2,2.3][idx];
-      const scaleBase=[.92,1.015,.955][idx];
-      const rotBase=[-2.4,1.7,-1.2][idx];
       scene.dataset.journeyStep=String(idx);
-      scene.style.setProperty('--journey-x',(xBase+(smooth-.5)*1.8).toFixed(3));
-      scene.style.setProperty('--journey-y',(Math.sin((p+.08)*Math.PI*2)*1.15).toFixed(3));
-      scene.style.setProperty('--journey-scale',(scaleBase+Math.sin(local*Math.PI)*.035).toFixed(4));
-      scene.style.setProperty('--journey-rot',`${(rotBase+(smooth-.5)*2.2).toFixed(2)}deg`);
-      scene.style.setProperty('--journey-ring',`${(p*300).toFixed(1)}deg`);
-      scene.style.setProperty('--journey-energy',(0.28+Math.sin(local*Math.PI)*.72).toFixed(3));
+      scene.style.setProperty('--journey-shift',((p-.5)*11).toFixed(3));
+      scene.style.setProperty('--journey-y',(Math.sin(p*Math.PI*2)*1.8).toFixed(3));
+      scene.style.setProperty('--journey-rot',`${((p-.5)*5.5).toFixed(2)}deg`);
+      scene.style.setProperty('--journey-ring',`${(p*220).toFixed(1)}deg`);
+      scene.style.setProperty('--journey-energy',(0.35+Math.sin(local*Math.PI)*.65).toFixed(3));
       $$('[data-journey-step]', scene).forEach((el,i)=>el.classList.toggle('is-active',i===idx));
       const count = $('[data-journey-count]', scene);
       if(count) count.textContent = `0${idx+1} / 03`;
