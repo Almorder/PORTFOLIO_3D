@@ -34,6 +34,9 @@ export function head({ title, description, path='/', image='https://img.youtube.
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${image}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/site.css">
 <script>document.documentElement.classList.remove('no-js');</script>
 <script type="application/ld+json">${JSON.stringify(schema)}</script>
@@ -41,10 +44,12 @@ export function head({ title, description, path='/', image='https://img.youtube.
 <body class="${bodyClass}">`;
 }
 
+const activeFor = (active, href) => active === href ? 'is-active' : '';
+
 export function header(active='') {
-  const nav = site.nav.map(item => `<a class="site-nav__link ${active === item.href ? 'is-active':''}" href="${item.href}">${item.label}</a>`).join('');
+  const nav = site.nav.map(item => `<a class="site-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
   return `<header class="site-header" data-header>
-    <a class="brand" href="/" aria-label="Nolan Arc — Accueil"><span>NOLAN</span><i></i><span>ARC</span></a>
+    <a class="brand" href="/" aria-label="Nolan Arc — Accueil"><span>Nolan</span><b>.</b><span>Arc</span></a>
     <nav class="site-nav" aria-label="Navigation principale">${nav}</nav>
     <a class="header-cta" href="/contact/">Parler d’un projet <span aria-hidden="true">↗</span></a>
     <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button><span>Menu</span><i></i><i></i></button>
@@ -55,7 +60,13 @@ export function header(active='') {
       <a href="/contact/"><small>05</small>Contact</a>
       <div class="mobile-menu__meta"><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></div>
     </div>
-  </div>`;
+  </div>
+  <nav class="mobile-tabs" aria-label="Navigation mobile rapide">
+    <a class="${activeFor(active,'/')}" href="/"><span>⌂</span><small>Accueil</small></a>
+    <a class="${activeFor(active,'/work/')}" href="/work/"><span>◫</span><small>Work</small></a>
+    <a class="${activeFor(active,'/services/')}" href="/services/"><span>✦</span><small>Services</small></a>
+    <a class="${activeFor(active,'/contact/')}" href="/contact/"><span>↗</span><small>Contact</small></a>
+  </nav>`;
 }
 
 export function arcRail() {
@@ -64,7 +75,7 @@ export function arcRail() {
 
 export function footer() {
   return `<footer class="site-footer">
-    <div class="site-footer__lead"><span class="eyebrow">Un projet à raconter ?</span><p>On peut commencer par une idée, un brief ou simplement une question.</p><a class="text-link text-link--large" href="/contact/">Parler à Nolan <span>↗</span></a></div>
+    <div class="site-footer__lead"><span class="eyebrow">Un projet en tête ?</span><p>Vous pouvez m’écrire avec un brief précis ou simplement m’expliquer ce que vous cherchez.</p><a class="text-link text-link--large" href="/contact/">Parler à Nolan <span>↗</span></a></div>
     <div class="site-footer__cols">
       <div><strong>Nolan Arc</strong><span>${site.role}</span><span>${site.location}</span></div>
       <div><strong>Explorer</strong><a href="/work/">Work</a><a href="/services/">Services</a><a href="/a-propos/">À propos</a><a href="/journal/">Journal</a></div>
@@ -75,7 +86,14 @@ export function footer() {
 }
 
 export function projectMeta(project) {
-  return `<div class="project-meta"><span>${esc(project.type)}</span><span>${esc(project.role)}</span><span>${esc(project.context)}</span><span>${esc(project.year)}</span></div>`;
+  return `<dl class="project-meta-list">
+    <div><dt>Contexte</dt><dd>${esc(project.context)}</dd></div>
+    <div><dt>Rôle</dt><dd>${esc(project.role)}</dd></div>
+    <div><dt>Année</dt><dd>${esc(project.year)}</dd></div>
+    ${project.location ? `<div><dt>Lieu</dt><dd>${esc(project.location)}</dd></div>` : ''}
+    ${project.format ? `<div><dt>Format</dt><dd>${esc(project.format)}</dd></div>` : ''}
+    ${project.camera ? `<div><dt>Caméra</dt><dd>${esc(project.camera)}</dd></div>` : ''}
+  </dl>`;
 }
 
 export function placeholderVisual(label, index=1) {

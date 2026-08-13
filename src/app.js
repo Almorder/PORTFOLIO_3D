@@ -162,3 +162,16 @@ if('IntersectionObserver' in window && !reduced){
   }),{threshold:.12});
   revealTargets.forEach(el=>io.observe(el));
 }
+
+// Home entry carousel: tactile first, with optional desktop controls.
+const entryCarousel=$('[data-entry-carousel]');
+if(entryCarousel){
+  const move=(dir)=>{
+    const card=$('.entry-card',entryCarousel);
+    const gap=20;
+    const amount=(card?.getBoundingClientRect().width || entryCarousel.clientWidth*.8)+gap;
+    entryCarousel.scrollBy({left:dir*amount,behavior:reduced?'auto':'smooth'});
+  };
+  $('[data-entry-prev]')?.addEventListener('click',()=>move(-1));
+  $('[data-entry-next]')?.addEventListener('click',()=>move(1));
+}
