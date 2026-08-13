@@ -1,52 +1,54 @@
-# ASSET MANIFEST — Nolan Arc 2026 · V15
+# ASSET MANIFEST — Nolan Arc 2026 · V16
 
-## Médias branchés
+## Médias vérifiés
 
-| Asset | Usage actuel | Source | Statut |
-|---|---|---|---|
-| YouTube `GbeOQ-hgrtU` + poster | Home Work, Work, case study et Services/Récits pour *Le bol d’en face* | Projet existant | VERIFIED |
-| Image studio / production | Home hero, séquence méthode, carte Marques, Services/Marques | Unsplash · Bianca Maria | TEMPORARY / LICENSED PLACEHOLDER |
-| Image caméra cinéma | Carte Récit et image sociale générique | Unsplash · Redd Francisco | TEMPORARY / LICENSED PLACEHOLDER |
-| Image événement | Carte Moments et Services/Moments | Unsplash · Leo_Visions | TEMPORARY / LICENSED PLACEHOLDER |
+| Asset | Usage V16 | Statut |
+|---|---|---|
+| YouTube `GbeOQ-hgrtU` + poster | Home Work, Work, fiche *Le bol d’en face* | VERIFIED |
+| `public/assets/nolan-portrait.jpg` | À propos, Contact, Quick Contact | REQUIRED REAL ASSET |
 
-Les images Unsplash servent à juger le rythme et la direction visuelle. Elles ne sont jamais légendées comme des réalisations de Nolan Arc.
+## Illustrations temporaires
+
+Trois images Unsplash sont encore utilisées pour vérifier la composition des projets dont les médias réels ne sont pas encore rattachés :
+
+- Ouilove Proposal ;
+- A One Permis ;
+- Moments.
+
+Elles ne sont jamais présentées comme des réalisations Nolan Arc.
+
+## Écosystème de production
+
+La Home contient six cartes d'outils / marques :
+
+- Sony ;
+- Sigma ;
+- Adobe ;
+- NiSi ;
+- SmallRig ;
+- PGYTECH.
+
+Le bloc est explicitement nommé **Écosystème de production** et ne doit jamais être renommé « Clients » ou « Collaborations ».
+
+Les logos sont rendus monochromes au repos puis passent en orange au hover. Les URLs distantes restent des dépendances visuelles temporaires : une future industrialisation peut les remplacer par des fichiers locaux autorisés afin de supprimer cette dépendance réseau.
 
 ## Médias prioritaires à rattacher
 
-### Portrait Nolan
-- fichier attendu : `public/assets/nolan-portrait.jpg` ;
-- idéal : portrait naturel ou environnement de travail, vertical ;
-- ratio recommandé : proche de 4:5 ;
-- la page À propos utilise directement ce chemin ; aucun portrait fictif n’est injecté. Si le binaire manque dans le repo local, remettre le portrait réel à cet emplacement avant publication.
-
 ### Ouilove Proposal
 - média principal réel ;
-- 3 à 6 images/stills montrant le travail de direction artistique ;
-- puis création éventuelle d'un vrai case study `/projet/ouilove/`.
+- 3 à 6 images / stills ;
+- éventuellement un vrai case study lorsque rôle, période et résultat sont documentés.
 
 ### A One Permis
-- contenus sociaux réellement produits ;
+- contenus réellement produits ;
 - conserver les ratios d'origine ;
-- ne créer le case study qu'une fois les médias et le contexte rattachés.
+- créer une fiche seulement avec contexte et médias vérifiés.
 
 ### Moments
 - film réel identifiable ;
-- 4 à 10 images/stills ;
-- témoignage relié au bon projet.
+- 4 à 10 stills ;
+- témoignage relié au projet correspondant.
 
 ## Règle
 
-Aucun média d'illustration, stock ou généré ne doit être présenté comme une réalisation Nolan Arc.
-
-
-## Usage spécifique V15 — Fabrica direction
-
-- Le `Video Slide Show` de Work utilise cinq points d’entrée du même film vérifié *Le bol d’en face*. Ces cartes sont des extraits de navigation, pas cinq projets distincts.
-- La miniature du film reste utilisée lorsqu’il s’agit réellement de *Le bol d’en face* ; elle n’est pas utilisée comme remplissage générique ailleurs.
-- Les visuels stock restent explicitement temporaires jusqu’au rattachement des médias Nolan Arc réels.
-
-## Direction visuelle V15
-
-- Les médias temporaires sont traités en monochrome / faible saturation pour rester cohérents avec la grammaire Fabrica.
-- Aucun asset propriétaire du template Fabrica n’est inclus.
-- Le grain est généré en CSS/SVG, pas importé du template.
+Aucun média stock, illustratif ou généré ne doit être présenté comme une réalisation Nolan Arc.

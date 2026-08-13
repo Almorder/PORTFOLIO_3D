@@ -82,7 +82,7 @@ export function header(active='') {
 
 export function footer() {
   return `<footer class="site-footer fab-footer">
-    <div class="fab-footer__brand"><a href="/">Nolan<span>.</span>Arc</a><p>Réalisateur & directeur artistique.<br>France · disponible partout.</p></div>
+    <div class="fab-footer__brand"><a href="/">Nolan<span>.</span>Arc</a><p>Réalisation · direction artistique · stratégie de marque.</p></div>
     <div class="fab-footer__grid">
       <div><small>Navigation</small><a href="/work/">Work</a><a href="/services/">Services</a><a href="/a-propos/">À propos</a><a href="/journal/">Journal</a></div>
       <div><small>Contact</small><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a><a href="${site.youtube}" target="_blank" rel="noreferrer">YouTube ↗</a></div>

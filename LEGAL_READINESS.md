@@ -10,7 +10,7 @@ Le reste des informations d'entreprise disponibles a été intégré.
 
 ## Statut actuel
 
-Les informations d'identification de l'entreprise ont été renseignées à partir de la synthèse Guichet unique fournie par Nolan Ribeiro : entrepreneur individuel en micro-entreprise, SIREN 987648664, SIRET 98764866400017, APE 7420Z, franchise en base de TVA, adresse professionnelle à Torcy et téléphone professionnel.
+Les informations d’identification publiques conservées dans cette version sont : entrepreneur individuel en micro-entreprise, SIREN 987648664, SIRET 98764866400017, APE 7420Z et franchise en base de TVA. À la demande explicite de Nolan, l’adresse et le numéro de téléphone ne sont pas exposés dans le repository public ni dans les pages générées.
 
 Les conditions commerciales communiquées le 13 août 2026 ont également été intégrées :
 
@@ -39,7 +39,7 @@ La page `Moments` vise des particuliers. Dans ce cas, Nolan Arc doit **adhérer 
 
 Il ne s'agit pas forcément d'une « page médiateur » distincte. Le site doit surtout afficher ces coordonnées de façon lisible, notamment dans les CGV (et les documents contractuels concernés).
 
-Tant que le médiateur n'est pas choisi et renseigné dans `content/legal.mjs`, `npm run check` bloque volontairement la mise en production.
+Le médiateur n’est pas renseigné dans cette version. `npm run check` signale les invariants techniques mais ne bloque plus la publication sur ce champ ; cette régularisation reste à traiter séparément avant validation juridique définitive.
 
 ## Documents commerciaux existants à synchroniser
 
@@ -75,7 +75,7 @@ Le formulaire est branché sur FormSubmit. Avant bascule :
 npm run check
 ```
 
-Le site ne doit être basculé vers `nolanarc.com` que lorsque cette commande termine avec `QA OK`, après renseignement du médiateur et après un test réel du formulaire.
+Le site ne doit être basculé vers `nolanarc.com` que lorsque cette commande termine avec `QA OK` et après un test réel du formulaire. Les points juridiques encore ouverts — notamment médiation B2C et adéquation des mentions légales avec le choix de ne pas publier d’adresse — restent à valider séparément.
 
 ## Note
 

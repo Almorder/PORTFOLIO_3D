@@ -30,9 +30,15 @@ const customCursor=$('[data-custom-cursor]');
 if(customCursor && matchMedia('(hover:hover) and (pointer:fine)').matches && !reduced){
   document.documentElement.classList.add('has-custom-cursor');
   let cx=-100,cy=-100,tx=-100,ty=-100,raf=0;
-  const render=()=>{cx+=(tx-cx)*.34;cy+=(ty-cy)*.34;customCursor.style.transform=`translate3d(${cx-11}px,${cy-11}px,0)`;raf=requestAnimationFrame(render);};
-  render();
-  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;customCursor.style.opacity='1';},{passive:true});
+  const render=()=>{
+    if(document.hidden){raf=0;return;}
+    const dx=tx-cx,dy=ty-cy;cx+=dx*.34;cy+=dy*.34;
+    customCursor.style.transform=`translate3d(${cx-11}px,${cy-11}px,0)`;
+    if(Math.abs(dx)+Math.abs(dy)>.12) raf=requestAnimationFrame(render); else {cx=tx;cy=ty;raf=0;}
+  };
+  const wake=()=>{if(!raf&&!document.hidden)raf=requestAnimationFrame(render)};
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0;}else wake();});
+  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;customCursor.style.opacity='1';wake();},{passive:true});
   addEventListener('pointerdown',()=>customCursor.classList.add('is-pressed'),{passive:true});
   addEventListener('pointerup',()=>customCursor.classList.remove('is-pressed'),{passive:true});
   document.addEventListener('pointerover',e=>{customCursor.classList.toggle('is-interactive',Boolean(e.target.closest('a,button,input,textarea,select,summary,[role="button"],[data-video-slide-show],[data-stacked-flow]')));});
@@ -47,9 +53,13 @@ const prefetchRoute=href=>{
 };
 document.addEventListener('pointerover',e=>{const a=e.target.closest('a[href^="/"]');if(a)prefetchRoute(a.getAttribute('href'));},{passive:true});
 document.addEventListener('focusin',e=>{const a=e.target.closest?.('a[href^="/"]');if(a)prefetchRoute(a.getAttribute('href'));});
-if('requestIdleCallback' in window) requestIdleCallback(()=>['/contact/','/work/','/services/','/a-propos/'].forEach(prefetchRoute),{timeout:1800});
+if('requestIdleCallback' in window){
+  const likely=location.pathname==='/'?['/work/','/contact/']:location.pathname.startsWith('/work')||location.pathname.startsWith('/projet')?['/services/','/contact/']:location.pathname.startsWith('/services')?['/work/','/contact/']:['/work/','/contact/'];
+  requestIdleCallback(()=>likely.forEach(prefetchRoute),{timeout:1800});
+}
 
 // Scroll progress + scene choreography. Native scroll remains the source of truth.
+const header = $('[data-header]');
 const scenes = $$('.scroll-scene');
 let ticking = false;
 function updateScroll(){
@@ -83,6 +93,7 @@ function updateScroll(){
       if(showcase){ setShowcaseProgress(showcase,p); setShowcaseStep(showcase, idx); }
     }
   });
+  header?.classList.toggle('is-scrolled', y > 80);
   ticking=false;
 }
 addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(updateScroll);ticking=true;}},{passive:true});
@@ -102,11 +113,7 @@ if(!reduced && matchMedia('(pointer:fine)').matches){
   }
 }
 
-// Navigation remains available throughout the experience: the page can be immersive without trapping the visitor.
-const header = $('[data-header]');
-addEventListener('scroll',()=>{
-  header?.classList.toggle('is-scrolled', scrollY > 80);
-},{passive:true});
+// Navigation remains available throughout the experience.
 header?.classList.toggle('is-scrolled', scrollY > 80);
 
 // Accessible mobile menu: Escape, focus containment and focus restoration.
@@ -155,15 +162,14 @@ if(form){
   const map={brand:'Marque',moment:'Mariage / moment',story:'Film / récit',other:'Autre'};
   const setIntent=(key='other')=>{
     const safe=map[key]?key:'other';
-    input.value=map[safe];
+    if(input) input.value=map[safe];
     buttons.forEach(b=>{
       const active=b.dataset.formIntent===safe;
       b.classList.toggle('is-active',active);
       b.setAttribute('aria-pressed',String(active));
     });
   };
-  setIntent(initialIntent);
-  buttons.forEach(b=>b.addEventListener('click',()=>setIntent(b.dataset.formIntent)));
+  if(input||buttons.length){setIntent(initialIntent);buttons.forEach(b=>b.addEventListener('click',()=>setIntent(b.dataset.formIntent)));}
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
@@ -175,7 +181,7 @@ if(form){
       const res=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({success:res.ok}));
       if(!res.ok || data.success===false) throw new Error('submit');
-      form.reset(); setIntent(initialIntent);
+      form.reset(); if(input||buttons.length) setIntent(initialIntent);
       status.textContent='Message envoyé. Je reviens vers vous sous 48 h ouvrées.';
     }catch{
       status.innerHTML='L’envoi a échoué. Vous pouvez écrire directement à <a href="mailto:nolanribcontact@gmail.com">nolanribcontact@gmail.com</a>.';
@@ -187,10 +193,43 @@ if(form){
 
 // About portrait: never substitute a stock face for Nolan. If the real asset is absent, show the designed fallback instead.
 $$('[data-nolan-portrait]').forEach(img=>{
-  const frame=img.closest('.about-story-hero__portrait');
+  const frame=img.closest('figure') || img.parentElement;
   const missing=()=>frame?.classList.add('is-missing');
   img.addEventListener('error',missing,{once:true});
   if(img.complete && img.naturalWidth===0) missing();
+});
+
+
+// V16 pricing switcher — one compact pricing surface, three offers.
+$$('[data-pricing-switcher]').forEach(section=>{
+  const tabs=$$('[data-pricing-tab]',section), panels=$$('[data-pricing-panel]',section);
+  const set=(key)=>{
+    tabs.forEach(tab=>tab.setAttribute('aria-selected',String(tab.dataset.pricingTab===key)));
+    panels.forEach(panel=>{const active=panel.dataset.pricingPanel===key;panel.hidden=!active;panel.classList.toggle('is-active',active);});
+  };
+  tabs.forEach(tab=>tab.addEventListener('click',()=>set(tab.dataset.pricingTab)));
+});
+
+// V16 expertise switcher — reused in Work and Services. Query string can preselect Services.
+$$('[data-expertise-switcher]').forEach(section=>{
+  const tabs=$$('[data-expertise-tab]',section),panels=$$('[data-expertise-panel]',section);
+  if(!tabs.length||!panels.length) return;
+  const keys=new Set(tabs.map(t=>t.dataset.expertiseTab));
+  const fromQuery=section.hasAttribute('data-expertise-query')?new URLSearchParams(location.search).get('expertise'):null;
+  const initial=keys.has(fromQuery)?fromQuery:tabs.find(t=>t.getAttribute('aria-selected')==='true')?.dataset.expertiseTab||tabs[0].dataset.expertiseTab;
+  const set=(key,focus=false)=>{
+    if(!keys.has(key)) return;
+    tabs.forEach(tab=>{const active=tab.dataset.expertiseTab===key;tab.setAttribute('aria-selected',String(active));if(active&&focus)tab.focus();});
+    panels.forEach(panel=>{const active=panel.dataset.expertisePanel===key;panel.hidden=!active;panel.classList.toggle('is-active',active);});
+  };
+  tabs.forEach((tab,index)=>{
+    tab.addEventListener('click',()=>set(tab.dataset.expertiseTab));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      event.preventDefault();const delta=['ArrowRight','ArrowDown'].includes(event.key)?1:-1;const next=(index+delta+tabs.length)%tabs.length;set(tabs[next].dataset.expertiseTab,true);
+    });
+  });
+  set(initial);
 });
 
 // External video is activated only after an explicit contextual choice.

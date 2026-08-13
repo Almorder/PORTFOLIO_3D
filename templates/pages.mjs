@@ -11,94 +11,132 @@ const visuals = {
   moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
 };
 
+const expertiseTabs = [
+  {
+    key:'realisation', label:'Réalisation', index:'01',
+    headline:'Prendre le film du concept au fichier final.',
+    text:'Je peux garder une seule direction sur la préparation, le tournage, le montage et la livraison. Le bénéfice n’est pas de multiplier les tâches : c’est d’éviter que l’idée se dilue entre les étapes.',
+    value:'Une continuité de vision, une vraie expérience terrain et des fichiers pensés pour leur support final.',
+    href:'/services/?expertise=realisation'
+  },
+  {
+    key:'direction', label:'Direction artistique', index:'02',
+    headline:'Faire tenir l’univers jusque dans les détails.',
+    text:'Je construis un langage visuel cohérent pour que l’image, la typographie, la couleur, le rythme et la matière donnent l’impression de venir de la même idée.',
+    value:'Plus de cohérence, des choix créatifs plus simples et une identité plus reconnaissable.',
+    href:'/services/?expertise=direction'
+  },
+  {
+    key:'strategie', label:'Stratégie de marque', index:'03',
+    headline:'Transformer l’analyse en décisions qui bougent.',
+    text:'J’audite ce qui bloque, je priorise ce qui mérite d’être accéléré et je préfère exécuter, mesurer puis ajuster plutôt que laisser une stratégie attendre dans un document.',
+    value:'Des priorités plus nettes, une mise en action plus rapide et une création reliée aux objectifs de l’entreprise.',
+    href:'/services/?expertise=strategie'
+  }
+];
+
+const ecosystem = [
+  {name:'Sony', role:'Boîtiers · optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg'},
+  {name:'Sigma', role:'Optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sigma%27s_new_updated_logo_revealed%2C_February_2025.svg'},
+  {name:'Adobe', role:'Post-production', logo:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Adobe_Logo_Standard.svg'},
+  {name:'NiSi', role:'Filtres', logo:'https://images.squarespace-cdn.com/content/v1/5abbd54bd274cb288dbee575/1580147234198-OZKG3ETPSV8IJXDIYUFM/NiSi-logo-2018-01%403x-1.png'},
+  {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'https://www.smallrigreseller.com/img/static/smallrig-logo.png'},
+  {name:'PGYTECH', role:'Workflow média', logo:'https://cdn.shopify.com/s/files/1/0252/2395/4525/files/header_logo.png?height=628&pad_color=ffffff&v=1681727276&width=1200'}
+];
+
+
 export function homePage(){
+  const stats = site.proofStats;
   return head({
-    title:'Nolan Arc — Réalisateur & directeur artistique',
-    description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films, direction visuelle et récits construits autour d’une intention claire.",
-    path:'/', bodyClass:'page-home page-fabrica'
+    title:'Nolan Arc — Réalisation, direction artistique & stratégie',
+    description:'Portfolio de Nolan Ribeiro : réalisation photo/vidéo, direction artistique et stratégie de marque.',
+    path:'/', bodyClass:'page-home page-fabrica page-v16'
   }) + header('/') + `
-  <main id="main-content" class="fab-home">
-    <section class="fab-hero" aria-labelledby="fab-hero-title">
-      <div class="fab-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="fab-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:26,blur:90,opacity:.16,size:132,colors:['#151515','#343434','#6d6d6d','#0a0a0a']})}</div>
-      <h1 class="fab-hero__wordmark" id="fab-hero-title"><span>Nolan</span><b>.</b><span>Arc</span><small>Réalisateur</small></h1>
-      <ul class="fab-hero__services" aria-label="Domaines d’intervention"><li>Réalisation</li><li>Direction artistique</li><li>Écriture & montage</li><li>Films de moments</li></ul>
-      <p class="fab-hero__statement">Pas d’image pour remplir. Chaque choix doit servir ce que vous voulez faire comprendre, ressentir ou garder.</p>
-      <div class="fab-hero__contact"><div class="fab-hero__avatar" aria-hidden="true">N</div><div><small>Nolan Ribeiro</small><strong>Réalisateur & DA</strong></div><a href="/contact/">Parler du projet ↗</a></div>
-      <span class="fab-hero__copyright">© 2026 Nolan Arc</span>
-      <i class="fab-cross fab-cross--1" aria-hidden="true"></i><i class="fab-cross fab-cross--2" aria-hidden="true"></i><i class="fab-cross fab-cross--3" aria-hidden="true"></i>
+  <main id="main-content" class="v16-home">
+    <section class="v16-hero" aria-labelledby="v16-hero-title">
+      <div class="v16-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:24,blur:86,opacity:.17,size:130,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
+      <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
+      <div class="v16-hero__actions"><a href="#work-preview">Voir le Work <span>↘</span></a><a href="#quick-contact">Parler d’un projet <span>↗</span></a></div>
+      <span class="v16-hero__copyright">© 2026 Nolan Arc</span>
     </section>
 
-    <section class="fab-clients motion-reveal" aria-label="Collaborations documentées">
-      <div class="fab-section-meta"><span>Collaborations</span><small>(2024–26©)</small></div>
-      <div class="fab-client-grid">${site.clients.map((name,i)=>`<div><span>0${i+1}</span><strong>${esc(name)}</strong></div>`).join('')}</div>
-    </section>
-
-    <section class="fab-projects" id="work-preview">
-      <header class="fab-section-heading motion-reveal"><div><small>(04)</small><h2>Work.</h2><span>©2026</span></div><p>Un film documenté en profondeur, puis des collaborations qui montrent d’autres contextes d’intervention.</p></header>
+    <section class="fab-projects v16-work-preview" id="work-preview">
+      <header class="fab-section-heading motion-reveal"><div><small>(01)</small><h2>Work.</h2><span>sélection</span></div><p>Le projet parle d’abord. Si vous voulez aller plus loin, la fiche donne simplement mon rôle, le contexte et les choix qui ont compté.</p></header>
       <div class="fab-project-grid">
-        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Film</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="lazy"><span>Voir le film ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/#ouilove-proof"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration de la collaboration Ouilove Proposal" loading="lazy"><span>Voir la collaboration ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/#marques"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu social</i></div><figure><img src="${visuals.story}" alt="Illustration de la collaboration A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/#moments"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Événement</i></div><figure><img src="${visuals.moment}" alt="Illustration des films de moments" loading="lazy"><span>Voir les moments ↗</span></figure></a>
+        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
+        <a class="fab-project-card motion-reveal" href="/services/?expertise=direction"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration temporaire du projet Ouilove Proposal" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+        <a class="fab-project-card motion-reveal" href="/services/?expertise=strategie"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu & stratégie</i></div><figure><img src="${visuals.story}" alt="Illustration temporaire du projet A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+        <a class="fab-project-card motion-reveal" href="/services/?expertise=realisation"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Réalisation</i></div><figure><img src="${visuals.moment}" alt="Illustration temporaire de films de moments" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
       </div>
-      <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tous les travaux <span>↗</span></a></div>
+      <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
     </section>
 
-    <section class="fab-proof">
-      <div class="fab-proof__intro motion-reveal"><span class="fab-dot-label">Pourquoi travailler ensemble</span><h2>Une direction claire.<br>Moins d’allers-retours inutiles.</h2><p>Je relie préparation, réalisation et montage autour de la même intention. Vous savez ce que l’on cherche, ce qui est décidé et ce qui sera livré.</p><a class="fab-arrow-link" href="/a-propos/">Voir ma manière de travailler <span>↗</span></a></div>
-      ${animatedStats(site.proofStats,{theme:'light',layout:'grid',replay:true,animation:'slide'})}
+    <section class="v16-proof" aria-labelledby="v16-proof-title">
+      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Quelques chiffres pour situer le niveau d’expérience.</h2></header>
+      ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
+      <p class="v16-proof__note motion-reveal">Le +105 % correspond à une croissance de chiffre d’affaires observée sur Ouilove ; ce n’est pas une promesse généralisée à tous les projets.</p>
     </section>
 
-    <section class="brand-ecosystem motion-reveal" aria-labelledby="brand-ecosystem-title">
-      <div class="brand-ecosystem__head"><span class="fab-dot-label">Écosystème de production</span><h2 id="brand-ecosystem-title">Des outils que je connais déjà sur le terrain.</h2><p>Ces marques ne sont pas présentées comme des clients. Elles illustrent l’écosystème matériel et logiciel avec lequel je travaille ou que j’intègre régulièrement à mes productions.</p></div>
-      <div class="brand-ecosystem__grid" aria-label="Marques et outils de production"><div><strong>SONY</strong><small>Image</small></div><div><strong>SIGMA</strong><small>Optiques</small></div><div><strong>Adobe</strong><small>Post-production</small></div><div><strong>NiSi</strong><small>Filtres</small></div><div><strong>SmallRig</strong><small>Rigging</small></div><div><strong>PGYTECH</strong><small>Workflow</small></div></div>
-    </section>
-
-    <section class="fab-services" id="services-preview">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Services.</h2></div><p>Le format vient après le besoin. Je pars de ce que votre image doit réellement accomplir.</p></header>
-      <div class="fab-service-list">
-        <a class="fab-service-row motion-reveal" href="/services/#marques"><span>001</span><div><h3>Marques & organisations</h3><p>Film, direction artistique et contenu pour clarifier un message et tenir une image cohérente.</p></div><ul><li>Film de marque</li><li>Direction artistique</li><li>Contenu social</li></ul><figure><img src="${visuals.brand}" alt="Illustration d’une production pour une marque" loading="lazy"></figure><b>↗</b></a>
-        <a class="fab-service-row motion-reveal" href="/services/#recits"><span>002</span><div><h3>Récits & création</h3><p>Écriture, mise en scène, réalisation et montage pour donner une forme précise à une histoire.</p></div><ul><li>Écriture</li><li>Mise en scène</li><li>Réalisation</li></ul><figure><img src="${bol.poster}" alt="Le bol d’en face" loading="lazy"></figure><b>↗</b></a>
-        <a class="fab-service-row motion-reveal" href="/services/#moments"><span>003</span><div><h3>Moments</h3><p>Préparer ce qui compte, filmer sans prendre la place et construire un souvenir cohérent.</p></div><ul><li>Mariage</li><li>Demande</li><li>Événement</li></ul><figure><img src="${visuals.moment}" alt="Illustration d’un film de moment" loading="lazy"></figure><b>↗</b></a>
+    <section class="v16-dimensions" id="dimensions">
+      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
+      <div class="v16-dimensions__grid">
+        ${expertiseTabs.map(x=>`<article class="v16-dimension motion-reveal"><span>${x.index}</span><h3>${x.label}</h3><p>${x.text}</p><strong>${x.value}</strong><a href="${x.href}">Voir l’expertise ↗</a></article>`).join('')}
       </div>
     </section>
 
-    <section class="home-pricing motion-reveal" id="tarif-mariage">
+    <section class="v16-journey scroll-scene" data-scene="journey" id="journey">
+      <div class="v16-journey__sticky">
+        <div class="v16-journey__copy">
+          <span class="fab-dot-label">Une même direction du début à la fin</span>
+          <div class="v16-journey__steps">
+            <article data-journey-step class="is-active"><small>01</small><h2>Comprendre.</h2><p>Quel résultat le projet doit réellement produire.</p></article>
+            <article data-journey-step><small>02</small><h2>Choisir.</h2><p>Les décisions qui servent cet objectif — pas celles qui décorent.</p></article>
+            <article data-journey-step><small>03</small><h2>Tenir le fil.</h2><p>Préserver cette direction entre stratégie, production et livraison.</p></article>
+          </div>
+        </div>
+        <div class="v16-journey__visual">${glassShowcase([visuals.brand,bol.poster,visuals.moment])}<span class="v16-journey__count" data-journey-count>01 / 03</span></div>
+      </div>
+    </section>
+
+    <section class="brand-ecosystem v16-ecosystem motion-reveal" aria-labelledby="brand-ecosystem-title">
+      <div class="brand-ecosystem__head"><span class="fab-dot-label">Écosystème de production</span><h2 id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain.</h2><p>Matériel de prise de vue, optiques, accessoires et post-production. Ce bloc montre mon environnement de travail, pas une liste de clients.</p></div>
+      <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card">${b.logo?`<img src="${b.logo}" alt="Logo ${b.name}" loading="lazy" referrerpolicy="no-referrer">`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
+    </section>
+
+    <section class="home-pricing v16-pricing motion-reveal" id="pricing" data-pricing-switcher>
       <div class="home-pricing__backdrop" aria-hidden="true"><img src="${visuals.moment}" alt=""><i></i></div>
-      <div class="home-pricing__top"><span class="fab-dot-label">Film de mariage</span><h2>À partir de <em>1 500 €.</em></h2><p>Une base simple pour savoir immédiatement si le projet correspond à votre budget. Le montant final est confirmé au devis selon les options choisies.</p></div>
-      <div class="home-pricing__offer">
-        <div class="home-pricing__price"><small>Base</small><strong>1 500 €</strong><span>à partir de</span></div>
-        <ul><li><b>30 min</b><span>Film final</span></li><li><b>12 h → 00 h</b><span>Couverture sur la journée de votre choix</span></li><li><b>Sur devis</b><span>Options et besoins particuliers</span></li></ul>
-        <a class="glassy-pricing-cta" href="/contact/?intent=moment">Parler de votre mariage <span>↗</span></a>
+      <div class="v16-pricing__intro"><span class="fab-dot-label">Tarifs</span><h2>Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Mon temps et mon travail ont un prix. Les projets plus larges restent sur devis, mais vous devez pouvoir savoir rapidement si l’on joue dans la même zone.</p></div>
+      <div class="v16-pricing__tabs" role="tablist" aria-label="Choisir une offre"><button type="button" role="tab" aria-selected="true" data-pricing-tab="wedding">Mariage</button><button type="button" role="tab" aria-selected="false" data-pricing-tab="direction">Direction artistique</button><button type="button" role="tab" aria-selected="false" data-pricing-tab="strategy">Stratégie de marque</button></div>
+      <div class="v16-pricing__panels">
+        <article data-pricing-panel="wedding" class="is-active"><small>Film de mariage</small><strong>À partir de 1 500 €</strong><ul><li><b>30 min</b><span>film final</span></li><li><b>12 h → 00 h</b><span>couverture de la journée</span></li><li><b>Sur devis</b><span>options et besoins supplémentaires</span></li></ul><a href="/contact/?intent=moment">Parler du mariage ↗</a></article>
+        <article data-pricing-panel="direction" hidden><small>Direction artistique</small><strong>À partir de 200 €</strong><p>Minimum pour un projet ciblé. Le périmètre et les livrables évoluent ensuite selon ce qu’il faut créer, corriger ou harmoniser.</p><a href="/contact/?intent=brand">Présenter le projet ↗</a></article>
+        <article data-pricing-panel="strategy" hidden><small>Conseil en stratégie de marque</small><strong>89 € / heure</strong><p>Audit, priorisation ou session de travail ciblée. Les accompagnements plus larges sont chiffrés sur devis.</p><a href="/contact/?intent=brand">Réserver une session ↗</a></article>
       </div>
     </section>
 
-    <section class="fab-process fab-process--dark">
-      <div class="fab-process__head motion-reveal"><span class="fab-dot-label">Comment je travaille</span><h2>L’intention<br>avant l’image.</h2><p>Je préfère décider ce qu’un plan doit accomplir avant de décider comment il doit être tourné.</p></div>
-      <div class="fab-process__visual motion-reveal">${glassShowcase([visuals.brand, bol.poster, visuals.moment])}</div>
-      <div class="fab-process__steps">
-        <article class="motion-reveal"><span>01</span><strong>Comprendre</strong><p>Ce que le public doit comprendre, ressentir ou garder.</p></article>
-        <article class="motion-reveal"><span>02</span><strong>Choisir</strong><p>Le cadre, la lumière, le mouvement, le son et le rythme qui servent cette intention.</p></article>
-        <article class="motion-reveal"><span>03</span><strong>Tenir le fil</strong><p>La même direction pendant la préparation, le tournage et le montage.</p></article>
-      </div>
-      <a class="fab-arrow-link fab-arrow-link--light" href="/a-propos/">À propos de Nolan <span>↗</span></a>
+    <section class="v16-testimonials" id="retours">
+      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
+      <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong><span>${esc(t.role)}</span></footer></article>`).join('')}</div>
     </section>
 
-    <section class="fab-testimonials">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Pas de note artificielle. Seulement des phrases déjà reçues sur le travail et la manière de collaborer.</p></header>
-      ${focusTestimonials(site.testimonials,{maxVisible:3})}
-    </section>
+    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
 
-    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les questions qui reviennent avant de travailler ensemble.'})}
-
-    <section class="fab-contact-band motion-reveal">
-      <div><small>Disponible pour de nouveaux projets</small><h2>Parlons.</h2></div><p>Une idée, une date ou un problème à résoudre suffisent pour commencer.</p><a href="/contact/">Écrire à Nolan <span>↗</span></a>
+    <section class="v16-quick-contact motion-reveal" id="quick-contact">
+      <form class="v16-quick-contact__form" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
+        <small>Nolan.Arc</small><h2>Un message suffit.</h2>
+        <label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
+        <label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label>
+        <label><span>Message</span><textarea required name="message" rows="4" placeholder="Ce que vous préparez, même si c’est encore flou."></textarea></label>
+        <button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
+      </form>
+      <div class="v16-quick-contact__copy">${gradientMotionBackground({style:'radial',speed:22,blur:84,opacity:.28,size:126,colors:['#CC460C','#E97736','#2B1710','#080706']})}<span class="fab-dot-label">Contact direct</span><h2>Parlons.</h2><p>Vous pouvez arriver avec un brief précis ou simplement une idée. Les deux me vont.</p><div class="v16-contact-points"><div><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></div><div><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></div></div><div class="v16-nolan-card"><div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" loading="lazy"></div><div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a></div></div></div>
     </section>
   </main>` + footer();
 }
 
 export function workPage(){
-  const collaborations = projects.filter(p=>p.status!=='verified');
   const filmSlides=[
     { videoId: bol.videoId, start: 0, poster: bol.poster, position: '42% center', kicker: '01', title: 'Ouverture' },
     { videoId: bol.videoId, start: 12, poster: bol.poster, position: '35% center', kicker: '02', title: 'Le repas' },
@@ -106,24 +144,20 @@ export function workPage(){
     { videoId: bol.videoId, start: 36, poster: bol.poster, position: '62% center', kicker: '04', title: 'Le silence' },
     { videoId: bol.videoId, start: 48, poster: bol.poster, position: '72% center', kicker: '05', title: 'La résolution' },
   ];
-  return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work page-fabrica'}) + header('/work/') + `<main id="main-content" class="fab-work-page">
-    <section class="fab-page-title motion-reveal"><div><span>(04)</span><h1>Work.</h1><small>2024–26©</small></div><p>Un film documenté en profondeur et plusieurs collaborations qui montrent les contextes dans lesquels j’interviens.</p></section>
-
-    <section class="fab-work-grid">
-      <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Court métrage</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/#ouilove-proof"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration de la collaboration Ouilove Proposal" loading="lazy"><span>Voir la collaboration ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/#marques"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu social</i></div><figure><img src="${visuals.story}" alt="Illustration de la collaboration A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/#moments"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Films de moments</i></div><figure><img src="${visuals.moment}" alt="Illustration de films de moments" loading="lazy"><span>Voir les moments ↗</span></figure></a>
+  return head({title:'Work — Nolan Arc', description:'Films et projets sélectionnés de Nolan Ribeiro.', path:'/work/', bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
+    <section class="fab-page-title motion-reveal"><div><span>(04)</span><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
+    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'En mouvement',heading:'Le film avant l’explication.',intro:'Faites glisser les cartes. Plus le geste est rapide, plus le carrousel prend de l’inertie.'})}
+    <section class="fab-work-grid v16-project-gallery">
+      <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
+      <a class="fab-project-card motion-reveal" href="/services/?expertise=direction"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration temporaire Ouilove Proposal" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+      <a class="fab-project-card motion-reveal" href="/services/?expertise=strategie"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu & stratégie</i></div><figure><img src="${visuals.story}" alt="Illustration temporaire A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+      <a class="fab-project-card motion-reveal" href="/services/?expertise=realisation"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Réalisation</i></div><figure><img src="${visuals.moment}" alt="Illustration temporaire Films de moments" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
     </section>
-
-    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'Film en mouvement',heading:'Le bol d’en face, en fragments.',intro:'Faites glisser les cartes : la vitesse du geste détermine jusqu’où le carrousel continue.'})}
-
-    <section class="fab-work-collabs">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Collaborations.</h2></div><p>Des contextes différents, avec la même recherche de cohérence entre l’idée, la production et le rendu.</p></header>
-      ${stackedFlow(collaborations.map((p)=>({href:p.href,kicker:p.type,title:p.title,text:p.summary,image:p.slug==='moments'?visuals.moment:(p.slug==='a-one-permis'?visuals.story:visuals.brand)})))}
+    <section class="v16-expertise-switcher motion-reveal" data-expertise-switcher>
+      <header><span class="fab-dot-label">Trois casquettes</span><h2>Choisissez celle qui vous concerne.</h2></header>
+      <div class="v16-expertise-tabs" role="tablist">${expertiseTabs.map((x,i)=>`<button type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}"><span>${x.index}</span>${x.label}</button>`).join('')}</div>
+      <div class="v16-expertise-panels">${expertiseTabs.map((x,i)=>`<article data-expertise-panel="${x.key}"${i?' hidden':''}><small>${x.label}</small><h3>${x.headline}</h3><p>${x.text}</p><strong>${x.value}</strong><a href="${x.href}">Voir comment j’interviens ↗</a></article>`).join('')}</div>
     </section>
-
-    <section class="fab-contact-band motion-reveal"><div><small>Un autre contexte ?</small><h2>Expliquez-moi le besoin.</h2></div><p>Je regarde l’objectif, les contraintes et les livrables avant de vous proposer une façon d’intervenir.</p><a href="/contact/">Parler du projet <span>↗</span></a></section>
   </main>` + footer();
 }
 
@@ -138,70 +172,32 @@ export function projectPage(){
 }
 
 export function servicesPage(){
-  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services page-fabrica'}) + header('/services/') + `<main id="main-content" class="fab-services-page">
-    <section class="fab-page-title motion-reveal"><div><span>(03)</span><h1>Services.</h1><small>Du besoin au rendu</small></div><p>Je ne pars pas d’un format. Je pars de ce que votre image doit réellement accomplir, puis je construis la bonne réponse.</p></section>
-    ${lineToc([{id:'marques',label:'Marques'},{id:'recits',label:'Récits'},{id:'moments',label:'Moments'}])}
-
-    <section class="fab-services-index motion-reveal" aria-label="Choisir un contexte"><a href="#marques"><span>001</span><strong>Marques & organisations</strong><small>Film · DA · contenu</small></a><a href="#recits"><span>002</span><strong>Récits & création</strong><small>Écriture · réalisation · montage</small></a><a href="#moments"><span>003</span><strong>Moments</strong><small>Mariage · demande · événement</small></a></section>
-
-    <section class="fab-service-section" id="marques">
-      <div class="fab-service-section__meta"><span>001</span><small>Marques & organisations</small></div>
-      <div class="fab-service-section__main motion-reveal"><div><h2>Faire comprendre<br>avant d’impressionner.</h2><p>Film, direction artistique ou contenu : je cherche d’abord ce que votre public doit comprendre, reconnaître ou retenir.</p></div><ul><li>Film de marque</li><li>Direction artistique</li><li>Contenu social</li><li>Déclinaisons</li></ul></div>
-      <div class="fab-service-media motion-reveal"><img src="${visuals.brand}" alt="Illustration d’une production audiovisuelle pour une marque" loading="lazy"><div><span>Ce que vous gagnez</span><strong>Un message plus clair, une image plus cohérente et des livrables pensés pour leurs usages.</strong></div></div>
-      <div class="fab-service-points"><article><span>01</span><h3>Clarifier</h3><p>Relier concept, préparation et réalisation autour de ce que le public doit retenir.</p></article><article><span>02</span><h3>Unifier</h3><p>Faire suivre au cadrage, à la lumière, à la couleur et au rythme une même direction.</p></article><article><span>03</span><h3>Prévoir</h3><p>Anticiper formats et déclinaisons avant le tournage plutôt que recadrer au hasard après.</p></article></div>
-      <aside class="fab-quote-card motion-reveal" id="ouilove-proof"><div><small>Ouilove Proposal · Direction artistique</small><p>La mission demandait autant de réflexion sur le message que de cohérence dans son exécution visuelle.</p></div><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>Matthieu · Ouilove Proposal</cite></blockquote></aside>
-      <a class="fab-arrow-link" href="/contact/?intent=brand">Parler d’un projet de marque <span>↗</span></a>
+  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique et stratégie de marque par Nolan Ribeiro.',path:'/services/',bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
+    <section class="fab-page-title motion-reveal"><div><span>(03)</span><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
+    <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
+      <div class="v16-service-switcher__tabs" role="tablist">${expertiseTabs.map((x,i)=>`<button type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
+      <div class="v16-service-switcher__panels">
+        <article data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bol.poster}" alt="Le bol d’en face — réalisation Nolan Ribeiro" loading="lazy"></figure></article>
+        <article data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></article>
+        <article data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></article>
+      </div>
     </section>
-
-    <section class="fab-service-section fab-service-section--dark" id="recits">
-      <div class="fab-service-section__meta"><span>002</span><small>Récits & création</small></div>
-      <div class="fab-service-section__main motion-reveal"><div><h2>Une histoire a besoin<br>d’une direction.</h2><p>J’interviens sur l’écriture, la mise en scène, la réalisation et le montage pour que chaque scène fasse avancer la compréhension ou l’émotion.</p></div><ul><li>Écriture</li><li>Mise en scène</li><li>Réalisation</li><li>Montage</li></ul></div>
-      <a class="fab-service-media fab-service-media--project motion-reveal" href="/projet/le-bol-den-face/"><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="lazy"><div><span>Court métrage · 2026</span><strong>Le bol d’en face.</strong><small>Voir le film et les décisions ↗</small></div></a>
-      <div class="fab-service-points"><article><span>01</span><h3>Écrire</h3><p>Savoir ce que chaque scène apporte avant de chercher l’effet.</p></article><article><span>02</span><h3>Mettre en scène</h3><p>Transformer une intention en décisions visibles : position, mouvement, lumière et son.</p></article><article><span>03</span><h3>Monter</h3><p>Garder le même fil jusqu’à la dernière coupe.</p></article></div>
-      <a class="fab-arrow-link fab-arrow-link--light" href="/contact/?intent=story">Parler d’un récit <span>↗</span></a>
-    </section>
-
-    <section class="fab-service-section" id="moments">
-      <div class="fab-service-section__meta"><span>003</span><small>Moments</small></div>
-      <div class="fab-service-section__main motion-reveal"><div><h2>Préparer assez<br>pour vous laisser vivre.</h2><p>Mariage, demande en mariage ou événement personnel : la préparation sert à réduire les interruptions le jour même.</p></div><ul><li>Préparation</li><li>Captation</li><li>Son</li><li>Montage</li></ul></div>
-      <div class="fab-service-media motion-reveal"><img src="${visuals.moment}" alt="Illustration d’un événement personnel filmé avec discrétion" loading="lazy"><div><span>Ce que vous gagnez</span><strong>Moins de questions le jour même, moins de moments manqués et un film construit autour de ce qui a réellement compté.</strong></div></div>
-      <div class="fab-service-points"><article><span>01</span><h3>Avant</h3><p>Repérer les lieux, personnes et moments qui ne doivent pas être manqués.</p></article><article><span>02</span><h3>Pendant</h3><p>Anticiper les bonnes positions sans transformer la journée en tournage.</p></article><article><span>03</span><h3>Après</h3><p>Relier voix, regards, gestes et détails autour du souvenir que vous voulez garder.</p></article></div>
-      <aside class="fab-quote-card motion-reveal"><div><small>Film de moment</small><p>Le format exact, les livrables, la durée et les droits sont définis au devis.</p></div><blockquote>« Le résultat était pile comme je l’imaginais. »<cite>Nawel & Yanis</cite></blockquote></aside>
-      <a class="fab-arrow-link" href="/contact/?intent=moment">Parler de votre moment <span>↗</span></a>
-    </section>
-
-    <section class="fab-contact-band motion-reveal"><div><small>Vous hésitez sur la catégorie ?</small><h2>Décrivez simplement le besoin.</h2></div><p>Je vous dirai ensuite la forme d’intervention qui a le plus de sens.</p><a href="/contact/">M’expliquer le projet <span>↗</span></a></section>
+    <section class="v16-combined-expertise motion-reveal"><span class="fab-dot-label">Pourquoi les trois comptent</span><h2>Même quand vous n’en achetez qu’une,<br><em>les autres restent dans la pièce.</em></h2><div><article><span>01</span><strong>Un film de marque</strong><p>La stratégie définit ce qu’il doit accomplir, la direction artistique ce à quoi il doit ressembler, la réalisation comment le produire.</p></article><article><span>02</span><strong>Une direction artistique</strong><p>Elle bénéficie d’une compréhension réelle de ce qui sera faisable sur un plateau et au montage.</p></article><article><span>03</span><strong>Une stratégie</strong><p>Elle reste reliée aux contenus et aux supports que l’entreprise devra réellement produire ensuite.</p></article></div></section>
+    ${faqAccordion(site.faqs.services,{id:'faq-services',eyebrow:'FAQ Services',title:'FAQ.',intro:'Questions précises sur la manière dont je peux intervenir.'})}
+    <section class="fab-contact-band motion-reveal"><div><small>Vous savez ce qu’il vous faut ?</small><h2>On cadre le périmètre.</h2></div><p>Un message suffit pour vérifier si je suis la bonne personne et sous quelle forme intervenir.</p><a href="/contact/">M’expliquer le projet <span>↗</span></a></section>
   </main>` + footer();
 }
-
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about page-fabrica'}) + header('/a-propos/') + `<main id="main-content" class="fab-about-page">
-    <section class="fab-page-title motion-reveal" id="nolan"><div><span>(01)</span><h1>À propos.</h1><small>Nolan Ribeiro</small></div><p>Je réalise, j’écris et je construis des directions visuelles. Le point commun : je veux savoir pourquoi une image doit exister avant de décider comment la produire.</p></section>
-    ${lineToc([{id:'nolan',label:'Nolan'},{id:'parcours',label:'Parcours'},{id:'regard',label:'Regard'},{id:'methode',label:'Méthode'}])}
-
-    <section class="fab-about-intro" id="parcours">
-      <figure class="fab-about-intro__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure>
-      <div class="fab-about-intro__copy motion-reveal"><span class="fab-dot-label">Moi, c’est Nolan</span><h2>Je préfère comprendre<br>avant de produire.</h2><p>Je crée des vidéos depuis longtemps, mais ce qui m’intéresse n’est pas d’accumuler les images. J’aime comprendre ce qui donne une identité à un projet, puis construire autour de ça.</p><p>J’ai parfois passé trop de temps à chercher la bonne direction avant de créer. Aujourd’hui, j’utilise cette exigence autrement : poser les questions importantes plus tôt, éviter les choix gratuits et garder une cohérence du premier échange jusqu’au rendu.</p><a class="fab-arrow-link" href="/contact/">Me parler de votre contexte <span>↗</span></a></div>
-    </section>
-
-    <section class="fab-about-view" id="regard">
-      <header class="fab-section-heading motion-reveal"><div><small>(02)</small><h2>Ce qui m’accroche.</h2></div><p>Un projet devient intéressant quand ses détails racontent la même chose : le cadre, le rythme, la matière, le ton et la façon dont on choisit de montrer.</p></header>
-      <div class="fab-about-view__grid"><article class="motion-reveal"><span>01</span><h3>Une identité reconnaissable.</h3><p>J’aime les univers dont on comprend la personnalité avant même qu’ils aient besoin de l’expliquer.</p></article><article class="motion-reveal"><span>02</span><h3>Des choix qui ont une raison.</h3><p>Une caméra, une lumière ou un mouvement m’intéressent surtout lorsqu’ils changent réellement ce que l’on ressent.</p></article><article class="motion-reveal"><span>03</span><h3>Une relation simple.</h3><p>Je préfère dire clairement ce qui fonctionne, ce qui manque et ce que je peux prendre en charge plutôt que multiplier les couches d’interlocuteurs.</p></article></div>
-    </section>
-
-    <section class="fab-process fab-process--dark" id="methode">
-      <div class="fab-process__head motion-reveal"><span class="fab-dot-label">Ma méthode</span><h2>Comprendre.<br>Choisir.<br>Tenir le fil.</h2><p>Trois temps simples pour éviter de tourner trop tôt ou de chercher une cohérence uniquement en post-production.</p></div>
-      <div class="fab-process__visual motion-reveal">${glassShowcase([visuals.brand, bol.poster, visuals.moment])}</div>
-      <div class="fab-process__steps"><article><span>01</span><strong>Comprendre</strong><p>Ce que l’image doit accomplir.</p></article><article><span>02</span><strong>Choisir</strong><p>Les moyens qui servent cette intention.</p></article><article><span>03</span><strong>Tenir le fil</strong><p>La même direction jusqu’au rendu.</p></article></div>
-    </section>
-
+  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, curiosité et manière de travailler.',path:'/a-propos/',bodyClass:'page-about page-fabrica page-v16'}) + header('/a-propos/') + `<main id="main-content" class="v16-about-page">
+    <section class="v16-about-hero" id="nolan"><figure><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure><div><span class="fab-dot-label">Nolan Ribeiro</span><h1>Nolan.</h1><p>Réalisateur, directeur artistique et stratège de marque. Trois disciplines différentes, mais une même façon de regarder un projet : comprendre ce qui compte avant de choisir comment le montrer.</p></div></section>
+    <section class="v16-about-story motion-reveal"><span class="fab-dot-label">Le point de départ</span><h2>Curieux par nature.</h2><p>Je passe facilement d’un sujet à un autre parce que j’aime comprendre comment les choses fonctionnent et pourquoi certaines réussissent mieux que d’autres. Entrer dans un nouvel univers n’est pas une contrainte pour moi : c’est généralement la partie qui m’intéresse le plus.</p><p>Quand un sujet devient une vraie passion, apprendre n’est plus un effort. C’est ce qui m’a amené à développer plusieurs façons de regarder le même problème — par l’image, par la direction d’un univers et par la stratégie.</p></section>
+    <section class="v16-about-why"><header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Pourquoi ces trois disciplines ?</h2></div><p>Les détails sont dans Services. Ici, le plus important est pourquoi elles se sont retrouvées au même endroit.</p></header><div>${expertiseTabs.map(x=>`<article class="motion-reveal"><span>${x.index}</span><h3>${x.label}</h3><p>${x.key==='realisation'?'Parce que j’aime construire et donner vie à une idée.':x.key==='direction'?'Parce que j’aime les univers qui tiennent ensemble.':'Parce que créer quelque chose de beau qui ne sert pas le projet ne m’intéresse pas.'}</p></article>`).join('')}</div></section>
+    <section class="v16-about-workstyle motion-reveal"><span class="fab-dot-label">Travailler avec moi</span><h2>Direct. Curieux. Autonome.</h2><div><p>Quand la direction est claire, j’aime avancer vite. Je préfère une décision appliquée puis mesurée à une longue phase d’attente qui n’améliore pas le résultat.</p><p>Je peux aussi entrer dans un projet déjà lancé, travailler avec une équipe existante ou prendre davantage de responsabilités quand il faut garder une cohérence de bout en bout.</p></div></section>
     <section class="fab-about-quote motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
-
-    <section class="fab-contact-band motion-reveal"><div><small>Vous savez maintenant comment je pense</small><h2>Reste à voir si ça colle à votre projet.</h2></div><p>Regardez un film si vous voulez juger le travail, ou écrivez-moi directement si votre contexte est déjà clair.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
+    <section class="fab-contact-band motion-reveal"><div><small>Deux façons de continuer</small><h2>Regarder ou parler.</h2></div><p>Le Work montre ce que je produis. Le contact permet de voir ce que cela peut devenir dans votre contexte.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
-
 
 export function journalPage(){
   return head({title:'Journal — Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main id="main-content">
@@ -212,26 +208,20 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact page-fabrica'}) + header('/contact/') + `<main id="main-content" class="contact-page">
-    <section class="contact-composer motion-gradient" data-gradient-host>
-      ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
-      <div class="contact-composer__intro motion-reveal">
-        <span class="eyebrow">Contact</span>
-        <h1>Dites-moi simplement<br><em>ce que vous préparez.</em></h1>
-        <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer. Je vous réponds sous 48 h ouvrées.</p>
-        <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
-      </div>
-      <form class="contact-form contact-form--composer motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
-        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot">
-        <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
-        <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
-        <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
-        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
-        <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un projet à Nolan Ribeiro.',path:'/contact/',bodyClass:'page-contact page-fabrica page-v16'}) + header('/contact/') + `<main id="main-content" class="v16-contact-page">
+    <section class="v16-contact-split">
+      <form class="v16-contact-card motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
+        <small>Nolan.Arc</small><h1>Un projet en tête ?</h1>
+        <label><span>Votre nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
+        <label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label>
+        <label><span>Message</span><textarea required name="message" rows="5" placeholder="Votre message"></textarea></label>
+        <details><summary>Ajouter des précisions <span>optionnel</span></summary><div><label><span>Type de projet</span><select name="type_de_projet"><option>Réalisation</option><option>Direction artistique</option><option>Stratégie de marque</option><option>Autre</option></select></label><label><span>Entreprise</span><input name="entreprise" autocomplete="organization"></label><label><span>Budget</span><select name="budget"><option value="">À définir</option><option>&lt; 500 €</option><option>500 – 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 € +</option></select></label></div></details>
+        <button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">En envoyant, vous acceptez que les informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p>
       </form>
+      <div class="v16-contact-story">${gradientMotionBackground({style:'diamond',speed:20,blur:88,opacity:.34,size:130,colors:['#E97736','#CC460C','#2B1710','#080706']})}<span class="fab-dot-label">Contact</span><h2>Parlons.</h2><p>Un brief précis ou juste le début d’une réflexion : les deux me vont.</p><div class="v16-contact-story__points"><article><strong>Réponse généralement sous 48 h</strong><p>Je reviens avec les premières questions utiles.</p></article><article><strong>Une suite claire</strong><p>Si le projet colle, on cadre les livrables, le calendrier, le prix et les droits.</p></article></div><div class="v16-nolan-card v16-nolan-card--contact"><div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro"></div><div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div></div></div>
     </section>
-    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ',title:'FAQ.',intro:'Ce qu’il est utile de savoir avant d’envoyer votre message.'})}
+    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ Contact',title:'FAQ.',intro:'Les dernières questions avant d’envoyer votre message.'})}
   </main>` + footer();
 }
 
@@ -242,7 +232,7 @@ const legalValue = (value, fallback='À compléter avant publication') => value 
 export function legalPage(){
   const vat = legal.vat ? esc(legal.vat) : 'Non renseigné / à confirmer selon le régime fiscal réel';
   return head({title:'Mentions légales — Nolan Arc',description:'Mentions légales du site Nolan Arc.',path:'/mentions-legales/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Informations légales</span><h1>Mentions légales</h1>
-  <h2>Éditeur du site</h2><p><strong>${esc(site.legalName)}</strong>${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, exerçant sous l’identité professionnelle <strong>${esc(site.name)}</strong>.<br>Adresse professionnelle : ${legalValue(legal.registeredAddress)}.<br>Téléphone : ${legalValue(legal.phone)}.<br>Email : <a href="mailto:${site.email}">${esc(site.email)}</a>.<br>SIREN : ${legalValue(legal.siren)}.<br>SIRET : ${legalValue(legal.siret)}.<br>Code APE : ${legalValue(legal.ape)}.<br>TVA : ${vat}.</p>
+  <h2>Éditeur du site</h2><p><strong>${esc(site.legalName)}</strong>${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, exerçant sous l’identité professionnelle <strong>${esc(site.name)}</strong>.<br>Email : <a href="mailto:${site.email}">${esc(site.email)}</a>.<br>SIREN : ${legalValue(legal.siren)}.<br>SIRET : ${legalValue(legal.siret)}.<br>Code APE : ${legalValue(legal.ape)}.<br>TVA : ${vat}.</p>
   <h2>Directeur de la publication</h2><p>${esc(legal.publicationDirector)}.</p>
   <h2>Hébergement</h2><p>${esc(legal.host.name)}, ${esc(legal.host.address)} — <a href="${esc(legal.host.website)}" rel="noreferrer">${esc(legal.host.website)}</a>.</p>
   <h2>Propriété intellectuelle</h2><p>Sauf mention contraire, les textes, photographies, films, éléments graphiques et créations présentés sur ce site sont protégés par les droits de propriété intellectuelle de leurs auteurs et ayants droit. Toute réutilisation dépassant les exceptions prévues par la loi nécessite l’autorisation préalable du titulaire concerné.</p>
@@ -253,7 +243,7 @@ export function legalPage(){
 
 export function privacyPage(){
   return head({title:'Confidentialité — Nolan Arc',description:'Politique de confidentialité et traitement des données personnelles sur nolanarc.com.',path:'/confidentialite/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Vie privée</span><h1>Politique de confidentialité</h1>
-  <h2>Responsable du traitement</h2><p>${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, adresse : ${legalValue(legal.registeredAddress)}, contact : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>.</p>
+  <h2>Responsable du traitement</h2><p>${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}. Contact pour toute demande relative aux données personnelles : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>.</p>
   <h2>Formulaire de contact</h2><p>Lorsque vous utilisez le formulaire, sont traitées les informations que vous renseignez : nom, adresse email, entreprise éventuelle, catégorie et description du projet, budget éventuel, ainsi que les informations librement ajoutées dans le message. La finalité est de répondre à votre demande, d’évaluer la possibilité d’une collaboration et, le cas échéant, de prendre des mesures précontractuelles à votre demande.</p>
   <p>Les champs obligatoires sont signalés dans le formulaire. Sans nom, adresse email et description du projet, il n’est pas possible de traiter correctement la demande.</p>
   <h2>Base juridique</h2><p>Lorsqu’une demande concerne la préparation d’un projet ou d’un devis, le traitement est fondé sur les mesures précontractuelles prises à votre demande. Pour une sollicitation générale sans perspective contractuelle immédiate, la réponse peut reposer sur l’intérêt légitime de Nolan Arc à traiter les messages qui lui sont adressés.</p>
@@ -297,7 +287,7 @@ export function withdrawalPage(){
   <h2>Principe</h2><p>Pour un contrat de prestation de services conclu à distance avec un consommateur, un droit de rétractation de quatorze jours à compter de la conclusion du contrat s’applique en principe, sauf exception prévue par la loi. Les conditions particulières applicables à votre projet sont rappelées avant la conclusion du contrat.</p>
   <h2>Demande d’exécution anticipée</h2><p>Si vous souhaitez que la prestation commence avant l’expiration du délai de rétractation, une demande expresse peut être nécessaire. Lorsque les conditions légales d’une perte du droit de rétractation sont réunies après exécution complète, une information et un accord spécifiques sont recueillis avant le commencement de la prestation.</p>
   <h2>Exercer votre droit</h2><p>Vous pouvez envoyer une déclaration dénuée d’ambiguïté à <a href="mailto:${site.email}">${esc(site.email)}</a>, ou utiliser le modèle ci-dessous.</p>
-  <div class="withdrawal-model"><h3>Modèle de formulaire</h3><p>À l’attention de ${esc(site.legalName)}, ${legalValue(legal.registeredAddress)}, ${esc(site.email)} :</p><p>Je vous notifie par la présente ma rétractation du contrat portant sur la prestation suivante : […]</p><p>Contrat/devis accepté le : […]<br>Nom du consommateur : […]<br>Adresse du consommateur : […]<br>Date : […]<br>Signature (uniquement en cas de formulaire papier) : […]</p></div>
+  <div class="withdrawal-model"><h3>Modèle de formulaire</h3><p>À l’attention de ${esc(site.legalName)}, ${esc(site.email)} :</p><p>Je vous notifie par la présente ma rétractation du contrat portant sur la prestation suivante : […]</p><p>Contrat/devis accepté le : […]<br>Nom du consommateur : […]<br>Adresse du consommateur : […]<br>Date : […]<br>Signature (uniquement en cas de formulaire papier) : […]</p></div>
   <p class="legal-update">Dernière mise à jour : 13 août 2026.</p></article></main>` + footer();
 }
 
