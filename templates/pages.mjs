@@ -2,7 +2,7 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, esc, projectMeta, placeholderVisual, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow } from './components.mjs';
+import { head, header, footer, esc, projectMeta, placeholderVisual, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
@@ -84,7 +84,7 @@ export function homePage(){
       <div class="about-tease__copy"><span class="eyebrow">À propos</span><h2>Je n’aime pas<br>créer pour créer.</h2><p>J’ai passé du temps à comprendre ce qui avait vraiment du sens pour moi dans une image. Aujourd’hui, cette exigence me sert surtout à garder un fil clair dans les projets que l’on me confie.</p><a class="text-link" href="/a-propos/">Faire connaissance <span>↗</span></a></div>
     </section>
 
-    <section class="finale motion-reveal motion-gradient">
+    <section class="finale motion-reveal motion-gradient" data-motion-mode="drift">
       <span class="eyebrow">Un projet en tête ?</span><h2>Expliquez-moi<br>ce que vous préparez.</h2><p>Une idée, une date ou un problème à résoudre suffisent pour commencer.</p><a class="button button--light" href="/contact/">Écrire à Nolan <span>↗</span></a>
     </section>
   </main>` + footer();
@@ -108,12 +108,12 @@ export function projectPage(){
       <a class="back-link" href="/work/">← Work</a><span class="eyebrow">${bol.type} · ${bol.year}</span>
       <div class="project-intro__grid"><h1>${bol.title}</h1><div><p>${bol.summary}</p><span>${bol.role}</span></div></div>
     </section>
-    ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
+    ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'extraits',label:'Extraits'},{id:'next',label:'Suite'}])}
     <section class="project-film-first" id="film">
       <div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')">
         <div class="external-media__gate"><span class="eyebrow">Film · ${bol.year}</span><h2>Regarder<br>Le bol d’en face</h2><button class="button button--light hold-confirm" type="button" data-hold-confirm data-hold-ms="650" data-load-video><span>Maintenir pour lire</span><b aria-hidden="true">▶</b><i aria-hidden="true"></i></button></div>
       </div>
-      <div class="project-meta-head"><span>Fiche du film</span><span class="page-view-counter" data-page-view-counter hidden><b>0</b> vues</span></div>
+      <div class="project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>
       ${projectMeta(bol)}
     </section>
     <section class="project-story" id="story">
@@ -123,13 +123,18 @@ export function projectPage(){
       </div>
       <div class="project-story__decisions">${bol.decisions.map((d,i)=>`<article><span>0${i+1}</span><div><h3>${d.title}</h3><p>${d.text}</p></div></article>`).join('')}</div>
     </section>
+    ${videoSlideShow([
+      { videoId: bol.videoId, start: 0, poster: bol.poster, kicker: 'Extrait 01', title: 'Ouverture' },
+      { videoId: bol.videoId, start: 20, poster: bol.poster, kicker: 'Extrait 02', title: '20 secondes' },
+      { videoId: bol.videoId, start: 40, poster: bol.poster, kicker: 'Extrait 03', title: '40 secondes' },
+    ], {autoplay:true, interval:5600})}
     <section class="project-next" id="next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Explorer</small><strong>Voir les autres travaux.</strong><span>↗</span></a><a href="/services/"><small>Comprendre</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Commencer</small><strong>Me parler du projet.</strong><span>↗</span></a></section>
   </main>` + footer();
 }
 
 export function servicesPage(){
   return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
-    <section class="services-hero motion-reveal motion-gradient"><span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
+    <section class="services-hero motion-reveal motion-gradient" data-motion-mode="swirl"><span class="eyebrow">Services</span><h1>Vous n’avez pas besoin<br>de « plus de contenu ».<br><em>Vous avez besoin du bon.</em></h1><p>Je peux intervenir de la réflexion au montage. L’objectif n’est pas d’ajouter des images : c’est de résoudre le bon problème avec une direction que l’on peut tenir jusqu’au rendu.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
     ${lineToc([{id:'marques',label:'Marques'},{id:'recits',label:'Récits'},{id:'moments',label:'Moments'}])}
 
     <section class="service-chapter service-chapter--brand" id="marques">
@@ -172,7 +177,7 @@ export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
   return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de créer et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
-    <section class="about-story-hero motion-gradient" id="nolan">
+    <section class="about-story-hero motion-gradient" data-motion-mode="rotate" id="nolan">
       <div class="about-story-hero__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Ajoutez ici un portrait de Nolan</small></div></div>
       <div class="about-story-hero__copy motion-reveal"><span class="eyebrow">Nolan Ribeiro · réalisateur & directeur artistique</span><h1>Je n’aime pas forcément<br>faire de longs discours.<br><em>Mais j’aime parler quand il le faut.</em></h1><p class="about-hook">Moi, c’est Nolan. Depuis petit, ce qui m’attire, c’est de créer des vidéos, raconter mes propres histoires et mettre ma vision du monde en avant.</p><a class="text-link" href="#about-turn">Continuer <span>↓</span></a></div>
     </section>
@@ -212,7 +217,7 @@ export function journalPage(){
 
 export function contactPage(){
   return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main>
-    <section class="contact-hero contact-hero--compact motion-gradient"><span class="eyebrow">Contact</span><h1>Qu’est-ce que<br><em>vous préparez ?</em></h1><p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p></section>
+    <section class="contact-hero contact-hero--compact motion-gradient" data-motion-mode="pulse"><span class="eyebrow">Contact</span><h1>Qu’est-ce que<br><em>vous préparez ?</em></h1><p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p></section>
     <section class="contact-experience contact-experience--compact"><form class="contact-form contact-form--glass" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST"><input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
       <div class="contact-glass__head"><span class="eyebrow">Quel projet préparez-vous ?</span><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Film / image de marque</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="story">Récit / collaboration</button><button type="button" data-form-intent="other">Autre projet</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></div>
       <label class="contact-message"><span>Votre message</span><textarea required name="message" rows="5" placeholder="Le projet, la date si vous l’avez, le lieu et ce que vous attendez de moi…"></textarea></label>

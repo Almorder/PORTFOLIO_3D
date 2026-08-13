@@ -21,7 +21,7 @@ function updateScroll(){
       const count = $('[data-journey-count]', scene);
       if(count) count.textContent = `0${idx+1} / 03`;
       const showcase = $('[data-glass-showcase]', scene);
-      if(showcase) setShowcaseStep(showcase, idx);
+      if(showcase){ setShowcaseProgress(showcase,p); setShowcaseStep(showcase, idx); }
     }
   });
   ticking=false;
@@ -178,46 +178,92 @@ if('IntersectionObserver' in window && !reduced){
 
 // Home entry cards use a three-column desktop grid and native horizontal swipe on narrow screens.
 
-// Logo preloader: only on a genuine entry to the homepage. Internal navigation and back/forward are not delayed.
+// Logo Preloader — entrance → optional hold → fade. Skipped on internal/back-forward navigation.
 const preloader=$('[data-brand-preloader]');
 if(preloader){
   const navEntry=performance.getEntriesByType?.('navigation')?.[0];
   const internalRef=document.referrer && (()=>{try{return new URL(document.referrer).origin===location.origin}catch{return false}})();
   const skip=internalRef || navEntry?.type==='back_forward' || reduced;
+  const hold=Math.max(0,Number(preloader.dataset.preloaderHold||180));
   const leave=()=>preloader.classList.add('is-leaving');
   if(skip) leave();
-  else setTimeout(leave,920);
+  else setTimeout(leave,760+hold);
   preloader.addEventListener('transitionend',()=>{if(preloader.classList.contains('is-leaving')) preloader.remove();},{once:true});
 }
 
-// Scroll-triggered stats. Values are factual site data; no invented business KPIs.
-$$('[data-counter]').forEach(counter=>{
-  const target=Number(counter.dataset.counter||0);
+// Animated Stats Pro — independent implementation of the public behaviour: scroll trigger,
+// easeOutExpo, stagger, decimal support and Blur / Slide / Fade / Scale entrance styles.
+$$('[data-animated-stats]').forEach(section=>{
+  const cards=$$('[data-stat-card]',section);
+  const replay=section.dataset.replay==='true';
+  let hasRun=false;
+  const easeOutExpo=p=>p>=1?1:1-Math.pow(2,-10*p);
   const run=()=>{
-    if(reduced){counter.textContent=String(target);return;}
-    const start=performance.now(), duration=900;
-    const tick=now=>{
-      const p=clamp((now-start)/duration);
-      const eased=1-Math.pow(1-p,4);
-      counter.textContent=String(Math.round(target*eased));
-      if(p<1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    if(hasRun&&!replay) return;
+    hasRun=true;
+    cards.forEach((card,index)=>{
+      const counter=$('[data-counter]',card); if(!counter) return;
+      const target=Number(counter.dataset.counterTarget||0);
+      const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
+      card.classList.remove('is-stat-visible');
+      const startDelay=reduced?0:index*95;
+      setTimeout(()=>{
+        card.classList.add('is-stat-visible');
+        if(reduced){counter.textContent=target.toFixed(decimals);return;}
+        const start=performance.now(), duration=1050;
+        const tick=now=>{
+          const p=clamp((now-start)/duration);
+          const value=target*easeOutExpo(p);
+          counter.textContent=value.toFixed(decimals);
+          if(p<1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },startDelay);
+    });
   };
+  const reset=()=>{if(!replay)return;cards.forEach(card=>card.classList.remove('is-stat-visible'));};
   if('IntersectionObserver' in window && !reduced){
-    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){run();io.disconnect();}}),{threshold:.45});
-    io.observe(counter);
-  }else run();
+    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(entry.isIntersecting) run(); else reset();
+    }),{threshold:.38});
+    io.observe(section);
+  } else run();
 });
 
-// Focus Testimonials: desktop/fine pointer follows the marketplace interaction principle;
-// mobile keeps every quote readable and does not depend on hover.
+// Focus Testimonials — continuous reading flow. Desktop hover focuses one quote without layout shift;
+// mobile stays fully readable. The optional expander mirrors the original “Read More / Show Less” idea.
 $$('[data-focus-testimonials]').forEach(section=>{
   const items=$$('[data-testimonial-index]',section);
+  const toggle=$('[data-testimonials-toggle]',section);
+  const max=Math.max(1,Number(section.dataset.maxVisible||items.length));
+  let expanded=false;
+  const applyVisibility=()=>{
+    items.forEach((item,i)=>item.hidden=!expanded&&i>=max);
+    $$('.focus-testimonials__sep',section).forEach((sep,i)=>sep.hidden=!expanded && i>=max-1);
+    if(toggle){
+      toggle.setAttribute('aria-expanded',String(expanded));
+      $('span',toggle).textContent=expanded?'Réduire':'Voir tous les retours';
+      $('i',toggle).textContent=expanded?'−':'+';
+    }
+  };
+  applyVisibility();
+  toggle?.addEventListener('click',()=>{expanded=!expanded;applyVisibility();});
   if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  const positionBadge=item=>{
+    const badge=$('.focus-testimonials__author',item); if(!badge) return;
+    badge.style.setProperty('--badge-shift','0px');
+    requestAnimationFrame(()=>{
+      const r=badge.getBoundingClientRect();
+      let shift=0;
+      if(r.left<10) shift=10-r.left;
+      if(r.right>innerWidth-10) shift=(innerWidth-10)-r.right;
+      badge.style.setProperty('--badge-shift',`${shift}px`);
+    });
+  };
   const focus=item=>{
     section.classList.add('is-focusing');
     items.forEach(el=>el.classList.toggle('is-focused',el===item));
+    positionBadge(item);
   };
   const clear=()=>{section.classList.remove('is-focusing');items.forEach(el=>el.classList.remove('is-focused'));};
   items.forEach(item=>{
@@ -228,118 +274,285 @@ $$('[data-focus-testimonials]').forEach(section=>{
   section.addEventListener('pointerleave',clear);
 });
 
-// Lightweight particle handoff for the glass showcase. It recreates the public interaction idea
-// without importing the paid Framer/Three.js component or its implementation.
+// Glass Showcase Pro — independent implementation based on the public spec.
+// It uses our own Three.js scene for the physical glass layer and a canvas particle transition.
+// The paid Framer source is not bundled or reverse-copied. A DOM/image fallback is always present.
 const showcaseState=new WeakMap();
+async function mountShowcaseWebGL(showcase){
+  const mount=$('[data-showcase-webgl]',showcase);
+  if(!mount || reduced || !('WebGLRenderingContext' in window)) return;
+  try{
+    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js');
+    if(!document.contains(showcase)) return;
+    const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+    renderer.setClearColor(0x000000,0);
+    mount.append(renderer.domElement);
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(32,1,.1,100);
+    camera.position.set(0,0,7.2);
+    const group=new THREE.Group(); scene.add(group);
+    const geometry=new THREE.BoxGeometry(3.15,4.05,.34,10,14,2);
+    const material=new THREE.MeshPhysicalMaterial({
+      color:0xffffff,
+      roughness:.08,
+      metalness:0,
+      transparent:true,
+      opacity:.28,
+      transmission:clamp(Number(showcase.dataset.transmission||.94),0,1),
+      ior:Math.max(1,Number(showcase.dataset.ior||1.45)),
+      thickness:Math.max(.05,Number(showcase.dataset.thickness||.7)),
+      clearcoat:1,
+      clearcoatRoughness:.08,
+      specularIntensity:1
+    });
+    const box=new THREE.Mesh(geometry,material); group.add(box);
+    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,25),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.3})); group.add(edges);
+    scene.add(new THREE.AmbientLight(0xffffff,1.8));
+    const key=new THREE.PointLight(0xffc7a6,26,14); key.position.set(-3,4,4); scene.add(key);
+    const fill=new THREE.PointLight(0xd8e3ff,18,12); fill.position.set(4,-2,3); scene.add(fill);
+    const state=showcaseState.get(showcase)||{};
+    state.webgl={renderer,scene,camera,group,box,edges,visible:false,raf:0,start:performance.now()};
+    showcaseState.set(showcase,state);
+    const resize=()=>{
+      const r=mount.getBoundingClientRect(); if(!r.width||!r.height) return;
+      renderer.setSize(r.width,r.height,false); camera.aspect=r.width/r.height; camera.updateProjectionMatrix();
+    };
+    new ResizeObserver(resize).observe(mount); resize();
+    const float=Math.max(0,Number(showcase.dataset.float||.08));
+    const draw=now=>{
+      if(!state.webgl?.visible) return;
+      const t=(now-state.webgl.start)/1000;
+      const p=Number(showcase.dataset.progress||.5);
+      group.position.y=Math.sin(t*.85)*float;
+      group.rotation.y=(p-.5)*-.18 + Math.sin(t*.55)*.025;
+      group.rotation.x=(p-.5)*.04 + Math.cos(t*.7)*.012;
+      renderer.render(scene,camera);
+      state.webgl.raf=requestAnimationFrame(draw);
+    };
+    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      state.webgl.visible=entry.isIntersecting;
+      cancelAnimationFrame(state.webgl.raf);
+      if(entry.isIntersecting) state.webgl.raf=requestAnimationFrame(draw);
+    }),{threshold:.05});
+    io.observe(showcase);
+    showcase.classList.add('has-webgl');
+  }catch{
+    showcase.classList.add('webgl-fallback');
+  }
+}
+function setShowcaseProgress(showcase,p){
+  showcase.dataset.progress=String(clamp(p));
+  const state=showcaseState.get(showcase);
+  if(state?.webgl?.visible){
+    // the continuous render loop consumes the progress value; this branch is intentionally light.
+  }
+}
 function setShowcaseStep(showcase, idx){
   const state=showcaseState.get(showcase) || {idx:-1,particles:[],raf:0};
   if(state.idx===idx) return;
   $$('[data-showcase-frame]',showcase).forEach((frame,i)=>frame.classList.toggle('is-active',i===idx));
-  if(state.idx>=0 && !reduced) burstShowcase(showcase,state);
+  if(state.idx>=0 && !reduced) burstShowcase(showcase,state,idx);
   state.idx=idx;
   showcaseState.set(showcase,state);
 }
-function burstShowcase(showcase,state){
+function burstShowcase(showcase,state,nextIdx){
   const canvas=$('[data-showcase-particles]',showcase); if(!canvas) return;
   const rect=canvas.getBoundingClientRect();
   const dpr=Math.min(devicePixelRatio||1,1.5);
   canvas.width=Math.max(1,Math.round(rect.width*dpr)); canvas.height=Math.max(1,Math.round(rect.height*dpr));
   const ctx=canvas.getContext('2d'); if(!ctx) return;
   const cx=canvas.width/2, cy=canvas.height/2;
-  const palette=['#e97736','#f0ebe2','#9b6a52'];
-  state.particles=Array.from({length:54},(_,i)=>({
-    x:cx+(Math.random()-.5)*canvas.width*.18,
-    y:cy+(Math.random()-.5)*canvas.height*.18,
-    vx:(Math.random()-.5)*canvas.width*.012,
-    vy:(Math.random()-.5)*canvas.height*.012,
-    life:1,
-    size:(1.5+Math.random()*3)*dpr,
-    color:palette[i%palette.length]
-  }));
+  const palettes=[['#ef8b54','#f0ebe2','#5a3326'],['#dcb99f','#ffffff','#3a332d'],['#e97736','#e9d6c6','#7b3d28']];
+  const palette=palettes[nextIdx%palettes.length];
+  const cols=12, rows=15;
+  state.particles=[];
+  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+    const ox=(x/(cols-1)-.5)*canvas.width*.68, oy=(y/(rows-1)-.5)*canvas.height*.72;
+    const angle=Math.atan2(oy,ox)+(Math.random()-.5)*.5;
+    const speed=(.004+Math.random()*.01)*Math.min(canvas.width,canvas.height);
+    state.particles.push({x:cx+ox*.12,y:cy+oy*.12,tx:cx+ox,ty:cy+oy,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:0,color:palette[(x+y)%palette.length],size:(1+Math.random()*2.4)*dpr});
+  }
   cancelAnimationFrame(state.raf);
-  const frame=()=>{
+  const started=performance.now(), duration=820;
+  const frame=now=>{
+    const p=clamp((now-started)/duration);
+    const explode=p<.48 ? p/.48 : 1-(p-.48)/.52;
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    let alive=false;
-    state.particles.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy; p.vx*=.986; p.vy*=.986; p.life-=.026;
-      if(p.life<=0) return; alive=true;
-      ctx.globalAlpha=Math.max(0,p.life)*.78; ctx.fillStyle=p.color;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    state.particles.forEach(pt=>{
+      if(p<.48){pt.x+=pt.vx;pt.y+=pt.vy;pt.vx*=.985;pt.vy*=.985;}
+      else {const q=(p-.48)/.52;const ease=1-Math.pow(1-q,3);pt.x+=(pt.tx-pt.x)*(.05+.17*ease);pt.y+=(pt.ty-pt.y)*(.05+.17*ease);}
+      ctx.globalAlpha=Math.sin(Math.PI*p)*.82;
+      ctx.fillStyle=pt.color; ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.size*(.8+explode*.6),0,Math.PI*2); ctx.fill();
     });
     ctx.globalAlpha=1;
-    if(alive) state.raf=requestAnimationFrame(frame); else ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(p<1) state.raf=requestAnimationFrame(frame); else ctx.clearRect(0,0,canvas.width,canvas.height);
   };
-  frame();
+  state.raf=requestAnimationFrame(frame);
 }
+$$('[data-glass-showcase]').forEach(showcase=>mountShowcaseWebGL(showcase));
 
-// Line Menu TOC: tracks the closest visible section and keeps the component purely navigational.
+// Stacked Flow — actual layered carousel: wheel, arrows, keyboard, tap-to-focus and touch drag.
+$$('[data-stacked-flow]').forEach(flow=>{
+  const cards=$$('[data-stack-card]',flow); if(!cards.length) return;
+  const current=$('[data-stack-current]',flow);
+  let active=clamp(Number(flow.dataset.stackIndex||0),0,cards.length-1);
+  let touchStart=null, wheelLock=false;
+  const deltaFor=(i)=>{
+    let d=i-active;
+    const half=cards.length/2;
+    if(d>half)d-=cards.length;if(d<-half)d+=cards.length;
+    return d;
+  };
+  const render=()=>{
+    cards.forEach((card,i)=>{
+      const d=deltaFor(i), abs=Math.abs(d);
+      card.style.setProperty('--delta',d);
+      card.style.setProperty('--abs-delta',abs);
+      card.style.setProperty('--stack-z',String(cards.length-abs));
+      const on=i===active;
+      card.classList.toggle('is-active',on);
+      card.setAttribute('aria-current',on?'true':'false');
+    });
+    if(current) current.textContent=String(active+1).padStart(2,'0');
+    flow.dataset.stackIndex=String(active);
+  };
+  const go=n=>{active=(n+cards.length)%cards.length;render();};
+  $('[data-stack-prev]',flow)?.addEventListener('click',()=>go(active-1));
+  $('[data-stack-next]',flow)?.addEventListener('click',()=>go(active+1));
+  cards.forEach((card,i)=>card.addEventListener('click',e=>{if(i!==active){e.preventDefault();go(i);}}));
+  flow.addEventListener('wheel',e=>{
+    if(Math.abs(e.deltaY)<8||wheelLock) return;
+    wheelLock=true;go(active+(e.deltaY>0?1:-1));setTimeout(()=>wheelLock=false,420);
+  },{passive:true});
+  flow.addEventListener('pointerdown',e=>{touchStart={x:e.clientX,y:e.clientY,id:e.pointerId};});
+  flow.addEventListener('pointerup',e=>{
+    if(!touchStart||touchStart.id!==e.pointerId)return;
+    const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;
+    const movement=Math.abs(dx)>Math.abs(dy)?dx:dy;
+    if(Math.abs(movement)>45) go(active+(movement<0?1:-1));
+  });
+  flow.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();go(active-1)}if(e.key==='ArrowRight'){e.preventDefault();go(active+1)}});
+  flow.tabIndex=0; render();
+});
+
+// Video Slide Show — full carousel engine inspired by the public Framer feature list:
+// layered perspective, arrows, dots, autoplay, touch navigation and per-slide video playback.
+$$('[data-video-slide-show]').forEach(slider=>{
+  const slides=$$('[data-video-slide]',slider); if(!slides.length) return;
+  const dots=$$('[data-video-dot]',slider);
+  const autoplay=slider.dataset.autoplay==='true'&&!reduced;
+  const interval=Math.max(2200,Number(slider.dataset.autoplayInterval||5200));
+  let active=0,timer=0,touch=null,paused=false;
+  const unloadVideos=()=>slides.forEach(slide=>{
+    const frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
+    frame?.replaceChildren();poster?.classList.remove('is-hidden');slide.classList.remove('is-playing');
+  });
+  const render=()=>{
+    slides.forEach((slide,i)=>{
+      let d=i-active;const half=slides.length/2;if(d>half)d-=slides.length;if(d<-half)d+=slides.length;
+      slide.style.setProperty('--slide-delta',d);slide.style.setProperty('--slide-abs',Math.abs(d));slide.style.setProperty('--slide-z',String(slides.length-Math.abs(d)));
+      const isActive=i===active;
+      slide.classList.toggle('is-active',isActive);slide.setAttribute('aria-current',isActive?'true':'false');
+      const play=$('[data-slide-play]',slide),select=$('[data-slide-select]',slide);
+      if(play) play.tabIndex=isActive?0:-1;
+      if(select) select.tabIndex=isActive?-1:0;
+    });
+    dots.forEach((dot,i)=>{if(i===active)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});
+    unloadVideos();
+  };
+  const restart=()=>{clearInterval(timer);if(autoplay&&!paused)timer=setInterval(()=>go(active+1),interval);};
+  const go=i=>{active=(i+slides.length)%slides.length;render();restart();};
+  $('[data-video-prev]',slider)?.addEventListener('click',()=>go(active-1));
+  $('[data-video-next]',slider)?.addEventListener('click',()=>go(active+1));
+  dots.forEach((dot,i)=>dot.addEventListener('click',()=>go(i)));
+  $$('[data-slide-select]',slider).forEach((button,i)=>button.addEventListener('click',()=>{if(i!==active)go(i)}));
+  $$('[data-slide-play]',slider).forEach((button,i)=>button.addEventListener('click',()=>{
+    if(i!==active){go(i);return;}
+    clearInterval(timer);paused=true;unloadVideos();
+    const slide=slides[i], frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
+    const id=slide.dataset.videoId,start=Math.max(0,Number(slide.dataset.videoStart||0)); if(!id||!frame)return;
+    const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';
+    const iframe=document.createElement('iframe');
+    const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});
+    if(loop) params.set('playlist',id);
+    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;
+    iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;
+    iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;
+    frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
+  }));
+  slider.addEventListener('pointerenter',()=>{paused=true;clearInterval(timer)});
+  slider.addEventListener('pointerleave',()=>{paused=false;restart()});
+  slider.addEventListener('focusin',()=>{paused=true;clearInterval(timer)});
+  slider.addEventListener('focusout',e=>{if(!slider.contains(e.relatedTarget)){paused=false;restart()}});
+  slider.addEventListener('pointerdown',e=>{touch={x:e.clientX,y:e.clientY,id:e.pointerId}});
+  slider.addEventListener('pointerup',e=>{if(!touch||touch.id!==e.pointerId)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y;touch=null;const m=slider.dataset.orientation==='vertical'?dy:dx;if(Math.abs(m)>48)go(active+(m<0?1:-1))});
+  render();restart();
+});
+
+// Line Menu TOC — reduced line indicators, proportional expansion, label reveal and active-section tracking.
 $$('[data-line-toc]').forEach(toc=>{
   const links=$$('a[data-toc-target]',toc);
   const targets=links.map(a=>document.getElementById(a.dataset.tocTarget)).filter(Boolean);
   if(!targets.length) return;
   const setActive=id=>links.forEach(a=>{
-    const active=a.dataset.tocTarget===id;
-    a.classList.toggle('is-active',active);
-    if(active) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
+    const active=a.dataset.tocTarget===id;a.classList.toggle('is-active',active);
+    if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');
   });
   if('IntersectionObserver' in window){
     const io=new IntersectionObserver(entries=>{
       const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top));
       if(visible[0]) setActive(visible[0].target.id);
-    },{rootMargin:'-22% 0px -62% 0px',threshold:[0,.1,.4]});
+    },{rootMargin:'-20% 0px -64% 0px',threshold:[0,.1,.4]});
     targets.forEach(el=>io.observe(el));
   }
   setActive(targets[0].id);
 });
 
-// Hold Confirm — used only for loading third-party video, where a deliberate gesture also has privacy meaning.
+// Hold Confirm — generic hold-to-confirm behaviour with direction, cancel/snap-back, keyboard support and completion state.
+// The exact Framer listing URL was not retrievable during this audit, so this is an independent implementation, not copied source.
 $$('[data-hold-confirm]').forEach(button=>{
   const duration=Math.max(350,Number(button.dataset.holdMs||650));
-  let start=0, raf=0, holding=false;
+  const direction=button.dataset.holdDirection||'ltr';button.dataset.holdDirection=direction;
+  let start=0,raf=0,holding=false,completed=false;
   const setProgress=p=>button.style.setProperty('--hold-progress',clamp(p));
-  const cancel=()=>{holding=false;cancelAnimationFrame(raf);setProgress(0);button.classList.remove('is-holding');};
-  const complete=()=>{
-    holding=false;cancelAnimationFrame(raf);setProgress(1);button.classList.remove('is-holding');button.classList.add('is-confirmed');
-    button.dispatchEvent(new CustomEvent('holdconfirm',{bubbles:true}));
-  };
-  const frame=now=>{
-    if(!holding) return;
-    const p=(now-start)/duration; setProgress(p);
-    if(p>=1) complete(); else raf=requestAnimationFrame(frame);
-  };
-  const begin=()=>{
-    if(button.disabled||holding||button.classList.contains('is-confirmed')) return;
-    holding=true;start=performance.now();button.classList.add('is-holding');raf=requestAnimationFrame(frame);
-  };
-  button.addEventListener('pointerdown',e=>{if(e.button===0){button.setPointerCapture?.(e.pointerId);begin();}});
-  button.addEventListener('pointerup',cancel);button.addEventListener('pointercancel',cancel);button.addEventListener('pointerleave',()=>{if(holding) cancel();});
+  const cancel=()=>{if(completed)return;holding=false;cancelAnimationFrame(raf);button.classList.remove('is-holding');button.classList.add('is-cancelling');setProgress(0);setTimeout(()=>button.classList.remove('is-cancelling'),260)};
+  const complete=()=>{holding=false;completed=true;cancelAnimationFrame(raf);setProgress(1);button.classList.remove('is-holding');button.classList.add('is-confirmed');button.setAttribute('aria-label','Action confirmée');button.dispatchEvent(new CustomEvent('holdconfirm',{bubbles:true}))};
+  const frame=now=>{if(!holding)return;const p=(now-start)/duration;setProgress(p);if(p>=1)complete();else raf=requestAnimationFrame(frame)};
+  const begin=()=>{if(button.disabled||holding||completed)return;holding=true;start=performance.now();button.classList.add('is-holding');button.classList.remove('is-cancelling');raf=requestAnimationFrame(frame)};
+  button.addEventListener('pointerdown',e=>{if(e.button===0){button.setPointerCapture?.(e.pointerId);begin()}});
+  button.addEventListener('pointerup',()=>{if(holding)cancel()});button.addEventListener('pointercancel',cancel);button.addEventListener('pointerleave',()=>{if(holding)cancel()});
   button.addEventListener('click',e=>e.preventDefault());
-  button.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();begin();}});
-  button.addEventListener('keyup',e=>{if((e.key===' '||e.key==='Enter')&&holding){e.preventDefault();cancel();}});
+  button.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();begin()}});
+  button.addEventListener('keyup',e=>{if((e.key===' '||e.key==='Enter')&&holding){e.preventDefault();cancel()}});
 });
 
-// Optional Page View Counter. Disabled unless Supabase public credentials are injected at build time.
-// If enabled later, the privacy/cookies copy must be reviewed before production activation.
+// Page View Counter — faithful Supabase-backed wiring from the public component description.
+// It stays hidden until the user's own Supabase Project URL + anon public key are supplied at build time.
 (async()=>{
-  const counter=$('[data-page-view-counter]'); if(!counter) return;
+  const counters=$$('[data-page-view-counter]'); if(!counters.length) return;
   const url=$('meta[name="nolanarc-supabase-url"]')?.content?.replace(/\/$/,'');
   const key=$('meta[name="nolanarc-supabase-key"]')?.content;
-  if(!url||!key) return;
+  if(!url||!key){counters.forEach(c=>c.dataset.counterStatus='needs-supabase');return;}
   const slug=location.pathname.replace(/\/+$/,'')||'/';
   const headers={apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
   try{
     const endpoint=`${url}/rest/v1/page_views?slug=eq.${encodeURIComponent(slug)}&select=views`;
-    const read=await fetch(endpoint,{headers:{...headers,Accept:'application/json'}});
-    if(!read.ok) return;
-    const rows=await read.json();
-    let views=1;
+    const read=await fetch(endpoint,{headers:{...headers,Accept:'application/json'}});if(!read.ok)throw new Error('read');
+    const rows=await read.json();let views=1;
     if(rows[0]){
       views=Number(rows[0].views||0)+1;
-      await fetch(`${url}/rest/v1/page_views?slug=eq.${encodeURIComponent(slug)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({views,updated_at:new Date().toISOString()})});
+      const update=await fetch(`${url}/rest/v1/page_views?slug=eq.${encodeURIComponent(slug)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({views,updated_at:new Date().toISOString()})});
+      if(!update.ok)throw new Error('update');
     }else{
-      await fetch(`${url}/rest/v1/page_views`,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({slug,views})});
+      const insert=await fetch(`${url}/rest/v1/page_views`,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({slug,views})});
+      if(!insert.ok)throw new Error('insert');
     }
-    const value=$('b',counter); if(value) value.textContent=Intl.NumberFormat('fr-FR').format(views);
-    counter.hidden=false;
-  }catch{}
+    counters.forEach(counter=>{
+      counter.hidden=false;counter.dataset.counterStatus='live';const value=$('[data-page-view-value]',counter);if(!value)return;
+      if(reduced){value.textContent=Intl.NumberFormat('fr-FR').format(views);return;}
+      const start=performance.now(),duration=720;
+      const tick=now=>{const p=clamp((now-start)/duration);const eased=1-Math.pow(1-p,4);value.textContent=Intl.NumberFormat('fr-FR').format(Math.round(views*eased));if(p<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);
+    });
+  }catch{counters.forEach(c=>c.dataset.counterStatus='error')}
 })();

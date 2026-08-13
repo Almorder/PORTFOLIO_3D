@@ -82,22 +82,80 @@ for(const f of htmls){
   }
 }
 
-// V8 component-system invariants. These verify placement and graceful integration, not visual similarity.
+// V9 component-system invariants: all 12 requested component behaviours must have real code/markup.
 {
   const home=await readFile(join(dist,'index.html'),'utf8');
   const work=await readFile(join(dist,'work/index.html'),'utf8');
   const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
   const services=await readFile(join(dist,'services/index.html'),'utf8');
   const about=await readFile(join(dist,'a-propos/index.html'),'utf8');
-  if(!home.includes('data-brand-preloader')) errors.push('index.html: logo preloader missing');
-  if(!home.includes('class="animated-stats')) errors.push('index.html: animated stats missing');
-  if(!home.includes('data-focus-testimonials')) errors.push('index.html: focus testimonials missing');
-  if(!home.includes('data-glass-showcase')) errors.push('index.html: glass showcase missing');
-  if(!work.includes('data-stacked-flow')) errors.push('work/index.html: stacked flow missing');
-  if(!project.includes('data-ambient-player')) errors.push('project: ambient video player missing');
-  if((project.match(/data-line-toc/g)||[]).length!==1) errors.push('project: line TOC missing');
-  if((services.match(/data-line-toc/g)||[]).length!==1) errors.push('services: line TOC missing');
-  if((about.match(/data-line-toc/g)||[]).length!==1) errors.push('about: line TOC missing');
+
+  // 1 Page View Counter
+  if(!project.includes('data-page-view-counter')) errors.push('V9 Page View Counter: project markup missing');
+  if(!app.includes('rest/v1/page_views')) errors.push('V9 Page View Counter: Supabase REST wiring missing');
+  try{ await stat(join(root,'supabase/page_views.sql')); }catch{ errors.push('V9 Page View Counter: Supabase SQL setup missing'); }
+
+  // 2 Hold Confirm
+  if(!project.includes('data-hold-confirm')) errors.push('V9 Hold Confirm: project control missing');
+  if(!app.includes("new CustomEvent('holdconfirm'")) errors.push('V9 Hold Confirm: completion event missing');
+
+  // 3 Glassy Button
+  if(!css.includes('.button::before') || !css.includes('.button:active')) errors.push('V9 Glassy Button: frosted hover/pressed styles missing');
+
+  // 4 Focus Testimonials
+  if(!home.includes('data-focus-testimonials')) errors.push('V9 Focus Testimonials: home markup missing');
+  if(!home.includes('data-testimonials-toggle')) errors.push('V9 Focus Testimonials: expand control missing');
+  if(!app.includes('positionBadge')) errors.push('V9 Focus Testimonials: smart badge positioning missing');
+
+  // 5 Glass Showcase Pro behaviour recreation
+  if(!home.includes('data-glass-showcase')) errors.push('V9 Glass Showcase: home markup missing');
+  if(!home.includes('data-showcase-webgl')) errors.push('V9 Glass Showcase: WebGL mount missing');
+  if(!app.includes('three@0.180.0')) errors.push('V9 Glass Showcase: pinned Three.js WebGL implementation missing');
+  if(!app.includes('MeshPhysicalMaterial')) errors.push('V9 Glass Showcase: physical glass material missing');
+
+  // 6 Logo Preloader
+  if(!home.includes('data-brand-preloader')) errors.push('V9 Logo Preloader: home markup missing');
+  if(!home.includes('data-preloader-hold')) errors.push('V9 Logo Preloader: hold configuration missing');
+
+  // 7 Ambient Video Player
+  if(!project.includes('data-ambient-player')) errors.push('V9 Ambient Video Player: project wrapper missing');
+  if(!css.includes('.ambient-video-player.is-playing')) errors.push('V9 Ambient Video Player: active glow state missing');
+
+  // 8 Stacked Flow
+  if(!work.includes('data-stacked-flow')) errors.push('V9 Stacked Flow: work markup missing');
+  if(!work.includes('data-stack-prev') || !work.includes('data-stack-next')) errors.push('V9 Stacked Flow: navigation controls missing');
+  if(!app.includes("flow.addEventListener('wheel'")) errors.push('V9 Stacked Flow: wheel interaction missing');
+
+  // 9 Video Slide Show
+  if(!project.includes('data-video-slide-show')) errors.push('V9 Video Slide Show: project markup missing');
+  if((project.match(/data-video-slide/g)||[]).length<3) errors.push('V9 Video Slide Show: expected at least 3 slide entries');
+  if(!project.includes('data-video-prev') || !project.includes('data-video-next')) errors.push('V9 Video Slide Show: arrow navigation missing');
+  if(!project.includes('data-video-dot')) errors.push('V9 Video Slide Show: pagination dots missing');
+  if(!app.includes('dataAutoplayInterval') && !app.includes('autoplayInterval')) {
+    // Source uses dataset.autoplayInterval; accept the explicit dataset access below.
+    if(!app.includes('dataset.autoplayInterval')) errors.push('V9 Video Slide Show: autoplay timing missing');
+  }
+
+  // 10 Animated Stats Pro
+  if(!home.includes('data-animated-stats')) errors.push('V9 Animated Stats: home markup missing');
+  for(const style of ['blur','slide','fade']) if(!home.includes(`data-stat-style="${style}"`)) errors.push(`V9 Animated Stats: ${style} style not represented`);
+  if(!app.includes('easeOutExpo')) errors.push('V9 Animated Stats: easeOutExpo missing');
+
+  // 11 Line Menu TOC
+  if((project.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: project missing');
+  if((services.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: services missing');
+  if((about.match(/data-line-toc/g)||[]).length!==1) errors.push('V9 Line TOC: about missing');
+
+  // 12 Gradient Motion BG
+  for(const mode of ['drift','pulse','rotate','swirl']){
+    const haystack=home+services+about+(await readFile(join(dist,'contact/index.html'),'utf8'));
+    if(!haystack.includes(`data-motion-mode="${mode}"`)) errors.push(`V9 Gradient Motion BG: ${mode} mode not placed`);
+  }
+
+  // Audit document must say what is original/adapted instead of claiming copied proprietary source.
+  const componentAudit=await readFile(join(root,'COMPONENT_IMPLEMENTATION_V9.md'),'utf8');
+  if(!componentAudit.includes('12 composants ont désormais une implémentation réelle')) errors.push('V9 component audit summary missing');
+  if(!componentAudit.includes('code source propriétaire')) errors.push('V9 component audit does not disclose source-code limitation');
 }
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}

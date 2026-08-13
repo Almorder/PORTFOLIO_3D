@@ -1,18 +1,21 @@
 # Nolan Arc — Portfolio 2026
-## V8 · système d’interactions premium, sans surcharge
+## V9 · 12 composants réellement implémentés
 
 Ce dossier est le repository complet de `nolanarc.com`.
 
-La V8 conserve la hiérarchie et le copywriting de la V7, puis ajoute une couche d’interactions inspirée des composants Framer sélectionnés : verre, profondeur, préloader, témoignages focalisés, TOC, statistiques animées, lecteur vidéo ambiant et cartes empilées. Les effets sont placés en fonction du parcours utilisateur, pas ajoutés partout.
+La V9 ferme le point laissé incomplet en V8 : les 12 comportements demandés ont maintenant une implémentation réelle dans le repository. Les composants premium sont reconstruits indépendamment à partir de leur comportement public ; aucun code source propriétaire Framer n’est présenté comme ayant été copié.
 
 
-## Composants V8
+## Composants V9
 
-L’audit complet des 12 composants demandés est dans `COMPONENT_AUDIT_V8.md`.
+Le détail exact est dans `COMPONENT_IMPLEMENTATION_V9.md`.
 
-Actifs : Glassy Button, Focus Testimonials, Glass Showcase, Logo Preloader, Ambient Video Player, Stacked Flow, Animated Stats, Line Menu TOC, Gradient Motion BG et Hold Confirm sur le lecteur externe.
+Implémentés : Page View Counter, Hold Confirm, Glassy Button, Focus Testimonials, Glass Showcase, Logo Preloader, Ambient Video Player, Stacked Flow, Video Slide Show, Animated Stats, Line Menu TOC et Gradient Motion BG.
 
-Le Page View Counter est câblé mais désactivé tant que Supabase n’est pas configuré. Video Slide Show est volontairement différé jusqu’à l’ajout de plusieurs vrais médias vidéo.
+Deux limites externes restent explicites :
+
+- **Page View Counter** : nécessite `SUPABASE_URL` et `SUPABASE_ANON_KEY` pour compter de vraies vues. Le SQL est fourni dans `supabase/page_views.sql`.
+- **Ambient Video Player** : avec un iframe YouTube cross-origin, le site ne peut pas lire chaque frame. Le halo est donc piloté par la palette du projet plutôt que par un faux sampling.
 
 ### Principes de cette version
 
@@ -80,7 +83,7 @@ La commande reconstruit le site et contrôle notamment :
 - la barre de progression horizontale ;
 - l'absence de l'ancien rail vertical ;
 - la structure Home / Services / À propos / case study ;
-- la présence et le câblage des composants V8 principaux.
+- la présence et le câblage des **12 composants V9**, y compris Video Slide Show, WebGL Glass Showcase et Page View Counter.
 
 Le build de production est généré dans `dist/`. Ne modifie pas `dist/` manuellement.
 
