@@ -7,42 +7,40 @@ import { head, header, footer, esc, projectMeta, placeholderVisual } from './com
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
   brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000',
-  story: bol.poster,
+  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=72&w=1800',
   moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000'
 };
 
 export function homePage(){
   return head({
     title:'Nolan Arc — Réalisateur & directeur artistique',
-    description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films de marque, récits et moments.",
+    description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films, direction visuelle et récits conçus à partir d’un objectif clair.",
     path:'/', bodyClass:'page-home'
   }) + header('/') + `
   <main>
     <section class="home-hero scroll-scene" data-scene="hero">
       <div class="home-hero__sticky scene-sticky">
         <div class="home-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="home-hero__shade"></div></div>
-        <div class="home-hero__ghost home-hero__ghost--a">RÉALISER</div>
-        <div class="home-hero__ghost home-hero__ghost--b">RACONTER</div>
-        <div class="home-hero__copy">
+        <div class="home-hero__copy motion-reveal">
           <span class="eyebrow">${site.role}</span>
           <h1>Une intention.<br><em>Puis une image.</em></h1>
-          <p>Je réalise des films et des directions visuelles en partant de ce que le projet doit faire comprendre, ressentir ou retenir.</p>
-          <div class="hero-actions"><a class="button" href="/work/">Voir le travail <span>↘</span></a><a class="text-link" href="/projet/le-bol-den-face/">Voir le film <span>↗</span></a></div>
+          <p>Je transforme un besoin, une histoire ou un moment en choix visuels cohérents — du cadrage initial au rendu final.</p>
+          <div class="hero-actions"><a class="button" href="/work/">Voir le travail <span>↘</span></a><a class="text-link" href="/services/">Voir comment je peux aider <span>↗</span></a></div>
         </div>
-        <div class="home-hero__index"><span>01</span><span>Descendre pour découvrir</span></div>
+        <div class="home-hero__index"><span>01</span><span>Work · Services · À propos</span></div>
         <div class="orbit orbit--hero" aria-hidden="true"><i></i><i></i><i></i></div>
       </div>
     </section>
 
     <section class="project-rift" id="work-preview">
-      <div class="project-rift__intro"><span class="eyebrow">Travail sélectionné</span><h2>Des projets pour voir<br><em>ce que je construis.</em></h2></div>
-      <a class="project-slab project-slab--hero" href="/projet/le-bol-den-face/">
+      <div class="project-rift__intro motion-reveal"><span class="eyebrow">Travail sélectionné</span><h2>Voir le travail<br><em>avant les promesses.</em></h2><p>Le projet ci-dessous montre à la fois le résultat, mon rôle et les décisions prises derrière l’image.</p></div>
+      <a class="project-slab project-slab--hero motion-reveal" href="/projet/le-bol-den-face/">
         <img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="lazy">
         <div class="project-slab__overlay"></div><div class="project-slab__number">01</div>
         <div class="project-slab__copy"><small>${bol.type} · ${bol.year}</small><strong>${bol.title}</strong><span>${bol.role}</span></div>
       </a>
-      <div class="project-rift__satellites">
-        <a href="/services/#marques" class="satellite-link"><span>02</span><strong>Ouilove Proposal</strong><small>Direction artistique</small></a>
+      <div class="project-rift__satellites motion-reveal">
+        <a href="/services/#ouilove-proof" class="satellite-link"><span>02</span><strong>Ouilove Proposal</strong><small>Direction artistique</small></a>
         <a href="/services/#marques" class="satellite-link"><span>03</span><strong>A One Permis</strong><small>Contenu social</small></a>
         <a href="/services/#moments" class="satellite-link"><span>04</span><strong>Moments</strong><small>Mariages · demandes · événements</small></a>
       </div>
@@ -54,41 +52,39 @@ export function homePage(){
         <div class="journey__counter"><span>02</span><b data-journey-count>01 / 03</b></div>
         <div class="journey__stage">
           <div class="journey__object"><div class="journey__halo"></div><figure class="journey__frame"><img src="${visuals.brand}" alt="Coulisses d’une production visuelle" loading="lazy"></figure><div class="journey__ring"></div></div>
-          <article class="journey-copy is-active" data-journey-step="0"><small>INTENTION</small><h2>D’abord, savoir<br><em>ce qu’on veut faire ressentir.</em></h2><p>Je commence par le message, la sensation ou le souvenir que le projet doit laisser.</p></article>
-          <article class="journey-copy" data-journey-step="1"><small>DÉCISIONS</small><h2>Ensuite, choisir<br><em>comment le raconter.</em></h2><p>Cadre, lumière, mouvement, son et montage sont des choix de mise en scène — pas une liste d’effets.</p></article>
-          <article class="journey-copy" data-journey-step="2"><small>RENDU</small><h2>Puis laisser<br><em>le film faire le reste.</em></h2><p>Le spectateur n’a pas besoin de connaître la méthode. Le film doit simplement faire passer ce qu’on voulait raconter.</p></article>
+          <article class="journey-copy is-active" data-journey-step="0"><small>CLARIFIER</small><h2>Avant de tourner,<br><em>savoir ce que l’image doit accomplir.</em></h2><p>Cette étape évite de produire de belles images qui répondent mal au besoin réel.</p></article>
+          <article class="journey-copy" data-journey-step="1"><small>DÉCIDER</small><h2>Chaque choix visuel<br><em>doit servir cet objectif.</em></h2><p>Cadre, lumière, mouvement, son et rythme deviennent des réponses concrètes, pas des effets ajoutés par habitude.</p></article>
+          <article class="journey-copy" data-journey-step="2"><small>LIVRER</small><h2>Le résultat reste<br><em>cohérent du brief au rendu.</em></h2><p>En gardant la même direction jusqu’au montage, l’objectif reste lisible entre l’idée de départ et ce qui est finalement livré.</p></article>
         </div>
       </div>
     </section>
 
     <section class="entry-zone" id="services-preview">
-      <div class="entry-zone__head"><div><span class="eyebrow">Votre projet</span><h2>Qu’est-ce que vous<br><em>préparez ?</em></h2></div><div class="entry-carousel__controls"><button type="button" data-entry-prev aria-label="Carte précédente">←</button><button type="button" data-entry-next aria-label="Carte suivante">→</button></div></div>
-      <div class="entry-carousel" data-entry-carousel>
-        <a class="entry-card" href="/services/#marques" style="--card-image:url('${visuals.brand}')"><span>01</span><small>MARQUE / ENTREPRISE</small><strong>Un film ou une direction visuelle.</strong><p>Présenter une activité, construire une image ou produire du contenu avec une vraie cohérence.</p><i>Voir les solutions →</i></a>
-        <a class="entry-card" href="/work/?territory=Récits" style="--card-image:url('${visuals.story}')"><span>02</span><small>RÉCIT / CRÉATION</small><strong>Un film à écrire et mettre en scène.</strong><p>Fiction, projet d’auteur ou collaboration narrative.</p><i>Voir les récits →</i></a>
-        <a class="entry-card" href="/services/#moments" style="--card-image:url('${visuals.moment}')"><span>03</span><small>MOMENT / ÉVÉNEMENT</small><strong>Un moment que vous voulez garder.</strong><p>Mariage, demande en mariage ou événement personnel, filmé sans prendre la place.</p><i>Voir les moments →</i></a>
+      <div class="entry-zone__head motion-reveal"><div><span class="eyebrow">Votre projet</span><h2>Le besoin d’abord.<br><em>Le format ensuite.</em></h2><p>Choisissez la situation la plus proche de la vôtre. Chaque voie explique ce que je prends en charge et ce que cela vous apporte.</p></div></div>
+      <div class="entry-carousel entry-grid" data-entry-carousel>
+        <a class="entry-card motion-reveal" href="/services/#marques" style="--card-image:url('${visuals.brand}')"><span>01</span><small>MARQUE / ENTREPRISE</small><strong>Clarifier une image de marque.</strong><p>Film, direction artistique ou contenu : un même fil visuel pour que le message reste cohérent sur les supports utiles.</p><i>Voir les solutions →</i></a>
+        <a class="entry-card motion-reveal" href="/services/#recits" style="--card-image:url('${visuals.story}')"><span>02</span><small>RÉCIT / CRÉATION</small><strong>Transformer une idée en film.</strong><p>Écriture, mise en scène et réalisation pour donner une forme précise à une histoire sans la diluer en cours de production.</p><i>Voir les récits →</i></a>
+        <a class="entry-card motion-reveal" href="/services/#moments" style="--card-image:url('${visuals.moment}')"><span>03</span><small>MOMENT / ÉVÉNEMENT</small><strong>Garder ce qui ne se rejoue pas.</strong><p>Préparer les moments clés, filmer avec discrétion puis construire un récit qui permet de retrouver les détails et les émotions du jour.</p><i>Voir les moments →</i></a>
       </div>
     </section>
 
-    <section class="proof-tape" aria-label="Clients et preuves">
-      <div class="proof-tape__top"><span class="eyebrow">Ils m’ont fait confiance</span><p>Ouilove Proposal, A One Permis, Carat Créations Paris et Reka Security.</p></div>
-      <div class="proof-tape__marquee"><div>${site.clients.map(c=>`<span>${esc(c)}</span>`).join('')} ${site.clients.map(c=>`<span aria-hidden="true">${esc(c)}</span>`).join('')}</div></div>
-      <blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove</cite></blockquote>
+    <section class="proof-tape motion-reveal" aria-label="Clients et preuves">
+      <div class="proof-tape__top"><span class="eyebrow">Expériences professionnelles</span><p>${site.clients.map(esc).join(' · ')}</p></div>
+      <blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote>
     </section>
 
-    <section class="about-tease">
-      <div class="about-tease__word">ARC</div>
-      <div class="about-tease__copy"><span class="eyebrow">Pourquoi Arc ?</span><h2>Parce qu’un projet<br>avance toujours<br>d’un point à un autre.</h2><p>Une idée devient un cadre, un tournage, un montage, puis un film. C’est ce chemin qui m’intéresse.</p><a class="text-link" href="/a-propos/">À propos de Nolan <span>↗</span></a></div>
+    <section class="about-tease motion-reveal">
+      <div class="about-tease__word">N</div>
+      <div class="about-tease__copy"><span class="eyebrow">Pourquoi travailler avec moi ?</span><h2>Un même regard<br>du brief au rendu.</h2><p>Je peux intervenir avant le tournage, réaliser puis monter. Pour le client, l’intérêt est simple : moins d’écart entre l’objectif de départ et ce qui est finalement livré.</p><a class="text-link" href="/a-propos/">Comprendre mon parcours <span>↗</span></a></div>
     </section>
 
-    <section class="journal-tease">
-      <div class="journal-tease__heading"><span class="eyebrow">Journal</span><h2>Réflexions,<br><em>coulisses, méthode.</em></h2></div>
+    <section class="journal-tease motion-reveal">
+      <div class="journal-tease__heading"><span class="eyebrow">Notes utiles</span><h2>Trois décisions<br><em>que j’applique au travail.</em></h2></div>
       <div class="journal-tease__rail">${notes.map((n,i)=>`<a href="/journal/#${n.slug}" class="note-card"><span>0${i+1}</span><small>${n.category}</small><strong>${n.title}</strong><p>${n.excerpt}</p></a>`).join('')}</div>
     </section>
 
-    <section class="finale">
-      <div class="finale__orbit" aria-hidden="true"><i></i></div>
-      <span class="eyebrow">Un projet ?</span><h2>Expliquez-moi simplement<br><em>ce que vous cherchez.</em></h2><p>Pas besoin d’un brief parfait. Quelques lignes suffisent pour commencer.</p><a class="button button--light" href="/contact/">Écrire à Nolan <span>↗</span></a>
+    <section class="finale motion-reveal">
+      <span class="eyebrow">Commencer</span><h2>Un objectif, une date<br>ou même un problème suffisent.</h2><p>Expliquez-moi ce qui doit changer, être compris ou être conservé. Je vous réponds avec une première direction.</p><a class="button button--light" href="/contact/">Écrire à Nolan <span>↗</span></a>
     </section>
   </main>` + footer();
 }
@@ -97,13 +93,11 @@ export function workPage(){
   const verified = projects.filter(p=>p.status==='verified');
   const collaborations = projects.filter(p=>p.status!=='verified');
   return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work'}) + header('/work/') + `<main>
-    <section class="page-hero page-hero--work"><span class="eyebrow">Work</span><h1>Travaux<br><em>sélectionnés.</em></h1><p>Films, direction artistique et collaborations. Les filtres servent uniquement à aller plus vite vers ce qui vous intéresse.</p></section>
-    <div class="filter-row" data-filter-row aria-label="Filtrer les projets"><button type="button" data-filter="all" aria-pressed="true">Tout</button><button type="button" data-filter="Marques">Marques</button><button type="button" data-filter="Récits">Récits</button><button type="button" data-filter="Moments">Moments</button></div>
+    <section class="page-hero page-hero--work motion-reveal"><span class="eyebrow">Work</span><h1>Du travail réel.<br><em>Un rôle identifiable.</em></h1><p>Chaque entrée précise mon rôle. Quand un projet est suffisamment documenté, vous pouvez ouvrir le film et les décisions qui ont guidé sa réalisation.</p></section>
     <section class="work-field" data-work-field>
       ${verified.map((p,i)=>`<article class="work-entry is-verified" data-territory="${p.territory}"><div class="work-entry__index">0${i+1}</div><a class="work-entry__visual" href="${p.href}"><img src="${p.poster}" alt="${esc(p.title)}" loading="lazy"></a><div class="work-entry__copy"><span>${p.territory} · ${p.year}</span><h2>${esc(p.title)}</h2><p>${esc(p.summary)}</p><small>${esc(p.role)}</small><a class="text-link" href="${p.href}">Voir le projet <span>↗</span></a></div></article>`).join('')}
     </section>
-    <section class="work-collabs"><div class="work-collabs__intro"><span class="eyebrow">Autres collaborations</span><h2>Des missions qui font aussi<br>partie de mon travail.</h2><p>Direction artistique, création de contenu et films de moments : ces missions font partie de mon travail même si leurs galeries complètes ne sont pas encore publiées ici.</p></div><div class="work-collabs__list">${collaborations.map((p,i)=>`<a href="${p.href}"><span>0${i+2}</span><strong>${esc(p.title)}</strong><small>${esc(p.role)} · ${esc(p.territory)}</small><i>↗</i></a>`).join('')}</div></section>
-    <section class="work-end"><p>Vous cherchez plutôt à savoir ce que je peux prendre en charge pour votre projet ?</p><a class="button" href="/services/">Voir les services <span>↗</span></a></section>
+    <section class="work-collabs"><div class="work-collabs__intro motion-reveal"><span class="eyebrow">Autres collaborations</span><h2>Direction, contenu<br>et moments.</h2><p>Ces missions montrent les autres contextes dans lesquels j’interviens au-delà de la fiction.</p></div><div class="work-collabs__list">${collaborations.map((p,i)=>`<a href="${p.href}"><span>0${i+2}</span><strong>${esc(p.title)}</strong><small>${esc(p.type)}</small><p>${esc(p.summary)}</p></a>`).join('')}</div></section>
   </main>` + footer();
 }
 
@@ -115,12 +109,12 @@ export function projectPage(){
     </section>
     <section class="project-film-first">
       <div class="external-media project-player" data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')">
-        <div class="external-media__gate"><span class="eyebrow">Film · ${bol.year}</span><h2>Regarder<br>Le bol d’en face</h2><p>Le lecteur YouTube se charge uniquement après votre clic.</p><button class="button button--light" type="button" data-load-video>Lire le film <span>▶</span></button></div>
+        <div class="external-media__gate"><span class="eyebrow">Film · ${bol.year}</span><h2>Regarder<br>Le bol d’en face</h2><button class="button button--light" type="button" data-load-video>Lire le film <span>▶</span></button></div>
       </div>
       ${projectMeta(bol)}
     </section>
     <section class="project-story">
-      <div class="project-story__lead"><span class="eyebrow">Contexte</span><h2>${bol.intent}</h2><p>${bol.contextText}</p></div>
+      <div class="project-story__lead"><span class="eyebrow">Problème narratif</span><h2>${bol.intent}</h2><p>${bol.contextText}</p></div>
       <div class="project-story__decisions">${bol.decisions.map((d,i)=>`<article><span>0${i+1}</span><div><h3>${d.title}</h3><p>${d.text}</p></div></article>`).join('')}</div>
     </section>
     <section class="project-next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Autres projets</small><strong>Retour au Work.</strong><span>↗</span></a><a href="/services/"><small>Vous avez un besoin</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Un projet en tête</small><strong>Écrire à Nolan.</strong><span>↗</span></a></section>
@@ -128,31 +122,39 @@ export function projectPage(){
 }
 
 export function servicesPage(){
-  return head({title:'Services — Nolan Arc',description:'Films, direction artistique, contenu et captation de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
-    <section class="services-hero"><span class="eyebrow">Services</span><h1>Ce que je peux<br><em>prendre en charge.</em></h1><p>Pas de catalogue compliqué : trois situations, trois façons de travailler avec moi.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
+  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique, contenu et films de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
+    <section class="services-hero motion-reveal"><span class="eyebrow">Services</span><h1>Vous avez un objectif.<br><em>Je le traduis en images.</em></h1><p>Je peux prendre en charge la réflexion visuelle, la préparation, le tournage et le montage. L’intérêt : garder une direction cohérente au lieu de faire circuler l’idée entre plusieurs étapes déconnectées.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
 
     <section class="service-chapter service-chapter--brand" id="marques">
-      <div class="service-chapter__number">01</div><div class="service-chapter__head"><span class="eyebrow">Marques & organisations</span><h2>Donner une forme claire<br>à ce que vous voulez montrer.</h2><p>Je peux intervenir dès la réflexion, puis prendre en charge la direction visuelle et la réalisation des contenus.</p></div>
-      <div class="service-capabilities"><article><small>FILM</small><h3>Film de marque ou institutionnel</h3><p>Concept, préparation, tournage, montage et déclinaisons selon le besoin.</p></article><article><small>DIRECTION</small><h3>Direction artistique</h3><p>Construire un langage visuel cohérent pour un film, une campagne ou une présence digitale.</p></article><article><small>CONTENU</small><h3>Contenu social</h3><p>Formats courts pensés pour les usages réels de la marque, pas seulement recadrés après coup.</p></article></div>
-      <div class="service-proof"><strong>Ouilove Proposal · Direction artistique</strong><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. » <cite>— Matthieu</cite></blockquote><strong>A One Permis · Création de contenu</strong></div>
-      <div class="service-process"><span>01 Comprendre le besoin</span><span>02 Cadrer la réponse</span><span>03 Produire</span><span>04 Finaliser & livrer</span></div>
+      <div class="service-chapter__head motion-reveal"><span class="eyebrow">01 · Marques & organisations</span><h2>Le besoin n’est pas toujours<br>« faire une vidéo ».</h2><p>Il peut s’agir de faire comprendre une offre, rendre sa communication plus cohérente ou produire du contenu sans perdre son identité. Je pars de ce problème avant de choisir le format.</p></div>
+      <div class="service-value-grid">
+        <article class="motion-reveal"><small>FILM</small><h3>Faire comprendre une offre ou une activité.</h3><p>Concept, préparation, tournage et montage sont organisés autour du message à retenir, pas autour d’une liste de plans à produire.</p><b>Bénéfice</b><span>Un film construit pour une fonction précise : présenter, rassurer, expliquer ou positionner.</span></article>
+        <article class="motion-reveal"><small>DIRECTION ARTISTIQUE</small><h3>Éviter une image différente à chaque support.</h3><p>Je définis les choix de cadrage, lumière, typographie, couleur et rythme qui doivent rester cohérents entre les contenus.</p><b>Bénéfice</b><span>Une identité plus reconnaissable et des décisions plus simples à reproduire.</span></article>
+        <article class="motion-reveal"><small>CONTENU</small><h3>Produire pour l’usage réel du contenu.</h3><p>Les formats sont pensés dès la préparation pour leur canal de diffusion au lieu d’être seulement recadrés après le tournage.</p><b>Bénéfice</b><span>Des livrables directement exploitables pour les usages prévus.</span></article>
+      </div>
+      <aside class="service-proof-card motion-reveal" id="ouilove-proof"><div><span class="eyebrow">Preuve · Ouilove Proposal</span><h3>Direction artistique</h3><p>Intervenir avant l’exécution pour réfléchir à ce qui doit être raconté, puis maintenir cette intention dans les choix visuels.</p></div><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote></aside>
+      <div class="service-process motion-reveal"><span><b>01</b> Besoin & objectif</span><span><b>02</b> Direction & préparation</span><span><b>03</b> Production</span><span><b>04</b> Montage & livraison</span></div>
       <a class="button" href="/contact/?intent=brand">Parler d’un projet de marque <span>↗</span></a>
     </section>
 
     <section class="service-chapter service-chapter--story" id="recits">
-      <div class="service-chapter__number">02</div><div class="service-chapter__head"><span class="eyebrow">Récits & création</span><h2>Écrire, mettre en scène<br>et réaliser un récit.</h2><p>Fiction, projet d’auteur ou collaboration narrative : ici, la mise en scène et le rythme prennent le premier rôle.</p></div>
-      <a class="service-feature" href="/projet/le-bol-den-face/"><img src="${visuals.story}" alt="Illustration de réalisation audiovisuelle"><div><small>COURT MÉTRAGE · 2026</small><strong>Le bol d’en face</strong><span>Réalisation & scénario →</span></div></a>
+      <div class="service-chapter__head motion-reveal"><span class="eyebrow">02 · Récits & création</span><h2>Une idée devient un récit<br>quand chaque scène a une fonction.</h2><p>J’interviens sur l’écriture, la mise en scène et la réalisation pour transformer une intention en progression narrative, puis en images.</p></div>
+      <a class="service-feature motion-reveal" href="/projet/le-bol-den-face/"><img src="${bol.poster}" alt="Le bol d’en face — court métrage"><div><small>COURT MÉTRAGE · 2026</small><strong>Le bol d’en face</strong><p>Raconter le deuil sans l’expliquer frontalement : le repas, les objets et les silences deviennent les informations du récit.</p><span>Voir le film et les choix de mise en scène →</span></div></a>
     </section>
 
     <section class="service-chapter service-chapter--moment" id="moments">
-      <div class="service-chapter__number">03</div><div class="service-chapter__head"><span class="eyebrow">Moments</span><h2>Filmer ce qui compte<br>sans prendre la place.</h2><p>Mariages, demandes en mariage et événements personnels : je prépare suffisamment pour pouvoir rester discret le jour venu.</p></div>
-      <div class="service-capabilities"><article><small>PRÉSENCE</small><h3>Une captation discrète</h3><p>Anticiper les moments importants et limiter les interruptions inutiles.</p></article><article><small>FILM</small><h3>Un rendu construit</h3><p>Image, son et montage sont pensés comme un film, pas comme une simple compilation chronologique.</p></article><article><small>ORGANISATION</small><h3>Un cadre clair avant le jour J</h3><p>Horaires, lieux, moments clés, livrables et options sont cadrés dans le devis ou le contrat.</p></article></div>
-      <blockquote class="service-quote">« Le résultat était pile comme je l’imaginais. » <cite>— Nawel & Yanis</cite></blockquote>
-      <p class="service-practical">France entière · déplacements possibles · réponse sous 48 h ouvrées · tarif sur devis selon la durée, le lieu et les livrables.</p>
+      <div class="service-chapter__head motion-reveal"><span class="eyebrow">03 · Moments</span><h2>Préparer suffisamment<br>pour moins intervenir le jour J.</h2><p>Mariage, demande en mariage ou événement personnel : l’objectif est de ne pas transformer le moment en tournage permanent.</p></div>
+      <div class="service-value-grid">
+        <article class="motion-reveal"><small>AVANT</small><h3>Identifier ce qui ne doit pas être manqué.</h3><p>Date, lieux, personnes, déroulé et moments clés sont cadrés avant la prestation.</p><b>Bénéfice</b><span>Moins de questions et d’interruptions pendant l’événement.</span></article>
+        <article class="motion-reveal"><small>PENDANT</small><h3>Anticiper plutôt que faire rejouer.</h3><p>Je cherche les positions et les moments utiles sans multiplier les demandes de pose ou de répétition.</p><b>Bénéfice</b><span>Une présence plus discrète et des réactions qui restent naturelles.</span></article>
+        <article class="motion-reveal"><small>APRÈS</small><h3>Construire un souvenir, pas une chronologie brute.</h3><p>Le montage relie voix, regards, gestes et détails pour restituer ce qui avait de la valeur dans la journée.</p><b>Bénéfice</b><span>Un film qui permet de retrouver des éléments que l’on n’a pas forcément perçus sur le moment.</span></article>
+      </div>
+      <blockquote class="service-quote motion-reveal">« Le résultat était pile comme je l’imaginais. » <cite>— Nawel & Yanis</cite></blockquote>
+      <p class="service-practical">Déplacements selon le projet · réponse sous 48 h ouvrées · prix et livrables définis au devis selon la durée, les lieux et le périmètre.</p>
       <a class="button" href="/contact/?intent=moment">Parler de votre moment <span>↗</span></a>
     </section>
 
-    <section class="services-end"><h2>Votre projet ne rentre pas<br>exactement dans une case ?</h2><p>Écrivez-moi. Je préfère comprendre le besoin avant de décider du format.</p><a class="button button--light" href="/contact/">M’expliquer le projet <span>↗</span></a></section>
+    <section class="services-end motion-reveal"><h2>Votre besoin ne rentre pas<br>dans ces trois cas ?</h2><p>Décrivez le résultat attendu. Je vous dirai si je peux le prendre en charge et sous quelle forme.</p><a class="button button--light" href="/contact/">M’expliquer le besoin <span>↗</span></a></section>
   </main>` + footer();
 }
 
@@ -161,18 +163,37 @@ export function marquesPage(){ return servicesPage(); }
 export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Le regard, la démarche et le sens du nom Nolan Arc.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
-    <section class="about-hero"><span class="eyebrow">À propos</span><h1>Je m’appelle Nolan.<br>Je réalise des films<br>et je construis<br><em>des directions visuelles.</em></h1><p>J’aime intervenir assez tôt pour comprendre ce qu’un projet doit raconter, puis rester impliqué jusqu’au rendu final.</p><div class="about-hero__sig">Nolan Ribeiro · Nolan Arc</div></section>
-    <section class="arc-meaning scroll-scene" data-scene="arc-meaning"><div class="arc-meaning__sticky scene-sticky"><div class="arc-meaning__word">ARC</div><div class="arc-meaning__items"><article><span>01</span><h2>Récit</h2><p>Une histoire avance d’un point à un autre.</p></article><article><span>02</span><h2>Lumière</h2><p>Le cadre choisit ce qu’on montre et ce qu’on laisse de côté.</p></article><article><span>03</span><h2>Trajectoire</h2><p>Une idée de départ devient une série de décisions concrètes.</p></article><article><span>04</span><h2>Ensemble</h2><p>Image, son, rythme et texte doivent appartenir au même projet.</p></article></div></div></section>
-    <section class="principles-grid"><article><span>01</span><h2>Comprendre</h2><p>Clarifier le besoin avant de choisir le format.</p></article><article><span>02</span><h2>Préparer</h2><p>Arriver au tournage avec une direction claire, sans figer ce qui doit rester vivant.</p></article><article><span>03</span><h2>Réaliser</h2><p>Faire des choix de cadre, de lumière et de rythme qui servent réellement le projet.</p></article><article><span>04</span><h2>Finir</h2><p>Garder la même direction jusqu’au montage et à la livraison.</p></article></section>
+  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, manière de travailler et ce que cette approche apporte aux projets.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
+    <section class="about-story-hero">
+      <div class="about-story-hero__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Portrait de Nolan</small></div></div>
+      <div class="about-story-hero__copy motion-reveal"><span class="eyebrow">Nolan Ribeiro · Nolan Arc</span><h1>Je pourrais commencer<br>par le matériel.<br><em>Ce n’est pas ce qui explique mon travail.</em></h1><p class="about-hook">Depuis petit, je reviens toujours à la même chose : créer des vidéos, raconter mes propres histoires et chercher des univers qui ont une identité propre.</p><a class="text-link" href="#tension">Ce que ça change pour un projet <span>↓</span></a></div>
+    </section>
+
+    <section class="about-tension" id="tension">
+      <div class="about-tension__lead motion-reveal"><span class="eyebrow">Le point de bascule</span><h2>J’ai parfois passé plus de temps<br>à me structurer qu’à créer.</h2></div>
+      <div class="about-tension__body motion-reveal"><p>Le défaut de cette exigence, c’est qu’elle peut ralentir. Son utilité, aujourd’hui, est ailleurs : je préfère clarifier pourquoi un projet existe avant d’accumuler les idées, les plans ou les effets.</p><p>Pour un client, cette manière de travailler sert surtout à <strong>éviter les choix visuels qui n’aident pas le projet</strong> et à garder un fil entre le besoin de départ, le tournage et le rendu final.</p></div>
+    </section>
+
+    <section class="about-value">
+      <header class="motion-reveal"><span class="eyebrow">Ce que vous gagnez concrètement</span><h2>Une personne qui pense<br>avant, pendant et après le tournage.</h2></header>
+      <div class="about-value__grid"><article class="motion-reveal"><span>01</span><h3>Avant</h3><p>Je questionne le besoin, la cible, le contexte et l’usage attendu pour éviter de produire un format qui répond à la mauvaise question.</p></article><article class="motion-reveal"><span>02</span><h3>Pendant</h3><p>Je garde la direction visuelle en tête au moment du cadre, de la lumière et de la mise en scène, au lieu de compter sur le montage pour réparer la cohérence.</p></article><article class="motion-reveal"><span>03</span><h3>Après</h3><p>Je monte avec la même intention de départ afin que le résultat final ne soit pas déconnecté de ce qui avait été validé au début.</p></article></div>
+    </section>
+
+    <section class="about-personal-lens">
+      <div class="about-personal-lens__visual motion-reveal"><div class="about-lens-card"><small>CE QUI M’ATTIRE</small><strong>Les univers qui ont une identité, une histoire, quelque chose qui leur est propre.</strong></div></div>
+      <div class="about-personal-lens__copy motion-reveal"><span class="eyebrow">Mon filtre personnel</span><h2>Je ne cherche pas à rendre tous les projets « cinématographiques ».</h2><p>Je cherche ce qui peut les rendre reconnaissables et justes pour leur contexte. C’est aussi pour cela que je préfère les univers de niche aux recettes visuelles que l’on peut déplacer d’un projet à l’autre sans rien changer.</p></div>
+    </section>
+
+    <section class="about-arc motion-reveal"><span class="eyebrow">Pourquoi « Arc » ?</span><div><h2>Une trajectoire,<br>pas un effet graphique.</h2><p>Le nom résume la continuité que je cherche : une intention au départ, des décisions qui la font évoluer, puis un résultat qui reste relié à cette origine.</p></div></section>
+
+    <section class="about-proof motion-reveal"><div><span class="eyebrow">Une phrase qui résume bien mon travail</span><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »<cite>— Matthieu · Ouilove Proposal</cite></blockquote></div><a class="button button--light" href="/work/">Voir ce que cela produit <span>↗</span></a></section>
   </main>` + footer();
 }
 
 export function journalPage(){
-  return head({title:'Journal — Nolan Arc',description:'Notes de Nolan Arc sur le cadrage, la mise en scène, le rythme et l’intention.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main>
-    <section class="journal-hero"><span class="eyebrow">Journal</span><h1>Notes de travail,<br><em>coulisses et méthode.</em></h1><p>Cadrage, lumière, montage, préparation : des notes courtes autour de la fabrication des images.</p></section>
-    <section class="journal-stack">${notes.map((n,i)=>`<article id="${n.slug}"><span>0${i+1}</span><small>${n.category} · ${n.date}</small><h2>${n.title}</h2><p>${n.excerpt}</p><a class="text-link" href="/contact/?intent=other">Discuter de cette réflexion <span>↗</span></a></article>`).join('')}</section>
-    <section class="journal-to-work"><h2>Envie de voir le résultat plutôt que les notes ?</h2><a class="button" href="/work/">Voir le Work <span>↗</span></a></section>
+  return head({title:'Journal — Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main>
+    <section class="journal-hero motion-reveal"><span class="eyebrow">Journal</span><h1>Des notes<br><em>directement applicables.</em></h1><p>Pas de théorie pour remplir une page : chaque note décrit une décision que j’utilise réellement pour préparer, cadrer ou monter.</p></section>
+    <section class="journal-stack">${notes.map((n,i)=>`<article id="${n.slug}" class="motion-reveal"><span>0${i+1}</span><small>${n.category} · ${n.date}</small><h2>${n.title}</h2><p>${n.excerpt}</p></article>`).join('')}</section>
   </main>` + footer();
 }
 

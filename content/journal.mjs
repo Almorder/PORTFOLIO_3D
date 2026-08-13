@@ -1,23 +1,23 @@
 export const notes = [
   {
     slug: 'intention-avant-technique',
-    title: "L’intention avant la technique",
-    category: 'Méthode',
+    title: "Décider ce que le plan doit accomplir",
+    category: 'Préparation',
     date: '2026-08-13',
-    excerpt: "La caméra n’est pas le point de départ. La première question est toujours : qu’est-ce que cette image doit transmettre ?"
+    excerpt: "Avant l’optique ou la lumière, je formule en une phrase ce que le plan doit faire comprendre ou ressentir. Si cette phrase n’est pas claire, le plan ne l’est pas encore."
   },
   {
     slug: 'composer-avec-le-vide',
-    title: 'Composer avec le vide',
+    title: 'Utiliser le vide pour guider le regard',
     category: 'Cadrage',
     date: '2026-08-13',
-    excerpt: "L’espace négatif n’est pas un manque. Il peut donner du poids à ce qui reste dans le cadre."
+    excerpt: "L’espace vide doit orienter l’attention, créer une attente ou laisser respirer un sujet. S’il n’a aucune fonction, il devient simplement de l’espace perdu."
   },
   {
     slug: 'le-rythme-invisible',
-    title: 'Le rythme invisible',
+    title: 'Couper quand le plan a fini son travail',
     category: 'Montage',
     date: '2026-08-13',
-    excerpt: "Un film se raconte aussi par ce que l’on choisit de taire, de retarder ou de laisser respirer."
+    excerpt: "Je garde un plan tant qu’il apporte une information, une tension ou une émotion. Le montage gagne en rythme quand chaque durée a une raison."
   }
 ];

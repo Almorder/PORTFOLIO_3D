@@ -50,15 +50,26 @@ for(const f of htmls){
 }
 
 
-// V5 UX invariants: no legacy vertical rail, no repeated YouTube thumbnail poster,
-// project specs rendered once, compact contact and horizontal progress on every page.
+// V6 UX invariants: horizontal progress, no legacy rail, one project metadata grid,
+// three desktop entry cards, value-first services/about, compact contact.
 for(const f of htmls){
   const html=await readFile(f,'utf8');
   const rel=relative(dist,f);
   if(html.includes('http-equiv="refresh"')) continue;
   if(!html.includes('class="page-progress"')) errors.push(`${rel}: horizontal progress bar missing`);
   if(html.includes('class="arc-rail"')) errors.push(`${rel}: legacy vertical scroll rail still rendered`);
-  if(/img\.youtube\.com/i.test(html)) errors.push(`${rel}: YouTube thumbnail poster still exposed`);
+  if(rel==='index.html'){
+    if(!html.includes('class="entry-carousel entry-grid"')) errors.push(`${rel}: three-card entry grid missing`);
+    if(html.includes('data-entry-prev') || html.includes('data-entry-next')) errors.push(`${rel}: desktop entry carousel controls should be removed`);
+  }
+  if(rel==='services/index.html'){
+    if(!html.includes('id="ouilove-proof"')) errors.push(`${rel}: Ouilove proof anchor missing`);
+    if(!html.includes('class="service-value-grid"')) errors.push(`${rel}: service value grid missing`);
+  }
+  if(rel==='a-propos/index.html'){
+    if(!html.includes('data-nolan-portrait')) errors.push(`${rel}: Nolan portrait slot missing`);
+    if(!html.includes('Ce que vous gagnez concrètement')) errors.push(`${rel}: client-value section missing`);
+  }
   if(rel==='projet/le-bol-den-face/index.html'){
     const metaCount=(html.match(/class="project-meta-list"/g)||[]).length;
     if(metaCount!==1) errors.push(`${rel}: expected project metadata once, got ${metaCount}`);

@@ -1,4 +1,4 @@
-import { rm, mkdir, writeFile } from 'node:fs/promises';
+import { rm, mkdir, writeFile, cp, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -9,6 +9,9 @@ const root=new URL('../',import.meta.url).pathname;
 const out=join(root,'dist');
 await rm(out,{recursive:true,force:true});
 await mkdir(join(out,'assets'),{recursive:true});
+// Copy user-owned static assets (portrait, future project media, etc.) before rendering pages.
+const publicDir=join(root,'public');
+try{ await access(publicDir); await cp(publicDir,out,{recursive:true,force:true}); }catch{}
 
 const pages = new Map([
   ['index.html',homePage()],

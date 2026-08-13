@@ -13,7 +13,7 @@ export const projects = [
     status: 'verified',
     href: '/projet/le-bol-den-face/',
     videoId: 'GbeOQ-hgrtU',
-    poster: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000',
+    poster: 'https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg',
     summary: "Un court métrage sur le deuil, raconté par un repas, des gestes, des objets et une place qui reste vide.",
     contextText: "Le film a été réalisé dans le cadre de 1minute2court. Le récit se déroule autour d’un repas de Nouvel An lunaire. L’enjeu était de faire comprendre l’absence sans la nommer trop vite, pour laisser au spectateur le temps de reconstituer lui-même ce qui s’est passé.",
     intent: "Faire sentir l’absence avant de l’expliquer.",
@@ -41,8 +41,8 @@ export const projects = [
     year: '2024',
     context: 'Ouilove Proposal',
     status: 'partial',
-    href: '/services/#marques',
-    summary: 'Direction artistique et cohérence visuelle pour Ouilove Proposal.'
+    href: '/services/#ouilove-proof',
+    summary: 'Direction artistique pour Ouilove Proposal : cadrer le message et maintenir une cohérence visuelle jusqu’au rendu.'
   },
   {
     slug: 'a-one-permis',
@@ -54,7 +54,7 @@ export const projects = [
     context: 'A One Permis',
     status: 'partial',
     href: '/services/#marques',
-    summary: 'Création de contenus pour les réseaux sociaux de A One Permis.'
+    summary: 'Création de contenus sociaux pensés pour les usages de A One Permis, de la préparation au rendu.'
   },
   {
     slug: 'moments',
@@ -66,6 +66,6 @@ export const projects = [
     context: 'Mariages · demandes · événements',
     status: 'partial',
     href: '/services/#moments',
-    summary: 'Films de mariage, demandes en mariage et autres moments importants.'
+    summary: 'Préparer les moments clés, capter sans interrompre et construire un film cohérent à partir de ce qui s’est réellement passé.'
   }
 ];

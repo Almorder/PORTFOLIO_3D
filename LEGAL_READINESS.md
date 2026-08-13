@@ -1,65 +1,69 @@
-# Publication immédiate — point juridique restant
-
-Cette variante laisse le site se construire et se déployer sans bloquer sur les coordonnées du médiateur de la consommation. **Cela ne signifie pas que l'obligation légale a disparu.** Si Nolan Arc conclut des prestations avec des consommateurs particuliers, il faut adhérer à un médiateur référencé et ajouter son nom, son adresse et son site dans `content/legal.mjs`, les CGV et les documents commerciaux.
-
-Le reste des informations d'entreprise disponibles a été intégré.
-
----
-
 # LEGAL READINESS — Nolan Arc
 
-## Statut actuel
+Date : 13 août 2026
 
-Les informations d'identification de l'entreprise ont été renseignées à partir de la synthèse Guichet unique fournie par Nolan Ribeiro : entrepreneur individuel en micro-entreprise, SIREN 987648664, SIRET 98764866400017, APE 7420Z, franchise en base de TVA, adresse professionnelle à Torcy et téléphone professionnel.
+## Statut de la V6
 
-Les conditions commerciales communiquées le 13 août 2026 ont également été intégrées :
+Le build du portfolio n'est plus bloqué par l'absence de coordonnées du médiateur de la consommation. Cette décision permet la publication immédiate demandée par Nolan ; elle ne supprime pas l'obligation juridique lorsqu'une prestation est conclue avec un consommateur particulier.
+
+## Informations d'entreprise intégrées
+
+À partir de la synthèse Guichet unique fournie :
+
+- entrepreneur individuel ;
+- micro-entreprise ;
+- SIREN : `987648664` ;
+- SIRET : `98764866400017` ;
+- APE : `7420Z` ;
+- TVA non applicable, art. 293 B du CGI ;
+- adresse professionnelle : 1 allée Mirabeau, 77200 Torcy ;
+- téléphone : +33 (0)7 82 04 89 25.
+
+## Conditions commerciales intégrées
+
+Les règles communiquées par Nolan ont été intégrées au contenu juridique du site :
 
 - acompte de réservation d'au moins **40 %** ;
 - aucun escompte pour paiement anticipé ;
-- annulation par LRAR au plus tard **2 mois** avant la prestation ;
-- report demandé au plus tard **2 semaines** avant la prestation ;
-- nouvelle date de report dans les **6 mois** suivant la date initiale, sous réserve de disponibilité ;
-- aucune cession de droits par défaut : les droits accordés au client sont définis au devis/contrat.
+- annulation par lettre recommandée avec accusé de réception au plus tard **2 mois avant** la prestation ;
+- report demandé au plus tard **2 semaines avant** la prestation ;
+- nouvelle date dans les **6 mois** suivant la date initiale, sous réserve de disponibilité ;
+- aucune cession de droits par défaut : le périmètre d'utilisation / cession / licence est défini au devis ou au contrat.
 
-## Point non intégré : pénalité de 1/14 du prix par jour
+## Pénalités de retard
 
-La proposition « 1/14 du prix total par jour de retard, plafonnée au prix total de la prestation » n'a volontairement pas été publiée dans les CGV.
+La formule demandée de `1/14 du prix total par jour`, plafonnée au prix total de la prestation, n'a pas été publiée automatiquement dans les CGV.
 
-Pour les clients professionnels, le site utilise le régime de pénalités de retard prévu par le Code de commerce : pénalités exigibles dès le lendemain de l'échéance au taux BCE de refinancement + 10 points, sans pouvoir être inférieur à trois fois le taux d'intérêt légal, ainsi que l'indemnité forfaitaire légale de 40 € pour frais de recouvrement.
+Pour les clients professionnels, la base actuelle du site utilise le régime légal B2B de retard de paiement et l'indemnité forfaitaire de recouvrement. Toute clause pénale supplémentaire particulièrement élevée doit être validée avant ajout définitif.
 
-Une clause pénale contractuelle supplémentaire peut être modérée par un juge lorsqu'elle est manifestement excessive. Une pénalité atteignant 100 % du prix en 14 jours est donc à faire valider par un professionnel du droit avant de l'ajouter aux documents B2B/B2C.
+## Médiateur de la consommation — tâche restante
 
-## Blocage restant : médiateur de la consommation
+Si Nolan Arc vend des prestations à des particuliers, il faut adhérer réellement à un médiateur de la consommation compétent puis renseigner dans `content/legal.mjs` :
 
-La page `Moments` vise des particuliers. Dans ce cas, Nolan Arc doit **adhérer à un médiateur de la consommation référencé** puis communiquer :
+- `mediator.name` ;
+- `mediator.address` ;
+- `mediator.website`.
 
-- son nom ;
-- son adresse ;
-- l'adresse de son site internet.
+La V6 peut techniquement être construite et déployée sans ces trois champs. Les pages juridiques n'inventent aucun médiateur.
 
-Il ne s'agit pas forcément d'une « page médiateur » distincte. Le site doit surtout afficher ces coordonnées de façon lisible, notamment dans les CGV (et les documents contractuels concernés).
+## Documents commerciaux à synchroniser
 
-Tant que le médiateur n'est pas choisi et renseigné dans `content/legal.mjs`, `npm run check` bloque volontairement la mise en production.
+Les modèles PDF fournis précédemment contiennent encore des règles anciennes et ne doivent pas être considérés comme synchronisés avec la V6 tant qu'ils ne sont pas mis à jour, notamment :
 
-## Documents commerciaux existants à synchroniser
+- ancien acompte à 30 % ;
+- anciennes conditions d'annulation / report.
 
-Les PDF actuels fournis par Nolan ne sont plus alignés avec les nouvelles règles commerciales :
-
-- le devis affiche encore **30 % d'acompte** ;
-- le contrat affiche encore **30 % d'acompte** ;
-- le contrat prévoit encore une annulation à moins de **3 mois** et un report avec **7 jours** de préavis.
-
-Avant de les réutiliser avec des clients, les modèles de devis et de contrat doivent donc être mis à jour pour correspondre aux CGV du site.
+Le devis et le contrat utilisés avec un client doivent reprendre les mêmes règles que les CGV applicables à la prestation concernée.
 
 ## Formulaire
 
-Le formulaire est branché sur FormSubmit. Avant bascule :
+Le formulaire utilise FormSubmit. À faire après déploiement :
 
-1. soumettre un vrai test depuis le domaine de préproduction / production ;
-2. confirmer l'adresse email lorsque FormSubmit le demande ;
-3. vérifier réception, spam, erreur et double envoi ;
-4. vérifier les conditions de sous-traitance et les éventuels transferts internationaux de données du prestataire ;
-5. conserver ou changer de prestataire selon cette vérification.
+1. envoyer une vraie demande depuis le domaine publié ;
+2. confirmer l'adresse destinataire si le service le demande ;
+3. vérifier réception, spam et affichage de l'état de succès ;
+4. vérifier les conditions de traitement de données du prestataire ;
+5. remplacer le prestataire plus tard si nécessaire.
 
 ## Pages générées
 
@@ -69,14 +73,14 @@ Le formulaire est branché sur FormSubmit. Avant bascule :
 - `/cgv/`
 - `/retractation/`
 
-## Contrôle avant mise en ligne
+## QA
 
 ```bash
 npm run check
 ```
 
-Le site ne doit être basculé vers `nolanarc.com` que lorsque cette commande termine avec `QA OK`, après renseignement du médiateur et après un test réel du formulaire.
+La commande doit afficher `QA OK`. Le médiateur manquant reste signalé comme tâche juridique dans la documentation, mais n'est plus un verrou de build.
 
 ## Note
 
-Les pages juridiques du site constituent une base technique et éditoriale cohérente avec les informations fournies. Elles ne remplacent pas une validation par un professionnel du droit, particulièrement pour les clauses d'annulation, de responsabilité, de propriété intellectuelle ou de pénalité contractuelle.
+Ces pages fournissent une base éditoriale et technique construite à partir des informations communiquées. Elles ne remplacent pas une validation personnalisée par un professionnel du droit pour les clauses à enjeu élevé.

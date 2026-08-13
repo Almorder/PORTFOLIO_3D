@@ -137,6 +137,14 @@ if(form){
   });
 }
 
+// About portrait: never substitute a stock face for Nolan. If the real asset is absent, show the designed fallback instead.
+$$('[data-nolan-portrait]').forEach(img=>{
+  const frame=img.closest('.about-story-hero__portrait');
+  const missing=()=>frame?.classList.add('is-missing');
+  img.addEventListener('error',missing,{once:true});
+  if(img.complete && img.naturalWidth===0) missing();
+});
+
 // External video is activated only after an explicit contextual choice.
 $$('[data-external-video]').forEach(gate=>{
   const button=$('[data-load-video]',gate);
@@ -154,7 +162,7 @@ $$('[data-external-video]').forEach(gate=>{
 });
 
 // Reveal elements only when JS is present; no content is hidden without JS.
-const revealTargets=$$('.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');
+const revealTargets=$$('.motion-reveal,.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');
 if('IntersectionObserver' in window && !reduced){
   document.documentElement.classList.add('reveal-enabled');
   const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
@@ -163,15 +171,4 @@ if('IntersectionObserver' in window && !reduced){
   revealTargets.forEach(el=>io.observe(el));
 }
 
-// Home entry carousel: tactile first, with optional desktop controls.
-const entryCarousel=$('[data-entry-carousel]');
-if(entryCarousel){
-  const move=(dir)=>{
-    const card=$('.entry-card',entryCarousel);
-    const gap=20;
-    const amount=(card?.getBoundingClientRect().width || entryCarousel.clientWidth*.8)+gap;
-    entryCarousel.scrollBy({left:dir*amount,behavior:reduced?'auto':'smooth'});
-  };
-  $('[data-entry-prev]')?.addEventListener('click',()=>move(-1));
-  $('[data-entry-next]')?.addEventListener('click',()=>move(1));
-}
+// Home entry cards use a three-column desktop grid and native horizontal swipe on narrow screens.

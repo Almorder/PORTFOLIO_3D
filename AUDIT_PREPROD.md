@@ -1,158 +1,165 @@
-# AUDIT PRÉ-PRODUCTION — Nolan Arc
+# AUDIT V6 — Nolan Arc
 
 Date : 13 août 2026
 
 ## Verdict
 
-Le nouveau repository est **structurellement prêt**, mais **pas encore autorisé à remplacer la production**.
+La V6 passe le contrôle automatisé et peut être déployée sur GitHub Pages pour validation réelle dans le navigateur.
 
-Trois points restent à fermer avant bascule production :
+Cette version traite en priorité les problèmes remontés sur les captures V5 : contraste cassé sur Services/Ouilove, espaces vides excessifs sur desktop, répétition visuelle de `Le bol d'en face`, entrée Home qui imposait un carrousel inutile, manque de valeur de la page À propos et textes trop décoratifs.
 
-1. choisir et renseigner le médiateur de la consommation pour l'offre B2C `Moments` ;
-2. effectuer un test réseau réel du formulaire FormSubmit après activation ;
-3. rattacher suffisamment de vrais médias aux collaborations encore partielles pour valider le rendu final.
+## Correction structurelle principale — CSS reparti à neuf
 
-## UX / mise en page — corrections appliquées
+`src/styles.css` a été réécrit intégralement pour la V6 au lieu d'empiler de nouveaux correctifs sur les anciennes couches V4/V5.
 
-### P0 — Work trop tard dans la Home
+Objectif : supprimer les conflits de cascade qui pouvaient produire un nouveau HTML avec des règles devenues incompatibles, notamment les textes presque noirs sur fonds noirs visibles dans les captures Services/Ouilove.
 
-Avant audit, la première étude de cas arrivait après le Hero puis une très longue séquence `Intention → Décision → Image`.
+Le langage visuel actuel utilise :
 
-Correction : le `Selected Work` a été remonté immédiatement après le premier basculement de scène. Le visiteur voit donc une preuve projet avant le long passage méthodologique.
+- Yrsa pour l'identité et les grands titres ;
+- Syne pour l'interface ;
+- DM Sans pour le corps de texte ;
+- rayons arrondis et panneaux vitrés ;
+- profondeur par transparence, blur et ombres souples ;
+- aucune découpe diagonale comme structure principale ;
+- une barre de progression horizontale de 2 px en haut du viewport.
 
-### P0 — scènes sticky trop longues
+## Home
 
-Réduction des hauteurs :
+### Selected Work
 
-- Hero desktop : 205vh → 172vh
-- Journey desktop : 360vh → 255vh
-- Territories desktop : 300vh → 215vh
-- About / Arc : 320vh → 235vh
-- Mobile : réduction supplémentaire des scènes principales
+Le bloc `Selected Work` a été compacté : le titre et le premier média ne sont plus séparés par une hauteur de viewport artificielle.
 
-Objectif : conserver le scrollytelling sans donner une impression de scroll confisqué.
+`Le bol d'en face` conserve son vrai poster lorsqu'il s'agit bien de présenter ce projet. Les illustrations génériques ne servent qu'aux entrées de besoins / territoires et ne sont jamais présentées comme des réalisations Nolan Arc.
 
-### P0 — faux sentiment de portfolio rempli
+### Choix du besoin
 
-Les projets `partial` ne sont plus présentés comme de grandes fiches Work avec faux médias. La page Work montre d'abord les case studies vérifiés puis une couche séparée de collaborations documentées.
+Sur desktop, les trois entrées sont visibles simultanément dans une grille de trois cartes verticales :
 
-### P1 — navigation mobile
+- Film / image de marque ;
+- Récit / création ;
+- Moment / événement.
 
-Ajout :
+Il n'y a plus de boutons précédent/suivant sur desktop. Les cartes conservent une proportion verticale adaptée aux visuels sociaux sans afficher de mention technique de format dans l'interface.
 
-- fermeture avec Escape ;
-- confinement du focus ;
-- restauration du focus sur le bouton Menu ;
-- header conservé sur mobile comme sortie permanente.
+### Espaces
 
-### P1 — filtre Work
+Les grandes hauteurs minimales ont été retirées des blocs qui n'en avaient pas besoin. Les respirations restantes servent un changement de scène, une preuve visuelle ou une lecture ; elles ne sont plus utilisées pour « faire premium » sans contenu.
 
-Les boutons de filtre restants lorsqu'ils sont utilisés exposent `aria-pressed`. Aucune mémoire navigateur n'est utilisée.
+## Work et fiche projet
 
-### P1 — fatigue visuelle
+- La page Work met en avant le travail réellement documenté avant les collaborations partielles.
+- Le filtre a été retiré tant que le nombre de case studies vérifiés ne justifie pas cette interaction.
+- `Le bol d'en face` utilise son média réel.
+- Sur la fiche projet, le lecteur vidéo arrive immédiatement après l'introduction.
+- Les métadonnées `Contexte / Rôle / Année / Lieu / Format / Caméra` sont affichées une seule fois.
+- Sur mobile, chaque métadonnée est une cellule distincte pour éviter l'écrasement observé auparavant.
+- L'ancien paragraphe redondant `Détails de production / La fiche technique` est supprimé.
 
-Le système garde les ruptures de scènes, diagonales et superpositions, mais évite d'appliquer le même degré de spectacle aux zones utilitaires (formulaire, informations légales, preuves).
+## Services / Ouilove
 
-## Fonctionnalités — état
+La page Services a été reconstruite en trois territoires dans une seule page plutôt qu'en sous-pages maigres :
 
-### Navigation / routes
+- Marques ;
+- Récits ;
+- Moments.
 
-- Header : câblé
-- Menu mobile : câblé + clavier
-- Work / Services / À propos / Journal / Contact : routes générées
-- Case study `Le bol d'en face` : route générée
-- 14 anciennes routes : redirections générées
-- 404 : présente
-- sitemap.xml : généré
-- robots.txt : généré
+Chaque territoire répond désormais à trois questions : quel problème est pris en charge, ce que Nolan fait réellement, ce que le client gagne.
 
-### Vidéo
+Le lien Ouilove pointe vers `#ouilove-proof`, une preuve contextualisée dans la section Marques. Les fonds et couleurs de texte sont explicitement définis dans le nouveau CSS afin d'éviter le contraste cassé vu en V5.
 
-- lien direct YouTube : fonctionne comme lien externe
-- embed : n'est plus injecté au chargement
-- activation : seulement après clic explicite sur « Charger la vidéo YouTube »
+## À propos — nouvelle logique narrative
 
-### Formulaire
+La page n'est plus une succession de principes abstraits. Elle suit une tension personnelle utile au visiteur :
 
-Câblage :
+1. Nolan est d'abord présenté comme une personne attirée depuis longtemps par la création, les histoires et les univers avec une identité propre.
+2. Une contradiction réelle est exposée : avoir parfois passé plus de temps à se structurer qu'à créer.
+3. Cette contradiction devient une méthode utile au client : clarifier le sens avant de multiplier les choix visuels.
+4. La page traduit ensuite cette méthode en bénéfices concrets avant / pendant / après production.
+5. Une preuve client ferme la boucle.
 
-- validation navigateur ;
-- chargement ;
-- succès ;
-- erreur ;
-- bouton désactivé pendant l'envoi ;
-- honeypot ;
-- fallback email ;
-- qualification du type de projet via URL / clic local ;
-- notice de confidentialité.
+Un emplacement portrait réel est câblé sur `/assets/nolan-portrait.jpg`. Aucun faux portrait ni visage de stock n'est utilisé. Tant que le vrai fichier n'est pas fourni, le composant affiche un fallback graphique assumé.
 
-À valider en production : première activation FormSubmit et réception réelle.
+## Texte / UX writing
 
-### Analytics / cookies
+La V6 supprime les formulations qui décrivaient le portfolio au lieu d'aider le visiteur (`le portfolio doit...`, `preuve avant promesse`, explications de prototype, etc.).
 
-- aucun analytics tiers ;
-- aucun stockage `localStorage` / `sessionStorage` utilisé pour mémoriser le parcours ;
-- aucun iframe YouTube avant choix explicite ;
-- aucun bandeau cookies global nécessaire dans cette configuration technique actuelle ;
-- page Cookies / contenus externes présente.
+Règle éditoriale appliquée : un texte doit au moins faire l'une de ces choses :
 
-## Légal — pages présentes
+- clarifier ce que Nolan peut prendre en charge ;
+- aider le visiteur à se reconnaître dans un besoin ;
+- expliquer une décision / méthode ;
+- apporter une preuve ;
+- réduire une objection, un risque ou un effort ;
+- conduire vers l'action suivante.
 
-- Mentions légales : oui
-- Politique de confidentialité : oui
-- Cookies / contenus externes : oui
-- CGV / prestations de services : oui
-- Rétractation B2C : oui
-- Médiation de la consommation : structure présente, coordonnées réelles manquantes
+Les notes du Journal ont également été transformées en conseils courts et applicables plutôt qu'en phrases d'ambiance.
 
-Voir `LEGAL_READINESS.md`.
+## Transitions et mouvement
+
+Le mouvement sert la continuité plutôt que la décoration :
+
+- reveal progressif des blocs et médias à l'entrée dans le viewport ;
+- légère profondeur / mise à l'échelle des médias au hover ;
+- transition du header ;
+- barre de progression de page ;
+- transitions de navigation via l'API View Transitions lorsque le navigateur la supporte ;
+- comportement sans animation agressive avec `prefers-reduced-motion`.
+
+## Contact
+
+Le formulaire reste compact :
+
+1. type de projet ;
+2. message ;
+3. nom + email ;
+4. détails facultatifs repliés ;
+5. envoi.
+
+Le but est de permettre d'écrire le besoin avant de demander une longue qualification.
+
+Fonctionnalités câblées : validation native, honeypot, état d'envoi, succès / erreur, fallback email et notice de confidentialité.
+
+## Pages légales
+
+Présentes et reliées depuis le footer :
+
+- Mentions légales ;
+- Politique de confidentialité ;
+- Cookies / contenus externes ;
+- CGV ;
+- Rétractation.
+
+Le médiateur de la consommation reste à renseigner après adhésion réelle. Ce champ ne bloque plus techniquement le build, conformément à la décision de publication immédiate.
 
 ## QA automatique
 
-`npm run build` : **OK**
+`npm run check` doit terminer avec `QA OK`.
 
-`npm run check` : **BLOQUÉ VOLONTAIREMENT uniquement par les trois coordonnées du médiateur de la consommation** (`name`, `address`, `website`). Les autres données juridiques/commerciales demandées ont été renseignées.
-
-Les contrôles effectués avant le blocage comprennent :
+Le contrôle couvre notamment :
 
 - syntaxe JavaScript ;
-- title / description ;
+- title / meta description ;
 - un seul H1 par page ;
 - alt sur les images ;
 - IDs dupliqués ;
-- liens internes générés.
+- liens internes ;
+- assets CSS / JS hashés ;
+- pages légales reliées ;
+- absence d'iframe YouTube dans le HTML initial ;
+- formulaire, honeypot et confidentialité ;
+- présence de la barre de progression horizontale ;
+- absence de l'ancien rail vertical ;
+- présence simultanée des trois cartes d'entrée desktop ;
+- ancre Ouilove ;
+- structure storytelling de l'À propos ;
+- métadonnées du Bol affichées une seule fois.
 
-## Avant remplacement du repo actuel
+## Points réels encore à compléter
 
-Ne pas supprimer la version live maintenant.
-
-Ordre recommandé :
-
-1. adhérer à un médiateur de la consommation référencé et compléter ses trois coordonnées dans `content/legal.mjs` ;
-2. faire passer `npm run check` ;
-3. sauvegarder / taguer l'ancien état Git ;
-4. remplacer les fichiers sur une branche de migration ou sur `main` sans changer les DNS immédiatement ;
-5. laisser GitHub Pages produire l'URL de test ;
-6. tester desktop/mobile + formulaire ;
-7. seulement ensuite basculer `nolanarc.com`.
-
-## Complément audit conformité technique — 13 août 2026
-
-- Le QA vérifie désormais l'absence de `localStorage` / `sessionStorage` et de code Google Analytics dans le JavaScript public.
-- Le QA vérifie que les cinq pages légales sont reliées depuis les pages de production.
-- Le QA vérifie le honeypot et le lien de confidentialité du formulaire.
-- Le QA refuse tout iframe YouTube présent dans le HTML initial : le lecteur doit être créé uniquement après action explicite.
-- La politique de confidentialité expose désormais explicitement la base juridique du formulaire.
-- FormSubmit indique conserver les soumissions pendant 30 jours ; la relation de sous-traitance et les transferts éventuels restent à valider avant publication.
-
-## Correction supplémentaire — navigation / boucle
-
-Le header desktop ne disparaît plus au scroll. Il reste accessible pendant toute l'expérience et devient légèrement plus lisible après 80 px de défilement. Cette décision privilégie les boucles Work / Services / À propos / Contact et évite de transformer les scènes immersives en cul-de-sac.
-
-## Risques UX encore ouverts avant GO production
-
-1. **Diversité média insuffisante (bloquant créatif)** : le même poster de `Le bol d'en face` porte encore plusieurs scènes importantes. Il faut rattacher de vrais médias Ouilove / A One Permis / Moments pour que le portfolio ne paraisse pas fiction-only ou répétitif.
-2. **Volume de preuve** : une seule étude de cas est aujourd'hui `verified`. C'est honnête, mais trop léger pour la version définitive destinée à un directeur créatif. Les collaborations partielles doivent être documentées avec de vrais médias avant de devenir des cases studies.
-3. **Journal non migré intégralement** : les notes actuelles sont un système éditorial de départ et ne constituent pas encore une migration vérifiée de l'ancien `journal.html`. Ne pas considérer ce contenu comme définitivement validé.
-4. **Image distante YouTube** : le poster du court métrage est encore chargé depuis `img.youtube.com`. Pour la performance, la résilience et la maîtrise des requêtes tierces, il devra être copié dans `public/media/` avant la production finale.
-5. **Validation visuelle navigateur** : Chromium headless de cet environnement ne parvient pas à ouvrir l'origine locale ; les contrôles DOM/CSS/JS sont réalisés, mais le sign-off visuel 1440px / 390px doit être fait sur une URL GitHub Pages de préproduction avant de basculer le domaine.
+1. **Portrait Nolan** : ajouter une vraie photo dans `public/assets/nolan-portrait.jpg`.
+2. **Médias de collaborations** : remplacer progressivement les illustrations temporaires par les vrais médias Ouilove, A One Permis, Carat, Moments, etc.
+3. **Volume de preuve** : `Le bol d'en face` reste la seule case study entièrement documentée ; ne pas inventer de résultats pour remplir la page.
+4. **FormSubmit** : faire un envoi réel après déploiement et confirmer la réception.
+5. **Médiateur B2C** : adhérer puis ajouter ses coordonnées dans `content/legal.mjs` et les documents commerciaux.
+6. **Validation visuelle live** : le contrôle structurel est automatisé, mais le dernier sign-off 1440 px / mobile doit être fait sur l'URL GitHub Pages réellement déployée.
