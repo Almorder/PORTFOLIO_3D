@@ -1,3 +1,11 @@
+# Publication immédiate — point juridique restant
+
+Cette variante laisse le site se construire et se déployer sans bloquer sur les coordonnées du médiateur de la consommation. **Cela ne signifie pas que l'obligation légale a disparu.** Si Nolan Arc conclut des prestations avec des consommateurs particuliers, il faut adhérer à un médiateur référencé et ajouter son nom, son adresse et son site dans `content/legal.mjs`, les CGV et les documents commerciaux.
+
+Le reste des informations d'entreprise disponibles a été intégré.
+
+---
+
 # LEGAL READINESS — Nolan Arc
 
 ## Statut actuel

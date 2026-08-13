@@ -45,7 +45,4 @@ export const legalRequiredFields = [
   ['discountTerms', legal.discountTerms],
   ['cancellationPolicy', legal.cancellationPolicy],
   ['ipPolicy', legal.ipPolicy],
-  ['mediator.name', legal.mediator.name],
-  ['mediator.address', legal.mediator.address],
-  ['mediator.website', legal.mediator.website]
 ];

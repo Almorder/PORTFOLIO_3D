@@ -1,3 +1,5 @@
+> **Version publication immédiate** : le build n'est plus bloqué par l'absence de médiateur de la consommation. Le site peut être déployé, mais l'adhésion à un médiateur reste à régulariser pour toute activité B2C. Voir `LEGAL_READINESS.md`.
+
 # Nolan Arc — Portfolio 2026
 
 Ce dossier est **le nouveau repository complet** de `nolanarc.com`.
