@@ -204,6 +204,55 @@ $$('.v16-logo-media img').forEach(img=>{
   if(img.complete&&img.naturalWidth===0) fail();
 });
 
+// Hero video facade — keep the cinematic autoplay, but never let a third-party iframe
+// compete with first paint or keep decoding while the hero is far offscreen.
+const heroVideo=$('[data-hero-video]');
+if(heroVideo && !reduced){
+  const slot=$('[data-hero-video-slot]',heroVideo);
+  let visible=true, mountTimer=0, idleHandle=0;
+  const unmount=()=>{
+    clearTimeout(mountTimer);
+    if(idleHandle && 'cancelIdleCallback' in window) cancelIdleCallback(idleHandle);
+    idleHandle=0;
+    slot?.replaceChildren();
+    heroVideo.classList.remove('is-video-ready');
+    heroVideo.dataset.videoMounted='false';
+  };
+  const mount=()=>{
+    if(!visible || !slot || heroVideo.dataset.videoMounted==='true' || document.hidden) return;
+    const src=heroVideo.dataset.videoSrc; if(!src) return;
+    const iframe=document.createElement('iframe');
+    iframe.className='v16-hero__video';
+    iframe.src=src;
+    iframe.title=heroVideo.dataset.videoTitle || 'Vidéo cinématique Sony';
+    iframe.tabIndex=-1;
+    iframe.loading='eager';
+    iframe.allow='autoplay; encrypted-media; picture-in-picture';
+    iframe.referrerPolicy='strict-origin-when-cross-origin';
+    iframe.addEventListener('load',()=>heroVideo.classList.add('is-video-ready'),{once:true});
+    slot.append(iframe);
+    heroVideo.dataset.videoMounted='true';
+  };
+  const scheduleMount=()=>{
+    clearTimeout(mountTimer);
+    const queue=()=>{'requestIdleCallback' in window
+      ? idleHandle=requestIdleCallback(()=>{idleHandle=0;mount();},{timeout:900})
+      : mountTimer=setTimeout(mount,320);
+    };
+    if(document.readyState==='complete') queue();
+    else addEventListener('load',queue,{once:true});
+  };
+  if('IntersectionObserver' in window){
+    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      visible=entry.isIntersecting;
+      if(visible) scheduleMount();
+      else mountTimer=setTimeout(unmount,1200);
+    }),{rootMargin:'240px 0px',threshold:0});
+    observer.observe(heroVideo);
+  }else scheduleMount();
+  document.addEventListener('visibilitychange',()=>document.hidden?unmount():visible&&scheduleMount());
+}
+
 // V16 pricing switcher — one compact pricing surface, three offers.
 $$('[data-pricing-switcher]').forEach(section=>{
   const tabs=$$('[data-pricing-tab]',section), panels=$$('[data-pricing-panel]',section);
@@ -382,15 +431,15 @@ async function mountShowcaseWebGL(showcase){
   try{
     const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js');
     if(!document.contains(showcase)) return;
-    const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
-    renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+    const renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:'low-power'});
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
     renderer.setClearColor(0x000000,0);
     mount.append(renderer.domElement);
     const scene=new THREE.Scene();
     const camera=new THREE.PerspectiveCamera(32,1,.1,100);
     camera.position.set(0,0,7.2);
     const group=new THREE.Group(); scene.add(group);
-    const geometry=new THREE.BoxGeometry(3.15,4.05,.34,10,14,2);
+    const geometry=new THREE.BoxGeometry(3.15,4.05,.34,6,8,1);
     const material=new THREE.MeshPhysicalMaterial({
       color:0xffffff,
       roughness:.08,
@@ -488,7 +537,26 @@ function burstShowcase(showcase,state,nextIdx){
   };
   state.raf=requestAnimationFrame(frame);
 }
-$$('[data-glass-showcase]').forEach(showcase=>mountShowcaseWebGL(showcase));
+// WebGL is progressive enhancement: load it only shortly before the showcase is needed,
+ // and skip it on constrained/mobile devices. The CSS/image choreography remains identical.
+const canUseShowcaseWebGL=!reduced
+  && matchMedia('(min-width:901px)').matches
+  && !navigator.connection?.saveData
+  && (navigator.deviceMemory==null || navigator.deviceMemory>=4);
+if(canUseShowcaseWebGL){
+  const queueShowcase=showcase=>{
+    const run=()=>mountShowcaseWebGL(showcase);
+    if('requestIdleCallback' in window) requestIdleCallback(run,{timeout:1200}); else setTimeout(run,120);
+  };
+  if('IntersectionObserver' in window){
+    const lazyShowcaseObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(!entry.isIntersecting) return;
+      lazyShowcaseObserver.unobserve(entry.target);
+      queueShowcase(entry.target);
+    }),{rootMargin:'520px 0px',threshold:0});
+    $$('[data-glass-showcase]').forEach(showcase=>lazyShowcaseObserver.observe(showcase));
+  }else $$('[data-glass-showcase]').forEach(queueShowcase);
+}
 
 // Stacked Flow — actual layered carousel: wheel, arrows, keyboard, tap-to-focus and touch drag.
 $$('[data-stacked-flow]').forEach(flow=>{

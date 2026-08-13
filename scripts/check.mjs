@@ -95,6 +95,12 @@ if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-
 if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
 if(!app.includes("$('[data-pricing-switcher]').forEach")||!app.includes("$('[data-faq-section]').forEach")) fail('Home V18: pricing/FAQ interaction handlers missing');
 if(!home.includes('v16-testimonial-bento')||!home.includes('is-featured')) fail('Home V18: V16 testimonial bento must be restored');
+if(!home.includes('v19-dimension')||!css.includes('V19 — presentation polish + stability pass')) fail('Home V19: redesigned Three dimensions presentation missing');
+if(!home.includes('/assets/pgytech-logo.png')||!existing.has('assets/pgytech-logo.png')) fail('Home V19: local PGYTECH logo asset missing');
+if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-width:50%')) fail('Home V19: Sony optical size correction missing');
+if(!home.includes('Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha')||!home.includes('>Lola<')) fail('Home V19: Lola testimonial missing');
+if(!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"')) fail('Home V19: hero must use deferred video facade rather than preloaded iframe');
+if(!app.includes('canUseShowcaseWebGL')||!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
 if(!css.includes('.v16-testimonial-bento:has(article:hover) article:not(:hover)')) fail('Home V18: testimonial hover focus/blur interaction missing');
 if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
 
@@ -162,4 +168,4 @@ if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route p
 for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V17: FormSubmit/privacy guard incomplete');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files; V18 V16 testimonial bento, pricing/FAQ runtime fix, Sony hero video, logo integration and core product guardrails verified.`);
+console.log(`QA OK — ${htmls.length} HTML files; V19 dimensions polish, Lola testimonial, normalized logos, deferred hero video, lazy WebGL and interaction guardrails verified.`);

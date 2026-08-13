@@ -1124,3 +1124,86 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
   .v17-about-hero{padding:calc(var(--header) + 26px) 16px 56px}.v17-about-hero__copy h1{font-size:17vw}.v17-about-hero__copy>p{font-size:15px}.v17-about-origin,.v17-about-turn,.v17-about-lenses,.v17-about-curiosity,.v17-about-workstyle,.v17-about-proof{padding:64px 16px}.v17-about-origin>div h2,.v17-about-turn__statement h2,.v17-about-curiosity>div:first-child h2,.v17-about-workstyle h2{font-size:14vw}.v17-about-curiosity__bento,.v17-about-workstyle>div{grid-template-columns:1fr}.v17-about-lenses__grid article{min-height:220px}.v17-about-proof blockquote{font-size:11vw}
 }
 @media(prefers-reduced-motion:reduce){.v17-journey .journey__object,.v17-journey .journey__ring{transform:none!important}.v17-journey .journey__halo{animation:none!important}}
+
+/* ========================================================================== 
+   V19 — presentation polish + stability pass
+   ========================================================================== */
+
+/* Hero video: the iframe is mounted after first paint and fades over the poster. */
+.v16-hero__video{opacity:0;transition:opacity .55s var(--ease)}
+.v16-hero__media.is-video-ready .v16-hero__video{opacity:1}
+
+/* Three dimensions — more editorial, visually distinctive, still fully readable. */
+.v19-dimensions__grid{gap:14px;align-items:stretch}
+.v19-dimension{position:relative;min-height:590px;padding:0;display:grid;grid-template-rows:190px 1fr;overflow:hidden;border-radius:32px;background:#fff;border:1px solid rgba(8,7,6,.065);box-shadow:0 20px 58px rgba(58,43,32,.075);isolation:isolate;transition:transform .42s var(--ease),box-shadow .42s var(--ease),border-color .32s var(--ease)}
+.v19-dimension::after{content:'';position:absolute;inset:0;z-index:5;border-radius:inherit;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.v19-dimension__visual{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;padding:20px 22px;background:radial-gradient(circle at 78% 30%,rgba(233,119,54,.36),transparent 28%),linear-gradient(135deg,#17120f,#080706 72%);color:var(--paper)}
+.v19-dimension:nth-child(2) .v19-dimension__visual{background:radial-gradient(circle at 22% 74%,rgba(233,119,54,.42),transparent 29%),linear-gradient(135deg,#28170f,#080706 74%)}
+.v19-dimension:nth-child(3) .v19-dimension__visual{background:radial-gradient(circle at 72% 70%,rgba(204,70,12,.48),transparent 31%),linear-gradient(135deg,#0b0a09,#24130d 100%)}
+.v19-dimension__visual>span{position:relative;z-index:3;align-self:flex-start;font:700 9px/1 var(--ui);letter-spacing:.11em;color:var(--ember-soft)}
+.v19-dimension__visual>b{position:relative;z-index:2;margin:-13px -4px -22px 0;font:500 clamp(92px,8.2vw,148px)/.72 var(--serif);letter-spacing:-.09em;color:rgba(240,235,226,.94);transform-origin:bottom right;transition:transform .55s var(--ease),color .4s var(--ease)}
+.v19-dimension__visual>i{position:absolute;left:22px;right:22px;bottom:24px;height:1px;background:linear-gradient(90deg,var(--ember-soft),rgba(240,235,226,.22) 34%,transparent 78%);transform-origin:left center;transition:transform .55s var(--ease)}
+.v19-dimension__visual::after{content:'';position:absolute;width:190px;height:190px;right:-52px;top:-62px;border:1px solid rgba(240,235,226,.13);border-radius:50%;box-shadow:0 0 0 28px rgba(240,235,226,.025),0 0 0 58px rgba(240,235,226,.018);transition:transform .7s var(--ease)}
+.v19-dimension__body{min-width:0;padding:26px 28px 28px;display:flex;flex-direction:column}
+.v19-dimension__label{display:flex;align-items:center;gap:10px;margin-bottom:20px}.v19-dimension__label>span{display:none}.v19-dimension__label small{font:750 9px/1 var(--ui);letter-spacing:.11em;text-transform:uppercase;color:var(--ember)}
+.v19-dimension h3{margin:0 0 18px;max-width:13ch;font:500 clamp(32px,2.55vw,48px)/.94 var(--serif);letter-spacing:-.035em}
+.v19-dimension>p{display:none}.v19-dimension__body>p{margin:0;color:rgba(8,7,6,.6);font-size:13.5px;line-height:1.62}
+.v19-dimension__impact{margin-top:auto;padding-top:24px;border-top:1px solid rgba(8,7,6,.08)}
+.v19-dimension__impact small{display:block;margin-bottom:8px;font:700 8px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(8,7,6,.42)}
+.v19-dimension__impact strong{display:block;padding:0;font:650 13px/1.46 var(--body);color:var(--ink)}
+.v19-dimension>a{margin:18px 0 0!important;padding:0!important;border:0!important;display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;font:750 9px/1 var(--ui)!important;letter-spacing:.09em;text-transform:uppercase;color:var(--ink)}
+.v19-dimension>a b{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:var(--paper);font:500 15px/1 var(--ui);transition:transform .35s var(--ease),background .35s var(--ease)}
+@media(hover:hover) and (pointer:fine){
+  .v19-dimension:hover{transform:translateY(-7px);border-color:rgba(204,70,12,.15);box-shadow:0 30px 82px rgba(58,43,32,.13)}
+  .v19-dimension:hover .v19-dimension__visual>b{transform:translate3d(-5px,-4px,0) scale(1.055);color:#fff}
+  .v19-dimension:hover .v19-dimension__visual>i{transform:scaleX(1.1)}
+  .v19-dimension:hover .v19-dimension__visual::after{transform:translate3d(-10px,10px,0) scale(1.08)}
+  .v19-dimension>a:hover b{transform:translate3d(3px,-3px,0);background:var(--ember)}
+}
+
+/* Tool logos: one shared visual box, then brand-specific optical correction. */
+.v16-logo-grid .v16-logo-card{padding:18px 12px}
+.v16-logo-grid .v16-logo-media{width:190px;max-width:72%;height:58px;display:grid;place-items:center;overflow:visible}
+.v16-logo-grid .v16-logo-card img{display:block;max-width:100%;max-height:46px;width:auto;height:auto;object-fit:contain;object-position:center}
+.v16-logo-card.is-sony .v16-logo-media{width:190px;height:58px}
+.v16-logo-card.is-sony img{max-width:50%;max-height:28px}
+.v16-logo-card.is-smallrig .v16-logo-media{width:190px;height:58px}
+.v16-logo-card.is-smallrig img{max-width:88%;max-height:44px}
+.v16-logo-card.is-pgytech .v16-logo-media{width:190px;height:58px;overflow:visible}
+.v16-logo-card.is-pgytech img{width:100%;max-width:100%;max-height:54px;height:auto;object-fit:contain;filter:none;opacity:.94}
+.v16-logo-card.is-pgytech:hover img{filter:none;transform:scale(1.035);opacity:1}
+
+/* Stability: preserve the look but remove full-area repaint loops and expensive entrance blur. */
+.home-pricing__backdrop i{animation:none!important}
+.reveal-enabled .motion-reveal,.reveal-enabled .work-entry,.reveal-enabled .satellite-link,.reveal-enabled .note-card{filter:none!important}
+.reveal-enabled .motion-reveal.is-revealed,.reveal-enabled .work-entry.is-revealed,.reveal-enabled .satellite-link.is-revealed,.reveal-enabled .note-card.is-revealed{filter:none!important;transition:opacity .62s var(--ease),transform .62s var(--ease)}
+
+@media(max-width:1100px){
+  .v19-dimension{min-height:550px}
+  .v19-dimension:last-child{grid-column:1/-1;grid-template-columns:220px 1fr;grid-template-rows:1fr;min-height:380px}
+  .v19-dimension:last-child .v19-dimension__visual{min-height:100%}
+  .v19-dimension:last-child .v19-dimension__body{padding:30px}
+}
+
+@media(max-width:900px){
+  .glass-showcase__webgl{display:none!important}
+  .site-header.is-scrolled,.v16-pricing__tabs,.v16-pricing__panels article,.v16-hero__roles span{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
+
+@media(max-width:760px){
+  .v19-dimensions__grid{grid-template-columns:1fr!important;gap:12px}
+  .v19-dimension,.v19-dimension:last-child{grid-column:auto;grid-template-columns:1fr;grid-template-rows:150px 1fr;min-height:510px;border-radius:26px}
+  .v19-dimension:last-child .v19-dimension__visual{min-height:0}
+  .v19-dimension__visual{padding:17px 18px}.v19-dimension__visual>b{font-size:104px}.v19-dimension__visual>i{left:18px;right:18px;bottom:20px}
+  .v19-dimension__body,.v19-dimension:last-child .v19-dimension__body{padding:22px}
+  .v19-dimension h3{font-size:10.5vw;max-width:14ch}
+  .v16-logo-grid .v16-logo-media{width:150px;max-width:72%;height:48px}
+  .v16-logo-card.is-sony img{max-width:50%;max-height:22px}
+  .v16-logo-card.is-smallrig img{max-width:88%;max-height:34px}
+  .v16-logo-card.is-pgytech img{max-height:44px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .v16-hero__video{display:none!important}
+  .v19-dimension,.v19-dimension__visual>b,.v19-dimension__visual>i,.v19-dimension__visual::after,.v19-dimension>a b{transition:none!important}
+}

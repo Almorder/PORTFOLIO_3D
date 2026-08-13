@@ -14,7 +14,7 @@ export const site = {
   testimonials: [
     { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal' },
     { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment' },
-    { quote: 'Les patrons ont kiffé.', name: 'A One Permis', role: 'Contenu social' },
+    { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '' },
   ],
   proofStats: [
     { value: 50, suffix: '+', label: 'vidéos réalisées' },

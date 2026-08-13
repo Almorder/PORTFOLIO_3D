@@ -52,12 +52,12 @@ const expertiseTabs = [
 ];
 
 const ecosystem = [
-  {name:'Sony', role:'Boîtiers · optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg'},
+  {name:'Sony', role:'Boîtiers · optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg', logoClass:'is-sony'},
   {name:'Sigma', role:'Optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sigma%27s_new_updated_logo_revealed%2C_February_2025.svg'},
   {name:'Adobe', role:'Post-production', logo:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Adobe_Logo_Standard.svg'},
   {name:'NiSi', role:'Filtres', logo:'https://images.squarespace-cdn.com/content/v1/5abbd54bd274cb288dbee575/1580147234198-OZKG3ETPSV8IJXDIYUFM/NiSi-logo-2018-01%403x-1.png'},
   {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'https://static.smallrig.com/mall/static/pc/common/svg/logo2023.svg', logoClass:'is-smallrig'},
-  {name:'PGYTECH', role:'Workflow média', logo:'https://www.adorama.com/col/UIimages/PGYTech-Logo.png', logoClass:'is-pgytech'}
+  {name:'PGYTECH', role:'Workflow média', logo:'/assets/pgytech-logo.png', logoClass:'is-pgytech'}
 ];
 
 
@@ -70,7 +70,7 @@ export function homePage(){
   }) + header('/') + `
   <main id="main-content" class="v16-home">
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high"><iframe class="v16-hero__video" src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" title="${esc(homeHeroVideo.title)}" tabindex="-1" loading="eager" allow="autoplay; encrypted-media; picture-in-picture"></iframe><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:24,blur:86,opacity:.17,size:130,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
       <div class="v16-hero__actions"><a href="#work-preview">Voir le Work <span>↘</span></a><a href="#quick-contact">Parler d’un projet <span>↗</span></a></div>
@@ -96,8 +96,17 @@ export function homePage(){
 
     <section class="v16-dimensions" id="dimensions">
       <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
-      <div class="v16-dimensions__grid">
-        ${expertiseTabs.map(x=>`<article class="v16-dimension motion-reveal"><span>${x.index}</span><h3>${x.label}</h3><p>${x.text}</p><strong>${x.value}</strong><a href="${x.href}">Voir l’expertise ↗</a></article>`).join('')}
+      <div class="v16-dimensions__grid v19-dimensions__grid">
+        ${expertiseTabs.map((x,i)=>`<article class="v16-dimension v19-dimension motion-reveal" data-dimension="${esc(x.key)}">
+          <div class="v19-dimension__visual" aria-hidden="true"><span>${x.index}</span><b>${i===0?'R':i===1?'DA':'S'}</b><i></i></div>
+          <div class="v19-dimension__body">
+            <div class="v19-dimension__label"><span>${x.index}</span><small>${esc(x.label)}</small></div>
+            <h3>${esc(x.headline)}</h3>
+            <p>${esc(x.text)}</p>
+            <div class="v19-dimension__impact"><small>Ce que ça change</small><strong>${esc(x.value)}</strong></div>
+            <a href="${x.href}"><span>Voir l’expertise</span><b aria-hidden="true">↗</b></a>
+          </div>
+        </article>`).join('')}
       </div>
     </section>
 
@@ -131,7 +140,7 @@ export function homePage(){
 
     <section class="v16-testimonials" id="retours">
       <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
-      <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}" tabindex="0"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong><span>${esc(t.role)}</span></footer></article>`).join('')}</div>
+      <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}" tabindex="0"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer></article>`).join('')}</div>
     </section>
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
