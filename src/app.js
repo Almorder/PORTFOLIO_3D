@@ -21,10 +21,22 @@ if(preloader){
       removed=true;
     },620);
   };
+  const percent=$('[data-preloader-percent]',preloader);
   if(skip) requestAnimationFrame(leave);
-  else setTimeout(leave,620+hold);
+  else {
+    const duration=760+hold;
+    const start=performance.now();
+    const tick=now=>{
+      const p=clamp((now-start)/duration);
+      const eased=1-Math.pow(1-p,3);
+      if(percent) percent.textContent=String(Math.round(eased*100)).padStart(2,'0');
+      if(p<1 && !removed) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    setTimeout(leave,duration+80);
+  }
   // Hard fallback: even if another module throws later, the overlay is removed.
-  setTimeout(leave,1500);
+  setTimeout(leave,1700);
   addEventListener('pageshow',e=>{if(e.persisted) leave();},{once:true});
 }
 
@@ -41,12 +53,20 @@ function updateScroll(){
     const p = clamp(-rect.top / travel);
     scene.style.setProperty('--p', p.toFixed(4));
     if(scene.dataset.scene === 'journey'){
-      const idx = Math.min(2, Math.floor(p*3));
+      const phase=Math.min(2.999,p*3);
+      const idx=Math.min(2,Math.floor(phase));
+      const local=phase-idx;
+      const smooth=local*local*(3-2*local);
+      const xBase=[0,-3.2,2.3][idx];
+      const scaleBase=[.92,1.015,.955][idx];
+      const rotBase=[-2.4,1.7,-1.2][idx];
       scene.dataset.journeyStep=String(idx);
-      scene.style.setProperty('--journey-shift',((p-.5)*11).toFixed(3));
-      scene.style.setProperty('--journey-y',(Math.sin(p*Math.PI*2)*1.8).toFixed(3));
-      scene.style.setProperty('--journey-rot',`${((p-.5)*5.5).toFixed(2)}deg`);
-      scene.style.setProperty('--journey-ring',`${(p*220).toFixed(1)}deg`);
+      scene.style.setProperty('--journey-x',(xBase+(smooth-.5)*1.8).toFixed(3));
+      scene.style.setProperty('--journey-y',(Math.sin((p+.08)*Math.PI*2)*1.15).toFixed(3));
+      scene.style.setProperty('--journey-scale',(scaleBase+Math.sin(local*Math.PI)*.035).toFixed(4));
+      scene.style.setProperty('--journey-rot',`${(rotBase+(smooth-.5)*2.2).toFixed(2)}deg`);
+      scene.style.setProperty('--journey-ring',`${(p*300).toFixed(1)}deg`);
+      scene.style.setProperty('--journey-energy',(0.28+Math.sin(local*Math.PI)*.72).toFixed(3));
       $$('[data-journey-step]', scene).forEach((el,i)=>el.classList.toggle('is-active',i===idx));
       const count = $('[data-journey-count]', scene);
       if(count) count.textContent = `0${idx+1} / 03`;
@@ -116,22 +136,6 @@ if(menuButton && mobileMenu){
   });
 }
 
-// Work filtering + deep link ?territory=. No terminal storage is used.
-const filterRow=$('[data-filter-row]');
-if(filterRow){
-  const entries=$$('.work-entry');
-  const apply=(value)=>{
-    entries.forEach(e=>e.classList.toggle('is-hidden', value!=='all' && e.dataset.territory!==value));
-    $$('button',filterRow).forEach(b=>{
-      const active=b.dataset.filter===value;
-      b.classList.toggle('is-active',active);
-      b.setAttribute('aria-pressed',String(active));
-    });
-  };
-  $$('button',filterRow).forEach(b=>b.addEventListener('click',()=>apply(b.dataset.filter)));
-  const requested=new URLSearchParams(location.search).get('territory');
-  apply(requested && ['Marques','Récits','Moments'].includes(requested) ? requested : 'all');
-}
 
 // Contact intent adapts only from the URL or an explicit click on the current page.
 const form=$('[data-contact-form]');
@@ -209,68 +213,72 @@ if('IntersectionObserver' in window && !reduced){
   revealTargets.forEach(el=>io.observe(el));
 }
 
-// Home entry cards use a three-column desktop grid and native horizontal swipe on narrow screens.
-
 // Animated Stats Pro — independent implementation of the public behaviour: scroll trigger,
-// easeOutExpo, stagger, decimal support and Blur / Slide / Fade / Scale entrance styles.
+// easeOutExpo, stagger, replay, decimal support and Blur / Slide / Fade / Scale entrance styles.
 $$('[data-animated-stats]').forEach(section=>{
   const cards=$$('[data-stat-card]',section);
   const replay=section.dataset.replay==='true';
-  if(!reduced){
+  const easeOutExpo=p=>p>=1?1:1-Math.pow(2,-10*p);
+  let running=false,hasRun=false,runToken=0;
+  const prepare=()=>{
+    if(reduced) return;
     cards.forEach(card=>{
       const counter=$('[data-counter]',card); if(!counter) return;
-      const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
-      card.classList.add('is-stat-prep');
-      counter.textContent=(0).toFixed(decimals);
-    });
-  }
-  let hasRun=false;
-  const easeOutExpo=p=>p>=1?1:1-Math.pow(2,-10*p);
-  const run=()=>{
-    if(hasRun&&!replay) return;
-    hasRun=true;
-    cards.forEach((card,index)=>{
-      const counter=$('[data-counter]',card); if(!counter) return;
-      const target=Number(counter.dataset.counterTarget||0);
       const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
       card.classList.remove('is-stat-visible');
       card.classList.add('is-stat-prep');
       counter.textContent=(0).toFixed(decimals);
-      const startDelay=reduced?0:index*95;
+    });
+  };
+  const run=()=>{
+    if(running || (hasRun&&!replay)) return;
+    running=true; hasRun=true; runToken+=1;
+    const token=runToken;
+    section.classList.add('is-animating');
+    cards.forEach((card,index)=>{
+      const counter=$('[data-counter]',card); if(!counter) return;
+      const target=Number(counter.dataset.counterTarget||0);
+      const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
+      const delay=reduced?0:index*120;
       setTimeout(()=>{
+        if(token!==runToken) return;
         card.classList.remove('is-stat-prep');
         card.classList.add('is-stat-visible');
         if(reduced){counter.textContent=target.toFixed(decimals);return;}
-        const start=performance.now(), duration=1050;
+        const started=performance.now(),duration=1320;
         const tick=now=>{
-          const p=clamp((now-start)/duration);
-          const value=target*easeOutExpo(p);
-          counter.textContent=value.toFixed(decimals);
-          if(p<1) requestAnimationFrame(tick);
+          if(token!==runToken) return;
+          const progress=clamp((now-started)/duration);
+          counter.textContent=(target*easeOutExpo(progress)).toFixed(decimals);
+          if(progress<1) requestAnimationFrame(tick);
+          else if(index===cards.length-1){running=false;section.classList.remove('is-animating');}
         };
         requestAnimationFrame(tick);
-      },startDelay);
+      },delay);
     });
   };
-  const reset=()=>{if(!replay)return;cards.forEach(card=>{card.classList.remove('is-stat-visible');card.classList.add('is-stat-prep');});};
+  const reset=()=>{
+    if(!replay||running) return;
+    runToken+=1; running=false; section.classList.remove('is-animating'); prepare();
+  };
+  prepare();
   if('IntersectionObserver' in window && !reduced){
-    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
-      if(entry.isIntersecting) run(); else reset();
-    }),{threshold:.38});
-    io.observe(section);
-  } else run();
+    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(entry.isIntersecting) run(); else if(entry.boundingClientRect.bottom<0 || entry.boundingClientRect.top>innerHeight) reset();
+    }),{threshold:.52,rootMargin:'0px 0px -6% 0px'});
+    observer.observe(section);
+  }else run();
 });
 
-// Focus Testimonials — continuous reading flow. Desktop hover focuses one quote without layout shift;
-// mobile stays fully readable. The optional expander mirrors the original “Read More / Show Less” idea.
+// Focus Testimonials — continuous reading flow with a robust delegated expander.
 $$('[data-focus-testimonials]').forEach(section=>{
   const items=$$('[data-testimonial-index]',section);
-  const toggle=$('[data-testimonials-toggle]',section);
   const max=Math.max(1,Number(section.dataset.maxVisible||items.length));
   let expanded=false;
   const applyVisibility=()=>{
     items.forEach((item,i)=>item.hidden=!expanded&&i>=max);
-    $$('.focus-testimonials__sep',section).forEach((sep,i)=>sep.hidden=!expanded && i>=max-1);
+    $$('[data-testimonial-sep]',section).forEach((sep,i)=>sep.hidden=!expanded&&i>=max-1);
+    const toggle=$('[data-testimonials-toggle]',section);
     if(toggle){
       toggle.setAttribute('aria-expanded',String(expanded));
       $('span',toggle).textContent=expanded?'Réduire':'Voir tous les retours';
@@ -278,30 +286,27 @@ $$('[data-focus-testimonials]').forEach(section=>{
     }
   };
   applyVisibility();
-  toggle?.addEventListener('click',()=>{expanded=!expanded;applyVisibility();});
+  section.addEventListener('click',event=>{
+    const toggle=event.target.closest('[data-testimonials-toggle]');
+    if(!toggle || !section.contains(toggle)) return;
+    event.preventDefault(); event.stopPropagation();
+    expanded=!expanded; applyVisibility();
+    if(!expanded) section.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'});
+  });
   if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   const positionBadge=item=>{
     const badge=$('.focus-testimonials__author',item); if(!badge) return;
     badge.style.setProperty('--badge-shift','0px');
     requestAnimationFrame(()=>{
-      const r=badge.getBoundingClientRect();
-      let shift=0;
-      if(r.left<10) shift=10-r.left;
-      if(r.right>innerWidth-10) shift=(innerWidth-10)-r.right;
+      const rect=badge.getBoundingClientRect(); let shift=0;
+      if(rect.left<10) shift=10-rect.left;
+      if(rect.right>innerWidth-10) shift=(innerWidth-10)-rect.right;
       badge.style.setProperty('--badge-shift',`${shift}px`);
     });
   };
-  const focus=item=>{
-    section.classList.add('is-focusing');
-    items.forEach(el=>el.classList.toggle('is-focused',el===item));
-    positionBadge(item);
-  };
+  const focus=item=>{section.classList.add('is-focusing');items.forEach(el=>el.classList.toggle('is-focused',el===item));positionBadge(item);};
   const clear=()=>{section.classList.remove('is-focusing');items.forEach(el=>el.classList.remove('is-focused'));};
-  items.forEach(item=>{
-    item.addEventListener('pointerenter',()=>focus(item));
-    item.addEventListener('focus',()=>focus(item));
-    item.addEventListener('blur',clear);
-  });
+  items.forEach(item=>{item.addEventListener('pointerenter',()=>focus(item));item.addEventListener('focus',()=>focus(item));item.addEventListener('blur',clear);});
   section.addEventListener('pointerleave',clear);
 });
 
@@ -467,74 +472,60 @@ $$('[data-stacked-flow]').forEach(flow=>{
   flow.tabIndex=0; render();
 });
 
-// Video Slide Show — layered portrait carousel.
-// The active card stays crisp while neighbouring cards recede through scale, depth, blur and opacity.
+// Video Slide Show — Work-only layered portrait carousel.
+// It reproduces the public Framer behaviours (layering, arrows, dots, autoplay) and adds requested velocity-based drag inertia.
 $$('[data-video-slide-show]').forEach(slider=>{
-  const slides=$$('[data-video-slide]',slider); if(!slides.length) return;
-  const dots=$$('[data-video-dot]',slider);
-  const muteButton=$('[data-video-mute]',slider);
+  const slides=$$('[data-video-slide]',slider),dots=$$('[data-video-dot]',slider),stage=$('[data-video-stage]',slider); if(!slides.length||!stage)return;
+  let active=0,timer=0,paused=false,drag=null,suppressClickUntil=0,wheelLock=false;
   const autoplay=slider.dataset.autoplay==='true'&&!reduced;
   const interval=Math.max(2200,Number(slider.dataset.autoplayInterval||5200));
-  let active=0,timer=0,touch=null,paused=false;
-  const unloadVideos=()=>slides.forEach(slide=>{
-    const frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
-    frame?.replaceChildren();poster?.classList.remove('is-hidden');slide.classList.remove('is-playing');
-  });
-  const updateMuteControl=()=>{
-    if(!muteButton) return;
-    const muted=slider.dataset.videoMuted==='true';
-    muteButton.setAttribute('aria-pressed',String(muted));
-    muteButton.setAttribute('aria-label',muted?'Activer le son':'Couper le son');
-    muteButton.classList.toggle('is-muted',muted);
-  };
+  const muteButton=$('[data-video-mute]',slider);
+  const updateMuteControl=()=>{if(!muteButton)return;const muted=slider.dataset.videoMuted==='true';muteButton.classList.toggle('is-muted',muted);muteButton.setAttribute('aria-pressed',String(muted));muteButton.setAttribute('aria-label',muted?'Activer le son':'Couper le son');};
+  const unloadVideos=()=>slides.forEach(slide=>{const frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);frame?.replaceChildren();poster?.classList.remove('is-hidden');slide.classList.remove('is-playing')});
   const loadActiveVideo=()=>{
-    const slide=slides[active],frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);
-    const id=slide?.dataset.videoId,start=Math.max(0,Number(slide?.dataset.videoStart||0)); if(!id||!frame)return;
-    const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';
-    const iframe=document.createElement('iframe');
-    const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});
-    if(loop) params.set('playlist',id);
-    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;
-    iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;
-    iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;
-    frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
+    const slide=slides[active],frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);const id=slide?.dataset.videoId,start=Math.max(0,Number(slide?.dataset.videoStart||0));if(!id||!frame)return;
+    const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';const iframe=document.createElement('iframe');const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});if(loop)params.set('playlist',id);
+    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
   };
+  const clearDragVisual=()=>{slider.style.setProperty('--drag-px','0px');slider.style.setProperty('--drag-tilt','0deg');slider.classList.remove('is-dragging');};
   const render=()=>{
-    slides.forEach((slide,i)=>{
-      let d=i-active;const half=slides.length/2;if(d>half)d-=slides.length;if(d<-half)d+=slides.length;
-      slide.style.setProperty('--slide-delta',d);slide.style.setProperty('--slide-abs',Math.abs(d));slide.style.setProperty('--slide-z',String(slides.length-Math.abs(d)));
-      const isActive=i===active;
-      slide.classList.toggle('is-active',isActive);slide.setAttribute('aria-current',isActive?'true':'false');
-      const play=$('[data-slide-play]',slide),select=$('[data-slide-select]',slide);
-      if(play) play.tabIndex=isActive?0:-1;
-      if(select) select.tabIndex=isActive?-1:0;
-    });
-    dots.forEach((dot,i)=>{if(i===active)dot.setAttribute('aria-current','true');else dot.removeAttribute('aria-current');});
-    unloadVideos();updateMuteControl();
+    slides.forEach((slide,index)=>{let delta=index-active;const half=slides.length/2;if(delta>half)delta-=slides.length;if(delta<-half)delta+=slides.length;slide.style.setProperty('--slide-delta',delta);slide.style.setProperty('--slide-abs',Math.abs(delta));slide.style.setProperty('--slide-z',String(slides.length-Math.abs(delta)));const current=index===active;slide.classList.toggle('is-active',current);slide.setAttribute('aria-current',current?'true':'false');const play=$('[data-slide-play]',slide),select=$('[data-slide-select]',slide);if(play)play.tabIndex=current?0:-1;if(select)select.tabIndex=current?-1:0;});
+    dots.forEach((dot,index)=>index===active?dot.setAttribute('aria-current','true'):dot.removeAttribute('aria-current'));unloadVideos();updateMuteControl();
   };
   const restart=()=>{clearInterval(timer);if(autoplay&&!paused)timer=setInterval(()=>go(active+1),interval);};
-  const go=i=>{active=(i+slides.length)%slides.length;render();restart();};
-  $('[data-video-prev]',slider)?.addEventListener('click',()=>go(active-1));
-  $('[data-video-next]',slider)?.addEventListener('click',()=>go(active+1));
-  dots.forEach((dot,i)=>dot.addEventListener('click',()=>go(i)));
-  $$('[data-slide-select]',slider).forEach((button,i)=>button.addEventListener('click',()=>{if(i!==active)go(i)}));
-  $$('[data-slide-play]',slider).forEach((button,i)=>button.addEventListener('click',()=>{
-    if(i!==active){go(i);return;}
-    clearInterval(timer);paused=true;unloadVideos();loadActiveVideo();
-  }));
-  muteButton?.addEventListener('click',()=>{
-    const wasPlaying=slides[active]?.classList.contains('is-playing');
-    slider.dataset.videoMuted=slider.dataset.videoMuted==='true'?'false':'true';
-    updateMuteControl();
-    if(wasPlaying){unloadVideos();loadActiveVideo();}
-  });
-  slider.addEventListener('pointerenter',()=>{paused=true;clearInterval(timer)});
-  slider.addEventListener('pointerleave',()=>{paused=false;restart()});
-  slider.addEventListener('focusin',()=>{paused=true;clearInterval(timer)});
-  slider.addEventListener('focusout',e=>{if(!slider.contains(e.relatedTarget)){paused=false;restart()}});
-  slider.addEventListener('pointerdown',e=>{touch={x:e.clientX,y:e.clientY,id:e.pointerId}});
-  slider.addEventListener('pointerup',e=>{if(!touch||touch.id!==e.pointerId)return;const dx=e.clientX-touch.x,dy=e.clientY-touch.y;touch=null;const m=slider.dataset.orientation==='vertical'?dy:dx;if(Math.abs(m)>48)go(active+(m<0?1:-1))});
+  const go=index=>{active=(index+slides.length)%slides.length;clearDragVisual();render();restart();};
+  $('[data-video-prev]',slider)?.addEventListener('click',()=>go(active-1));$('[data-video-next]',slider)?.addEventListener('click',()=>go(active+1));dots.forEach((dot,index)=>dot.addEventListener('click',()=>go(index)));
+  $$('[data-slide-select]',slider).forEach((button,index)=>button.addEventListener('click',event=>{if(performance.now()<suppressClickUntil){event.preventDefault();return;}if(index!==active)go(index)}));
+  $$('[data-slide-play]',slider).forEach((button,index)=>button.addEventListener('click',()=>{if(index!==active){go(index);return;}clearInterval(timer);paused=true;unloadVideos();loadActiveVideo();}));
+  muteButton?.addEventListener('click',()=>{const playing=slides[active]?.classList.contains('is-playing');slider.dataset.videoMuted=slider.dataset.videoMuted==='true'?'false':'true';updateMuteControl();if(playing){unloadVideos();loadActiveVideo();}});
+  slider.addEventListener('pointerenter',()=>{paused=true;clearInterval(timer)});slider.addEventListener('pointerleave',()=>{if(!drag){paused=false;restart()}});slider.addEventListener('focusin',()=>{paused=true;clearInterval(timer)});slider.addEventListener('focusout',event=>{if(!slider.contains(event.relatedTarget)&&!drag){paused=false;restart()}});
+  const axisValue=event=>slider.dataset.orientation==='vertical'?event.clientY:event.clientX;
+  const beginDrag=event=>{
+    if(event.button!==undefined&&event.button!==0)return;
+    paused=true;clearInterval(timer);const now=performance.now(),axis=axisValue(event);drag={id:event.pointerId,start:axis,last:axis,lastTime:now,delta:0,velocity:0};slider.classList.add('is-dragging');stage.setPointerCapture?.(event.pointerId);
+  };
+  const moveDrag=event=>{
+    if(!drag||drag.id!==event.pointerId)return;const now=performance.now(),axis=axisValue(event),dt=Math.max(8,now-drag.lastTime),instant=(axis-drag.last)/dt;drag.velocity=drag.velocity*.68+instant*.32;drag.delta=axis-drag.start;drag.last=axis;drag.lastTime=now;const visual=clamp(drag.delta,-190,190);slider.style.setProperty('--drag-px',`${visual}px`);slider.style.setProperty('--drag-tilt',`${clamp(drag.velocity*3.2,-6,6).toFixed(2)}deg`);
+  };
+  const finishDrag=event=>{
+    if(!drag||drag.id!==event.pointerId)return;const state=drag;drag=null;stage.releasePointerCapture?.(event.pointerId);const projected=state.delta+state.velocity*240;const threshold=clamp(slider.clientWidth*.14,92,170);let steps=Math.round(-projected/threshold);if(steps===0&&Math.abs(state.delta)>46)steps=state.delta<0?1:-1;steps=clamp(steps,-3,3);if(Math.abs(state.delta)>8)suppressClickUntil=performance.now()+320;if(steps)go(active+steps);else{clearDragVisual();paused=false;restart();}
+  };
+  stage.addEventListener('pointerdown',beginDrag);stage.addEventListener('pointermove',moveDrag);stage.addEventListener('pointerup',finishDrag);stage.addEventListener('pointercancel',event=>{if(drag?.id===event.pointerId){drag=null;clearDragVisual();paused=false;restart();}});
+  slider.addEventListener('wheel',event=>{const movement=Math.abs(event.deltaX)>Math.abs(event.deltaY)?event.deltaX:(event.shiftKey?event.deltaY:0);if(Math.abs(movement)<18||wheelLock)return;wheelLock=true;go(active+(movement>0?1:-1));setTimeout(()=>wheelLock=false,360);},{passive:true});
+  slider.tabIndex=0;slider.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();go(active-1)}if(event.key==='ArrowRight'){event.preventDefault();go(active+1)}});
   render();restart();
+});
+
+// Dynamic FAQ — accessible accordion, one open answer at a time.
+$$('[data-faq-section]').forEach(section=>{
+  const items=$$('[data-faq-item]',section);
+  items.forEach(item=>$('[data-faq-answer]',item)?.removeAttribute('hidden'));
+  const setOpen=(target,open)=>{
+    target.classList.toggle('is-open',open);const button=$('[data-faq-button]',target);button?.setAttribute('aria-expanded',String(open));
+  };
+  section.addEventListener('click',event=>{
+    const button=event.target.closest('[data-faq-button]');if(!button||!section.contains(button))return;const item=button.closest('[data-faq-item]');const next=!item.classList.contains('is-open');items.forEach(other=>setOpen(other,other===item&&next));
+  });
 });
 
 // Line Menu TOC — collapsed rail at rest. It opens on hover/focus and closes a moment after the pointer leaves.
