@@ -301,3 +301,7 @@ Ajoute-la dans l'objet `redirects` de :
 `scripts/build.mjs`
 
 avec sa nouvelle destination.
+
+## V4 — sécurité de cache des assets
+
+Le build génère désormais des noms de fichiers CSS/JS basés sur leur contenu (`site.<hash>.css`, `app.<hash>.js`). Cela empêche GitHub Pages, un CDN ou le navigateur de servir un ancien CSS avec un nouveau HTML après une mise à jour. Le contrôle `npm run check` vérifie aussi que chaque page pointe vers les assets hashés réellement générés.

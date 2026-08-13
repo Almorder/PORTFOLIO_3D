@@ -37,14 +37,19 @@ export function head({ title, description, path='/', image='https://img.youtube.
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css">
+<style id="critical-shell">.mobile-tabs{display:none}.mobile-menu[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="/__SITE_CSS__">
 <script>document.documentElement.classList.remove('no-js');</script>
 <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body class="${bodyClass}">`;
 }
 
-const activeFor = (active, href) => active === href ? 'is-active' : '';
+const activeFor = (active, href) => {
+  if (href === '/') return active === '/' ? 'is-active' : '';
+  if (href === '/work/' && active.startsWith('/projet/')) return 'is-active';
+  return active === href || active.startsWith(href) ? 'is-active' : '';
+};
 
 export function header(active='') {
   const nav = site.nav.map(item => `<a class="site-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
@@ -62,10 +67,10 @@ export function header(active='') {
     </div>
   </div>
   <nav class="mobile-tabs" aria-label="Navigation mobile rapide">
-    <a class="${activeFor(active,'/')}" href="/"><span>⌂</span><small>Accueil</small></a>
-    <a class="${activeFor(active,'/work/')}" href="/work/"><span>◫</span><small>Work</small></a>
-    <a class="${activeFor(active,'/services/')}" href="/services/"><span>✦</span><small>Services</small></a>
-    <a class="${activeFor(active,'/contact/')}" href="/contact/"><span>↗</span><small>Contact</small></a>
+    <a class="${activeFor(active,'/')}" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5v8.25A1.25 1.25 0 0 1 18.75 20h-13.5A1.25 1.25 0 0 1 4 18.75Z"/><path d="M9 20v-6h6v6"/></svg><small>Accueil</small></a>
+    <a class="${activeFor(active,'/work/')}" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><small>Work</small></a>
+    <a class="${activeFor(active,'/services/')}" href="/services/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m6.5 6.5 11 11m0-11-11 11"/></svg><small>Services</small></a>
+    <a class="${activeFor(active,'/contact/')}" href="/contact/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M9 5h10v10"/></svg><small>Contact</small></a>
   </nav>`;
 }
 
@@ -82,7 +87,7 @@ export function footer() {
       <div><strong>Contact</strong><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a><a href="${site.youtube}" target="_blank" rel="noreferrer">YouTube ↗</a></div>
       <div><strong>Légal</strong><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cgv/">CGV</a><a href="/cookies/">Cookies</a><a href="/retractation/">Rétractation</a><span>© Nolan Arc 2026</span></div>
     </div>
-  </footer><script type="module" src="/assets/app.js"></script></body></html>`;
+  </footer><script type="module" src="/__APP_JS__"></script></body></html>`;
 }
 
 export function projectMeta(project) {

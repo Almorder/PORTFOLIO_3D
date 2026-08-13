@@ -1,5 +1,7 @@
-import { rm, mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { rm, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { homePage, workPage, projectPage, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage } from '../templates/pages.mjs';
 import { site } from '../content/site.mjs';
 
@@ -24,9 +26,19 @@ const pages = new Map([
   ['404/index.html',notFoundPage()],
   ['404.html',notFoundPage()]
 ]);
-for(const [file,html] of pages){ const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8'); }
-await copyFile(join(root,'src/styles.css'),join(out,'assets/site.css'));
-await copyFile(join(root,'src/app.js'),join(out,'assets/app.js'));
+const cssSource=await readFile(join(root,'src/styles.css'),'utf8');
+const jsSource=await readFile(join(root,'src/app.js'),'utf8');
+const cssHash=createHash('sha256').update(cssSource).digest('hex').slice(0,10);
+const jsHash=createHash('sha256').update(jsSource).digest('hex').slice(0,10);
+const cssAsset=`assets/site.${cssHash}.css`;
+const jsAsset=`assets/app.${jsHash}.js`;
+
+for(const [file,rawHtml] of pages){
+  const html=rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset);
+  const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
+}
+await writeFile(join(out,cssAsset),cssSource,'utf8');
+await writeFile(join(out,jsAsset),jsSource,'utf8');
 await writeFile(join(out,'.nojekyll'),'','utf8');
 
 const redirects = {
@@ -57,4 +69,4 @@ const routes=['/','/work/','/projet/le-bol-den-face/','/services/','/a-propos/',
 await writeFile(join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(r=>`  <url><loc>${site.domain}${r}</loc></url>`).join('\n')}\n</urlset>\n`);
 await writeFile(join(out,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${site.domain}/sitemap.xml\n`);
 
-console.log(`Built ${pages.size} pages + ${Object.keys(redirects).length} legacy redirects.`);
+console.log(`Built ${pages.size} pages + ${Object.keys(redirects).length} legacy redirects. Assets: ${cssAsset}, ${jsAsset}`);

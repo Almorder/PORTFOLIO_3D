@@ -15,6 +15,19 @@ for(const f of htmls){const html=await readFile(f,'utf8');if(!/<title>.+<\/title
     for(const m of html.matchAll(/href="(\/[^"]*)"/g)){ const raw=m[1].split('#')[0].split('?')[0]; if(!raw||raw==='/' ) continue; let target=raw.replace(/^\//,''); if(target.endsWith('/')) target += 'index.html'; else if(!/\.[a-z0-9]+$/i.test(target)) target += '/index.html'; if(!existing.has(target)) errors.push(`${relative(dist,f)}: broken internal href ${raw}`); }
   }
 }
+
+// Deployment integrity: every rendered page must reference content-hashed assets that exist.
+for(const f of htmls){
+  const html=await readFile(f,'utf8');
+  if(html.includes('__SITE_CSS__') || html.includes('__APP_JS__')) errors.push(`${relative(dist,f)}: unresolved asset placeholder`);
+  if(!html.includes('http-equiv="refresh"')){
+    const cssMatch=html.match(/href="\/(assets\/site\.[a-f0-9]{10}\.css)"/);
+    const jsMatch=html.match(/src="\/(assets\/app\.[a-f0-9]{10}\.js)"/);
+    if(!cssMatch) errors.push(`${relative(dist,f)}: hashed CSS reference missing`); else if(!existing.has(cssMatch[1])) errors.push(`${relative(dist,f)}: CSS asset not found ${cssMatch[1]}`);
+    if(!jsMatch) errors.push(`${relative(dist,f)}: hashed JS reference missing`); else if(!existing.has(jsMatch[1])) errors.push(`${relative(dist,f)}: JS asset not found ${jsMatch[1]}`);
+  }
+}
+
 const css=await readFile(join(root,'src/styles.css'),'utf8');if(css.includes('var(--ember-soft;'))errors.push('CSS malformed variable');
 const app=await readFile(join(root,'src/app.js'),'utf8');
 if(/sessionStorage|localStorage/.test(app)) errors.push('PRIVACY BLOCKER: browser storage detected in src/app.js');
@@ -37,4 +50,4 @@ for(const f of htmls){
 }
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files, JS syntax valid, no duplicate IDs.`);
+console.log(`QA OK — ${htmls.length} HTML files, hashed assets wired, JS syntax valid, no duplicate IDs.`);
