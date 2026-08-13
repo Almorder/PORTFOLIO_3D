@@ -21,21 +21,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-<<<<<<< HEAD
-=======
 
->>>>>>> 54ae82a33c47469970fefff0b5d9f9883d659a03
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 24
           package-manager-cache: false
-<<<<<<< HEAD
-      - name: Check and build
-        run: npm run check
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-=======
 
       - name: Check and build
         run: npm run check
@@ -43,7 +34,6 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
->>>>>>> 54ae82a33c47469970fefff0b5d9f9883d659a03
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
