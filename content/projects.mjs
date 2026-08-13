@@ -15,7 +15,7 @@ export const projects = [
     videoId: 'GbeOQ-hgrtU',
     poster: 'https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg',
     summary: "Un court métrage sur le deuil, raconté par un repas, des gestes, des objets et une place qui reste vide.",
-    contextText: "Le film a été réalisé dans le cadre de 1minute2court. Le récit se déroule autour d’un repas de Nouvel An lunaire. L’enjeu était de faire comprendre l’absence sans la nommer trop vite, pour laisser au spectateur le temps de reconstituer lui-même ce qui s’est passé.",
+    contextText: "Réalisé dans le cadre de 1minute2court, le film suit un repas de Nouvel An lunaire marqué par une absence. Je voulais que le spectateur la comprenne avant qu’on la lui explique : par une place, un bol, des gestes qui se répètent et des silences.",
     intent: "Faire sentir l’absence avant de l’expliquer.",
     decisions: [
       {
@@ -23,12 +23,12 @@ export const projects = [
         text: "Le repas ne sert pas seulement de décor. Il devient l’endroit où les habitudes continuent malgré l’absence, et où chaque geste prend un autre poids."
       },
       {
-        title: 'Laisser les objets et les silences parler.',
-        text: "Plutôt que d’expliquer le deuil par le dialogue, le film donne des indices : une place, un bol, un geste répété, un temps d’attente."
+        title: 'Laisser les objets donner les indices.',
+        text: "Je ne voulais pas résoudre le deuil par le dialogue. Une place, un bol, un geste répété et un temps d’attente suffisent à faire avancer la compréhension."
       },
       {
-        title: 'Garder une mise en scène intime.',
-        text: "Le cadre reste proche des corps et du repas. La réalisation cherche moins l’effet que la tension discrète entre ce que le personnage fait et ce que le spectateur finit par comprendre."
+        title: 'Rester proche, sans surjouer.',
+        text: "Le cadre reste proche des corps et du repas. Je cherche moins l’effet que la tension discrète entre ce que le personnage fait et ce que le spectateur finit par comprendre."
       }
     ]
   },

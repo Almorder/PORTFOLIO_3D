@@ -15,6 +15,5 @@ export const site = {
     { label: 'Work', href: '/work/' },
     { label: 'Services', href: '/services/' },
     { label: 'À propos', href: '/a-propos/' },
-    { label: 'Journal', href: '/journal/' },
   ]
 };

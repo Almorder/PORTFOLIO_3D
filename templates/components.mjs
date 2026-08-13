@@ -63,7 +63,7 @@ export function header(active='') {
   <div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
     <div class="mobile-menu__inner">
       ${site.nav.map((item,i)=>`<a href="${item.href}"><small>0${i+1}</small>${item.label}</a>`).join('')}
-      <a href="/contact/"><small>05</small>Contact</a>
+      <a href="/contact/"><small>0${site.nav.length+1}</small>Contact</a>
       <div class="mobile-menu__meta"><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></div>
     </div>
   </div>

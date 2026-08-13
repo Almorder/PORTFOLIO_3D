@@ -1,39 +1,39 @@
-# ASSET MANIFEST — Nolan Arc 2026 · V6
+# ASSET MANIFEST — Nolan Arc 2026 · V7
 
-## Médias actuellement branchés
+## Médias branchés
 
-| Asset | Usage | Source | Statut |
+| Asset | Usage actuel | Source | Statut |
 |---|---|---|---|
-| YouTube `GbeOQ-hgrtU` + miniature officielle | *Le bol d’en face* : Work, page projet et lien Services | Projet existant | VERIFIED |
-| Image studio / production | Hero, méthode, Marques | Unsplash | TEMPORARY / ILLUSTRATION |
-| Image plateau caméra | Carte Récit générique de la Home | Unsplash | TEMPORARY / ILLUSTRATION |
-| Image mariage | Carte Moments | Unsplash | TEMPORARY / ILLUSTRATION |
+| YouTube `GbeOQ-hgrtU` + poster | Home Work, Work, case study et Services/Récits pour *Le bol d’en face* | Projet existant | VERIFIED |
+| Image studio / production | Home hero, séquence méthode, carte Marques, Services/Marques | Unsplash · Bianca Maria | TEMPORARY / LICENSED PLACEHOLDER |
+| Image caméra cinéma | Carte Récit et image sociale générique | Unsplash · Redd Francisco | TEMPORARY / LICENSED PLACEHOLDER |
+| Image événement | Carte Moments et Services/Moments | Unsplash · Leo_Visions | TEMPORARY / LICENSED PLACEHOLDER |
 
-Les illustrations temporaires ne sont jamais légendées comme des réalisations Nolan Arc. Les recherches Cosmos/Pinterest servent uniquement de références de composition, de rythme, de glassmorphism et de photographie ; aucune image issue de ces plateformes n’est copiée dans le repository.
+Les images Unsplash servent à juger le rythme et la direction visuelle. Elles ne sont jamais légendées comme des réalisations de Nolan Arc.
 
-## Portrait Nolan — à fournir
+## Médias prioritaires à rattacher
 
-La page `/a-propos/` possède maintenant un vrai emplacement de portrait, au format vertical, avec le chemin :
-
-`public/assets/nolan-portrait.jpg`
-
-Le site n’invente pas le visage de Nolan et n’utilise pas de modèle à sa place. Tant que ce fichier n’est pas ajouté, un fallback graphique est affiché. Dès qu’une vraie photo est fournie sous ce nom, elle apparaît sans autre changement de code.
-
-## Médias réels encore à rattacher
+### Portrait Nolan
+- fichier attendu : `public/assets/nolan-portrait.jpg` ;
+- idéal : portrait naturel ou environnement de travail, vertical ;
+- ratio recommandé : proche de 4:5 ;
+- la page À propos affiche volontairement un fallback tant que le vrai portrait n'existe pas.
 
 ### Ouilove Proposal
-- média hero réel ;
-- 3 à 6 images/stills montrant le système visuel ;
-- future étude de cas uniquement quand rôle, date et médias sont suffisamment documentés.
+- média principal réel ;
+- 3 à 6 images/stills montrant le travail de direction artistique ;
+- puis création éventuelle d'un vrai case study `/projet/ouilove/`.
 
 ### A One Permis
 - contenus sociaux réellement produits ;
-- conserver leurs ratios réels.
+- conserver les ratios d'origine ;
+- ne créer le case study qu'une fois les médias et le contexte rattachés.
 
 ### Moments
-- un mariage ou événement réel identifiable avec film principal ;
-- images/stills et témoignage reliés au bon projet.
+- film réel identifiable ;
+- 4 à 10 images/stills ;
+- témoignage relié au bon projet.
 
 ## Règle
 
-Aucun média d’illustration, de moodboard ou généré ne doit être présenté comme une réalisation Nolan Arc.
+Aucun média d'illustration, stock ou généré ne doit être présenté comme une réalisation Nolan Arc.
