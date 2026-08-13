@@ -64,3 +64,5 @@ Le bloc est explicitement nommé **Écosystème de production**. Les logos sont 
 ## Règle
 
 Aucun média stock, illustratif ou généré ne doit être présenté comme une réalisation Nolan Arc.
+
+- `public/assets/og-home.png` — visuel Open Graph Home fourni par Nolan (ellipse halo Nolan Arc).

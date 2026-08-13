@@ -4,7 +4,7 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image='https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000', bodyClass='' }) {
+export function head({ title, description, path='/', image='https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000', imageAlt='Nolan Arc', imageWidth='', imageHeight='', bodyClass='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const schema = {
     '@context':'https://schema.org',
@@ -33,10 +33,14 @@ export function head({ title, description, path='/', image='https://images.unspl
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${canonical}">
 <meta property="og:image" content="${image}">
+<meta property="og:image:alt" content="${esc(imageAlt)}">
+${imageWidth?`<meta property="og:image:width" content="${esc(imageWidth)}">`:``}
+${imageHeight?`<meta property="og:image:height" content="${esc(imageHeight)}">`:``}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${image}">
+<meta name="twitter:image:alt" content="${esc(imageAlt)}">
 <link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,15 +90,15 @@ export function footer() {
     <div class="fab-footer__grid">
       <div><small>Navigation</small><a href="/work/">Work</a><a href="/services/">Services</a><a href="/a-propos/">À propos</a><a href="/journal/">Journal</a></div>
       <div><small>Contact</small><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a><a href="${site.youtube}" target="_blank" rel="noreferrer">YouTube ↗</a></div>
-      <div><small>Légal</small><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cgv/">CGV</a><a href="/cookies/">Cookies</a><a href="/retractation/">Rétractation</a></div>
+      <div><small>Légal</small><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cgv/">CGV</a><a href="/cookies/">Cookies</a><button class="footer-cookie-link" type="button" data-cookie-settings>Préférences vidéo</button><a href="/retractation/">Rétractation</a></div>
     </div>
     <div class="fab-footer__bottom"><span>© Nolan Arc 2026</span><span>L’intention avant l’image.</span></div>
-  </footer><script type="module" src="/__APP_JS__"></script></body></html>`;
+  </footer><div class="cookie-consent" data-cookie-consent hidden role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title"><div><strong id="cookie-consent-title">Vidéo externe</strong><p>Le fond vidéo Sony utilise YouTube. Il reste désactivé tant que vous ne l’autorisez pas. Votre choix peut être modifié depuis le footer.</p></div><div class="cookie-consent__actions"><button type="button" data-cookie-reject>Continuer sans vidéo</button><button type="button" data-cookie-accept>Autoriser la vidéo</button></div></div><script type="module" src="/__APP_JS__"></script></body></html>`;
 }
 
 export function faqAccordion(items=[], {id='faq', eyebrow='Questions fréquentes', title='Avant de commencer.', intro='Les réponses utiles avant de parler du projet.'}={}){
   if(!items.length) return '';
-  return `<section class="faq-section motion-reveal" id="${esc(id)}" data-faq-section><header class="faq-section__head"><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2>${intro?`<p>${esc(intro)}</p>`:''}</header><div class="faq-list">${items.map((item,i)=>`<article class="faq-item${i===0?' is-open':''}" data-faq-item><h3><button type="button" data-faq-button aria-expanded="${i===0?'true':'false'}" aria-controls="${esc(id)}-answer-${i}"><span>${esc(item.question)}</span><i aria-hidden="true"></i></button></h3><div class="faq-answer" id="${esc(id)}-answer-${i}" data-faq-answer${i===0?'':' hidden'}><div><p>${esc(item.answer)}</p></div></div></article>`).join('')}</div></section>`;
+  return `<section class="faq-section motion-reveal" id="${esc(id)}" data-faq-section><header class="faq-section__head"><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2>${intro?`<p>${esc(intro)}</p>`:''}</header><div class="faq-list">${items.map((item,i)=>`<article class="faq-item${i===0?' is-open':''}" data-faq-item><h3><button id="${esc(id)}-question-${i}" type="button" data-faq-button aria-expanded="${i===0?'true':'false'}" aria-controls="${esc(id)}-answer-${i}"><span>${esc(item.question)}</span><i aria-hidden="true"></i></button></h3><div class="faq-answer" id="${esc(id)}-answer-${i}" role="region" aria-labelledby="${esc(id)}-question-${i}" data-faq-answer${i===0?'':' hidden'}><div><p>${esc(item.answer)}</p></div></div></article>`).join('')}</div></section>`;
 }
 
 export function projectMeta(project) {

@@ -65,7 +65,6 @@ for(const source of [pagesSource,siteSource,legalSource]){
   if(/1\s+all[eé]e\s+Mirabeau/i.test(source)) fail('Privacy: private street address found in source');
   if(/(?:\+33\s*\(0\)?\s*7|07[ .-]?82[ .-]?04[ .-]?89[ .-]?25|0782048925)/i.test(source)) fail('Privacy: private phone number found in source');
 }
-if(/registeredAddress|\bphone\s*:/.test(legalSource)) fail('Privacy: address/phone fields must not exist in public legal data');
 
 const home=await readFile(join(dist,'index.html'),'utf8');
 const work=await readFile(join(dist,'work/index.html'),'utf8');
@@ -90,7 +89,7 @@ if(!app.includes('--journey-shift')||!app.includes('--journey-ring')) fail('Home
 if((home.match(/data-journey-step/g)||[]).length!==3) fail('Home V17: three journey steps expected');
 for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V17: ecosystem missing ${brand}`);
 if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
-for(const price of ['1 500 €','200 €','89 € / heure']) if(!home.includes(price)) fail(`Home V17: pricing missing ${price}`);
+for(const price of ['1 500 €','Interventions ciblées dès 200 €','Session ciblée — 89 € / h','Accompagnement — sur devis']) if(!home.includes(price)) fail(`Home V20: pricing missing ${price}`);
 if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-panel=/g)||[]).length!==3) fail('Home V17: three-tab pricing switcher incomplete');
 if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
 if(!app.includes("$('[data-pricing-switcher]').forEach")||!app.includes("$('[data-faq-section]').forEach")) fail('Home V18: pricing/FAQ interaction handlers missing');
@@ -102,6 +101,13 @@ if(!home.includes('Coucouuuu elle est vraiment super stylé !! T’es plans nous
 if(!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"')) fail('Home V19: hero must use deferred video facade rather than preloaded iframe');
 if(!app.includes('canUseShowcaseWebGL')||!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
 if(!css.includes('.v16-testimonial-bento:has(article:hover) article:not(:hover)')) fail('Home V18: testimonial hover focus/blur interaction missing');
+if(!home.includes('/assets/og-home.png')||!existing.has('assets/og-home.png')) fail('Home V20: local OG image missing');
+if(!home.includes('Une idée. Une direction.')||!home.includes('Un rendu qui tient jusqu’au bout.')) fail('Home V20: validated hero positioning line missing');
+if(/v16-testimonial-bento[\s\S]{0,800}tabindex="0"/.test(home)) fail('Home V20 a11y: testimonial cards must not be keyboard stops');
+for(const id of ['pricing-tab-wedding','pricing-panel-wedding','pricing-tab-direction','pricing-panel-direction','pricing-tab-strategy','pricing-panel-strategy']) if(!home.includes(`id="${id}"`)) fail(`Home V20 a11y: pricing ARIA relation missing ${id}`);
+if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
+if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');
+if(!components.includes('role="region"')||!components.includes('aria-labelledby="${esc(id)}-question-${i}"')) fail('V20 a11y: FAQ region relationships missing');
 if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
 
 // Navigation hierarchy: Journal footer-only.
@@ -129,7 +135,7 @@ if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17
 if(!services.includes('data-expertise-switcher')||(services.match(/data-expertise-tab=/g)||[]).length!==3||(services.match(/data-expertise-panel=/g)||[]).length!==3) fail('Services V17: three-expertise switcher incomplete');
 if(!services.includes('v16-combined-expertise')) fail('Services V17: combined-expertise value section missing');
 if(!services.includes('id="faq-services"')||!services.includes('data-faq-section')) fail('Services V17: dedicated FAQ missing');
-for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session de stratégie à 89 € ?']) if(!services.includes(q)) fail(`Services V17: FAQ question missing ${q}`);
+for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session ciblée de stratégie à 89 € / h ?']) if(!services.includes(q)) fail(`Services V17: FAQ question missing ${q}`);
 if(/id="marques"|id="recits"|id="moments"/.test(services)) fail('Services V17: obsolete stacked context chapters found');
 
 // ABOUT — human, portrait, no duplicated sales proof.
@@ -168,4 +174,6 @@ if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route p
 for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V17: FormSubmit/privacy guard incomplete');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files; V19 dimensions polish, Lola testimonial, normalized logos, deferred hero video, lazy WebGL and interaction guardrails verified.`);
+if(/mediator:\s*\{[\s\S]*?name:\s*''/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — consumer mediator is not configured; complete adhesion before concluding B2C contracts.');
+if(/publicLegalContactsConfirmed:\s*false/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — public professional address and phone are not confirmed; add publishable business contact details before release.');
+console.log(`QA OK — ${htmls.length} HTML files; V20 copy, OG Home, accessibility relations, consent-gated hero video and stability guardrails verified.`);

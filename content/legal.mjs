@@ -1,6 +1,11 @@
 export const legal = {
   // Données issues de la formalité d'entreprise fournie par Nolan Ribeiro.
   businessForm: 'Entrepreneur individuel — micro-entreprise',
+  // Les mentions légales d'une EI doivent publier une adresse et un téléphone de contact.
+  // Ils restent volontairement vides ici pour ne pas réexposer des coordonnées privées sans validation explicite.
+  publicLegalContactsConfirmed: false,
+  professionalAddress: '',
+  professionalPhone: '',
   siren: '987648664',
   siret: '98764866400017',
   ape: '7420Z',
@@ -14,7 +19,9 @@ export const legal = {
   host: {
     name: 'GitHub, Inc.',
     address: '88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis',
-    website: 'https://pages.github.com/'
+    website: 'https://pages.github.com/',
+    phone: '',
+    phoneNote: 'GitHub indique ne pas proposer d’assistance téléphonique et ne publie pas de numéro de support.'
   },
   mediator: {
     // Obligatoire avant toute mise en ligne de l'offre B2C « Moments » :

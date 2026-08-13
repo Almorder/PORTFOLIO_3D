@@ -80,3 +80,29 @@ Le site ne doit être basculé vers `nolanarc.com` que lorsque cette commande te
 ## Note
 
 Les pages juridiques du site constituent une base technique et éditoriale cohérente avec les informations fournies. Elles ne remplacent pas une validation par un professionnel du droit, particulièrement pour les clauses d'annulation, de responsabilité, de propriété intellectuelle ou de pénalité contractuelle.
+
+## Mise à jour V20 — 14 août 2026
+
+- Le fond YouTube de l'accueil est désormais bloqué avant consentement : aucun iframe YouTube n'est créé tant que le visiteur n'a pas choisi **Autoriser la vidéo**.
+- Le refus est proposé au même niveau que l'acceptation et la préférence est modifiable via **Préférences vidéo** dans le footer.
+- Les lecteurs YouTube des pages projet restent derrière une activation contextuelle explicite et indiquent que le chargement autorise YouTube et ses traceurs.
+- La politique Cookies et la politique de confidentialité ont été alignées avec le comportement réel du site.
+- Le formulaire n'affirme plus une durée de conservation tierce non vérifiée pour FormSubmit.
+
+### Blocage externe restant — médiateur de la consommation
+
+Le code ne peut pas renseigner légitimement un médiateur à la place du professionnel. Nolan Ribeiro doit d'abord adhérer à un médiateur de la consommation référencé par la CECMC et compétent pour son activité. Une fois la convention conclue, renseigner `legal.mediator.name`, `legal.mediator.address` et `legal.mediator.website` dans `content/legal.mjs` avant de conclure des contrats B2C.
+
+La DGCCRF rappelle qu'un professionnel ne peut pas mentionner de sa propre initiative un médiateur avec lequel il n'a pas préalablement conclu la convention ou l'adhésion nécessaire.
+
+### Blocage externe restant — coordonnées publiques de l'entreprise
+
+Pour une personne physique (micro-entreprise / EI), les sources officielles françaises demandent que les mentions légales du site indiquent notamment une adresse et un numéro de téléphone permettant de contacter l'entreprise. La V20 **ne réinjecte pas automatiquement les anciennes coordonnées privées**. Renseigner une adresse que vous acceptez de rendre publique (par exemple une domiciliation professionnelle si vous ne souhaitez pas publier le domicile) et un numéro de téléphone professionnel dans `content/legal.mjs`, puis passer `publicLegalContactsConfirmed` à `true`.
+
+L'hébergeur GitHub indique officiellement ne pas proposer d'assistance téléphonique et ne publier aucun numéro de support ; la V20 l'indique factuellement au lieu d'inventer un numéro.
+
+### Références officielles consultées pour la V20
+- Ministère de l’Économie — mentions obligatoires d’un site professionnel : https://www.economie.gouv.fr/entreprises/developper-son-entreprise/innover-et-numeriser-son-entreprise/mentions-sur-votre-site-internet-les-obligations-respecter
+- DGCCRF — obligations relatives au médiateur de la consommation : https://www.economie.gouv.fr/mediation-conso/vous-etes-un-professionnel/vos-principales-obligations-0
+- CNIL — cookies et contenus externes : https://www.cnil.fr/fr/cookies-et-autres-traceurs/regles/cookies/comment-mettre-mon-site-web-en-conformite
+- GitHub — conditions de communication / absence d’assistance téléphonique : https://docs.github.com/fr/site-policy/github-terms/github-terms-of-service

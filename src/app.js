@@ -204,13 +204,19 @@ $$('.v16-logo-media img').forEach(img=>{
   if(img.complete&&img.naturalWidth===0) fail();
 });
 
-// Hero video facade — keep the cinematic autoplay, but never let a third-party iframe
-// compete with first paint or keep decoding while the hero is far offscreen.
+// Hero video facade — cinematic when authorised, zero YouTube request before consent.
 const heroVideo=$('[data-hero-video]');
+const consentBox=$('[data-cookie-consent]');
+const consentCookie='nolanarc_external_video';
+const readConsent=()=>document.cookie.split('; ').find(v=>v.startsWith(`${consentCookie}=`))?.split('=')[1]||'';
+const writeConsent=value=>{const secure=location.protocol==='https:'?'; Secure':'';document.cookie=`${consentCookie}=${value}; Max-Age=15552000; Path=/; SameSite=Lax${secure}`;};
+const showConsent=()=>{if(consentBox){consentBox.hidden=false;requestAnimationFrame(()=>consentBox.classList.add('is-visible'));}};
+const hideConsent=()=>{if(consentBox){consentBox.classList.remove('is-visible');setTimeout(()=>{consentBox.hidden=true;},220);}};
+let mountHeroVideo=()=>{}, unmountHeroVideo=()=>{};
 if(heroVideo && !reduced){
   const slot=$('[data-hero-video-slot]',heroVideo);
   let visible=true, mountTimer=0, idleHandle=0;
-  const unmount=()=>{
+  unmountHeroVideo=()=>{
     clearTimeout(mountTimer);
     if(idleHandle && 'cancelIdleCallback' in window) cancelIdleCallback(idleHandle);
     idleHandle=0;
@@ -219,22 +225,23 @@ if(heroVideo && !reduced){
     heroVideo.dataset.videoMounted='false';
   };
   const mount=()=>{
-    if(!visible || !slot || heroVideo.dataset.videoMounted==='true' || document.hidden) return;
+    if(readConsent()!=='accepted' || !visible || !slot || heroVideo.dataset.videoMounted==='true' || document.hidden) return;
     const src=heroVideo.dataset.videoSrc; if(!src) return;
     const iframe=document.createElement('iframe');
     iframe.className='v16-hero__video';
     iframe.src=src;
     iframe.title=heroVideo.dataset.videoTitle || 'Vidéo cinématique Sony';
     iframe.tabIndex=-1;
-    iframe.loading='eager';
+    iframe.loading='lazy';
     iframe.allow='autoplay; encrypted-media; picture-in-picture';
     iframe.referrerPolicy='strict-origin-when-cross-origin';
     iframe.addEventListener('load',()=>heroVideo.classList.add('is-video-ready'),{once:true});
     slot.append(iframe);
     heroVideo.dataset.videoMounted='true';
   };
-  const scheduleMount=()=>{
+  mountHeroVideo=()=>{
     clearTimeout(mountTimer);
+    if(readConsent()!=='accepted') return;
     const queue=()=>{'requestIdleCallback' in window
       ? idleHandle=requestIdleCallback(()=>{idleHandle=0;mount();},{timeout:900})
       : mountTimer=setTimeout(mount,320);
@@ -245,13 +252,21 @@ if(heroVideo && !reduced){
   if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
       visible=entry.isIntersecting;
-      if(visible) scheduleMount();
-      else mountTimer=setTimeout(unmount,1200);
+      if(visible) mountHeroVideo();
+      else mountTimer=setTimeout(unmountHeroVideo,1200);
     }),{rootMargin:'240px 0px',threshold:0});
     observer.observe(heroVideo);
-  }else scheduleMount();
-  document.addEventListener('visibilitychange',()=>document.hidden?unmount():visible&&scheduleMount());
+  }else mountHeroVideo();
+  document.addEventListener('visibilitychange',()=>document.hidden?unmountHeroVideo():visible&&mountHeroVideo());
+  if(!readConsent()) showConsent();
+  else if(readConsent()==='accepted') mountHeroVideo();
 }
+
+consentBox?.addEventListener('click',event=>{
+  if(event.target.closest('[data-cookie-accept]')){writeConsent('accepted');hideConsent();mountHeroVideo();}
+  if(event.target.closest('[data-cookie-reject]')){writeConsent('rejected');unmountHeroVideo();hideConsent();}
+});
+$$('[data-cookie-settings]').forEach(button=>button.addEventListener('click',()=>{unmountHeroVideo();showConsent();}));
 
 // V16 pricing switcher — one compact pricing surface, three offers.
 $$('[data-pricing-switcher]').forEach(section=>{
@@ -283,7 +298,7 @@ $$('[data-expertise-switcher]').forEach(section=>{
   const initial=keys.has(fromQuery)?fromQuery:tabs.find(t=>t.getAttribute('aria-selected')==='true')?.dataset.expertiseTab||tabs[0].dataset.expertiseTab;
   const set=(key,focus=false)=>{
     if(!keys.has(key)) return;
-    tabs.forEach(tab=>{const active=tab.dataset.expertiseTab===key;tab.setAttribute('aria-selected',String(active));if(active&&focus)tab.focus();});
+    tabs.forEach(tab=>{const active=tab.dataset.expertiseTab===key;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;if(active&&focus)tab.focus();});
     panels.forEach(panel=>{const active=panel.dataset.expertisePanel===key;panel.hidden=!active;panel.classList.toggle('is-active',active);});
   };
   tabs.forEach((tab,index)=>{
@@ -651,8 +666,12 @@ $$('[data-faq-section]').forEach(section=>{
   const items=$$('[data-faq-item]',section);
   items.forEach(item=>$('[data-faq-answer]',item)?.removeAttribute('hidden'));
   const setOpen=(target,open)=>{
-    target.classList.toggle('is-open',open);const button=$('[data-faq-button]',target);button?.setAttribute('aria-expanded',String(open));
+    target.classList.toggle('is-open',open);
+    const button=$('[data-faq-button]',target), answer=$('[data-faq-answer]',target);
+    button?.setAttribute('aria-expanded',String(open));
+    if(answer){answer.setAttribute('aria-hidden',String(!open));answer.toggleAttribute('inert',!open);}
   };
+  items.forEach(item=>setOpen(item,item.classList.contains('is-open')));
   section.addEventListener('click',event=>{
     const button=event.target.closest('[data-faq-button]');if(!button||!section.contains(button))return;const item=button.closest('[data-faq-item]');const next=!item.classList.contains('is-open');items.forEach(other=>setOpen(other,other===item&&next));
   });

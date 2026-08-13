@@ -1,4 +1,4 @@
-# Nolan Arc — Portfolio 2026 · V19
+# Nolan Arc — Portfolio 2026 · V20
 
 Repository source de `nolanarc.com`.
 
@@ -10,12 +10,15 @@ Repository source de `nolanarc.com`.
 
 Cette implémentation est indépendante en HTML/CSS/JS. Elle ne contient pas le code propriétaire du template Fabrica ni celui de composants Framer premium non fournis.
 
-## Correctifs V19
+## Correctifs V20
 
-- Présentation « Trois dimensions » redesignée sans changer le fond métier.
-- Logos normalisés ; Sony réduit optiquement de 50 % ; PGYTECH utilise le PNG local fourni.
-- Avis de Lola remplace A One Permis dans le bento V16.
-- Passe performance : hero vidéo différé, WebGL lazy, grain statique, blur d'entrée supprimé, mobile allégé.
+- Hero enrichi avec la phrase validée « Une idée. Une direction. Un rendu qui tient jusqu’au bout. ».
+- Pricing repositionné : « Interventions ciblées dès 200 € » et « Session ciblée — 89 € / h », avec accompagnement sur devis.
+- OG Home remplacé par l’ellipse Nolan Arc fournie.
+- Accessibilité renforcée sur tabs, FAQ et témoignages sans changer le rendu visuel.
+- YouTube est désormais bloqué avant consentement sur le hero ; le chargement reste différé après autorisation.
+- La politique Cookies/Confidentialité reflète maintenant le comportement réel.
+- Les optimisations visuelles V19 (Trois dimensions, logos, avis Lola, lazy WebGL) sont conservées.
 
 ## Héritage V17 / V18
 
@@ -57,10 +60,10 @@ Le contrôle doit terminer par `QA OK`.
 
 Garde le repository `Almorder/PORTFOLIO_3D` et surtout son dossier caché `.git`.
 
-1. Décompresse le ZIP V19.
+1. Décompresse le ZIP V20.
 2. **Avant de supprimer l’ancienne version, conserve `public/assets/nolan-portrait.jpg` si ce fichier existe déjà dans ton clone.** Le fichier binaire n’est pas présent dans l’archive générée ici.
 3. Dans le dossier local cloné `PORTFOLIO_3D`, supprime l’ancien contenu sans supprimer `.git`.
-4. Copie le contenu de V19 directement à la racine.
+4. Copie le contenu de V20 directement à la racine.
 5. Remets le portrait réel dans `public/assets/nolan-portrait.jpg` si nécessaire.
 6. GitHub Desktop → `Commit to main` → `Push origin`.
 7. Attends le workflow GitHub Pages vert.
