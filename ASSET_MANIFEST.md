@@ -1,4 +1,4 @@
-# ASSET MANIFEST — Nolan Arc 2026 · V13
+# ASSET MANIFEST — Nolan Arc 2026 · V15
 
 ## Médias branchés
 
@@ -17,7 +17,7 @@ Les images Unsplash servent à juger le rythme et la direction visuelle. Elles n
 - fichier attendu : `public/assets/nolan-portrait.jpg` ;
 - idéal : portrait naturel ou environnement de travail, vertical ;
 - ratio recommandé : proche de 4:5 ;
-- la page À propos affiche volontairement un fallback tant que le vrai portrait n'existe pas.
+- la page À propos utilise directement ce chemin ; aucun portrait fictif n’est injecté. Si le binaire manque dans le repo local, remettre le portrait réel à cet emplacement avant publication.
 
 ### Ouilove Proposal
 - média principal réel ;
@@ -39,13 +39,13 @@ Les images Unsplash servent à juger le rythme et la direction visuelle. Elles n
 Aucun média d'illustration, stock ou généré ne doit être présenté comme une réalisation Nolan Arc.
 
 
-## Usage spécifique V13 — Fabrica direction
+## Usage spécifique V15 — Fabrica direction
 
 - Le `Video Slide Show` de Work utilise cinq points d’entrée du même film vérifié *Le bol d’en face*. Ces cartes sont des extraits de navigation, pas cinq projets distincts.
 - La miniature du film reste utilisée lorsqu’il s’agit réellement de *Le bol d’en face* ; elle n’est pas utilisée comme remplissage générique ailleurs.
 - Les visuels stock restent explicitement temporaires jusqu’au rattachement des médias Nolan Arc réels.
 
-## Direction visuelle V13
+## Direction visuelle V15
 
 - Les médias temporaires sont traités en monochrome / faible saturation pour rester cohérents avec la grammaire Fabrica.
 - Aucun asset propriétaire du template Fabrica n’est inclus.

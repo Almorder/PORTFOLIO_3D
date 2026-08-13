@@ -1,94 +1,74 @@
-# Nolan Arc — Portfolio 2026
-## V14 · Fabrica structure × Nolan Arc DA
+# Nolan Arc — Portfolio 2026 · V15
 
 Repository source de `nolanarc.com`.
 
-La V14 garde **Fabrica comme référence de structure** : hiérarchie forte, Work prioritaire, grands médias, espaces maîtrisés, navigation simple et pages clairement différenciées. Elle restaure en revanche **l’identité Nolan Arc** : noir chaud, ivoire, orange, grain, Yrsa / Syne / DM Sans, surfaces arrondies, profondeur glass et composants interactifs déjà validés dans les versions précédentes.
+## Direction
 
-> Le code reste une implémentation indépendante HTML/CSS/JS. Aucun code propriétaire du template Fabrica ou de composants premium Framer n’est présenté comme ayant été copié.
+La structure reprend la grammaire publique de Fabrica : clarté, Work prioritaire, grands médias, preuve tôt et animations de scroll. La direction artistique reste Nolan Arc : Yrsa, Syne, DM Sans, noir chaud, ivoire, orange, grain, arrondis et verre ponctuel.
 
-## Direction V14
-
-- **Structure** : Fabrica.
-- **Palette** : `#080706`, `#F0EBE2`, `#CC460C`, `#E97736`.
-- **Titres / signature** : Yrsa.
-- **Navigation / labels / UI** : Syne.
-- **Lecture / formulaires** : DM Sans.
-- **Matière** : grain continu, arrondis, verre ponctuel, profondeur douce.
-- **Mobile** : header compact + menu à droite + dock glass Accueil / Work / Services / Contact.
-- **Contact** : retour au composer compact de la V11.
-
-## Composants conservés
-
-- Logo Preloader avec fail-safe.
-- Glassy Button.
-- Animated Stats Pro engine.
-- Focus Testimonials en flux interactif.
-- Glass Showcase / WebGL progressive enhancement.
-- Ambient Video Player.
-- Hold Confirm.
-- Stacked Flow.
-- Video Slide Show avec inertie.
-- Line Menu TOC vertical à gauche sur desktop.
-- Gradient Motion Background localisé.
-- Page View Counter prêt pour Supabase, masqué sans configuration.
+Cette implémentation est indépendante en HTML/CSS/JS. Elle ne contient pas le code propriétaire du template Fabrica ni celui de composants Framer premium non fournis.
 
 ## Stack
 
-- HTML sémantique généré statiquement
+- HTML sémantique statique
 - CSS natif
 - JavaScript ES modules
-- Node.js 24 pour le build GitHub Actions
-- GitHub Pages
-- Three.js chargé à la demande pour Glass Showcase
+- Node.js 24 pour build/QA
+- GitHub Pages + GitHub Actions
+- Three.js chargé à la demande uniquement pour Glass Showcase
 - aucune dépendance npm de production
 
-## Installation locale
+## Tester
 
 ```bash
 npm install
 npm run dev
 ```
 
-Serveur local : `http://127.0.0.1:4173`
+Puis `http://127.0.0.1:4173`.
 
-## Contrôle avant chaque push
+Avant chaque push :
 
 ```bash
 npm run check
 ```
 
-Le contrôle doit finir par `QA OK`.
+Le contrôle doit terminer par `QA OK`.
 
-## Remplacer la version actuelle
+## Remplacer le repository actuel
 
-1. Décompresse le ZIP V14.
-2. Dans ton dossier local cloné `PORTFOLIO_3D`, garde uniquement le dossier caché `.git`.
-3. Supprime le reste de l’ancienne version.
-4. Copie tout le contenu V14 directement à la racine de `PORTFOLIO_3D`.
-5. GitHub Desktop → `Commit to main` → `Push origin`.
-6. Attends le workflow GitHub Pages vert.
-7. Contrôle Home, Work, Services, À propos, Projet et Contact en desktop + mobile.
+Garde le repository `Almorder/PORTFOLIO_3D` et surtout son dossier caché `.git`.
 
-## Fichiers importants
+1. Décompresse le ZIP V15.
+2. Dans le dossier local cloné `PORTFOLIO_3D`, supprime l’ancien contenu sans supprimer `.git`.
+3. Copie le contenu de V15 directement à la racine.
+4. GitHub Desktop → `Commit to main` → `Push origin`.
+5. Attends le workflow GitHub Pages vert.
 
-- `content/site.mjs` — identité, collaborations, témoignages, FAQ et repères.
-- `content/projects.mjs` — projets et collaborations.
-- `content/legal.mjs` — informations légales et commerciales.
-- `templates/pages.mjs` — architecture et textes.
-- `templates/components.mjs` — composants réutilisables.
-- `src/styles.css` — design system + responsive.
-- `src/app.js` — interactions.
-- `scripts/check.mjs` — QA prépublication.
-- `DESIGN_SYSTEM_V14.md` — règles de DA.
-- `AUDIT_V14_HYBRID.md` — décisions de la V14.
+## Fichiers à modifier
 
-## Médias encore nécessaires
+- `content/site.mjs` : identité, clients documentés, témoignages, stats, FAQ.
+- `content/projects.mjs` : projets/collaborations.
+- `content/legal.mjs` : données légales/commerciales.
+- `templates/pages.mjs` : structure et copy des pages.
+- `templates/components.mjs` : composants réutilisables.
+- `src/styles.css` : design system / responsive.
+- `src/app.js` : interactions et animations.
+- `scripts/check.mjs` : QA prépublication.
 
-- `public/assets/nolan-portrait.jpg`
-- médias Ouilove Proposal
-- médias A One Permis
-- vrais médias Moments
-- nouveaux case studies lorsqu’ils sont suffisamment documentés
+## Média portrait
 
-Aucun média temporaire ne doit être présenté comme une réalisation réelle de Nolan Arc.
+La page À propos utilise :
+
+`public/assets/nolan-portrait.jpg`
+
+Le chemin est prêt. Si le fichier n’est pas présent dans le dossier local après remplacement, il faut y remettre le portrait réel déjà utilisé auparavant ; ne pas le remplacer par une personne fictive.
+
+## Documentation
+
+- `AUDIT_V15.md`
+- `DESIGN_SYSTEM_V15.md`
+- `COMPONENT_IMPLEMENTATION_V15.md`
+- `ASSET_MANIFEST.md`
+- `CONTENT_MANIFEST.md`
+- `LEGAL_READINESS.md`

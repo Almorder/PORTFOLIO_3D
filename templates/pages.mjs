@@ -2,13 +2,13 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, esc, projectMeta, logoPreloader, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
+import { head, header, footer, esc, projectMeta, lineToc, animatedStats, focusTestimonials, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
-  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000',
-  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=72&w=1800',
-  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000'
+  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
+  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
+  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
 };
 
 export function homePage(){
@@ -49,12 +49,27 @@ export function homePage(){
       ${animatedStats(site.proofStats,{theme:'light',layout:'grid',replay:true,animation:'slide'})}
     </section>
 
+    <section class="brand-ecosystem motion-reveal" aria-labelledby="brand-ecosystem-title">
+      <div class="brand-ecosystem__head"><span class="fab-dot-label">Écosystème de production</span><h2 id="brand-ecosystem-title">Des outils que je connais déjà sur le terrain.</h2><p>Ces marques ne sont pas présentées comme des clients. Elles illustrent l’écosystème matériel et logiciel avec lequel je travaille ou que j’intègre régulièrement à mes productions.</p></div>
+      <div class="brand-ecosystem__grid" aria-label="Marques et outils de production"><div><strong>SONY</strong><small>Image</small></div><div><strong>SIGMA</strong><small>Optiques</small></div><div><strong>Adobe</strong><small>Post-production</small></div><div><strong>NiSi</strong><small>Filtres</small></div><div><strong>SmallRig</strong><small>Rigging</small></div><div><strong>PGYTECH</strong><small>Workflow</small></div></div>
+    </section>
+
     <section class="fab-services" id="services-preview">
       <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Services.</h2></div><p>Le format vient après le besoin. Je pars de ce que votre image doit réellement accomplir.</p></header>
       <div class="fab-service-list">
         <a class="fab-service-row motion-reveal" href="/services/#marques"><span>001</span><div><h3>Marques & organisations</h3><p>Film, direction artistique et contenu pour clarifier un message et tenir une image cohérente.</p></div><ul><li>Film de marque</li><li>Direction artistique</li><li>Contenu social</li></ul><figure><img src="${visuals.brand}" alt="Illustration d’une production pour une marque" loading="lazy"></figure><b>↗</b></a>
         <a class="fab-service-row motion-reveal" href="/services/#recits"><span>002</span><div><h3>Récits & création</h3><p>Écriture, mise en scène, réalisation et montage pour donner une forme précise à une histoire.</p></div><ul><li>Écriture</li><li>Mise en scène</li><li>Réalisation</li></ul><figure><img src="${bol.poster}" alt="Le bol d’en face" loading="lazy"></figure><b>↗</b></a>
         <a class="fab-service-row motion-reveal" href="/services/#moments"><span>003</span><div><h3>Moments</h3><p>Préparer ce qui compte, filmer sans prendre la place et construire un souvenir cohérent.</p></div><ul><li>Mariage</li><li>Demande</li><li>Événement</li></ul><figure><img src="${visuals.moment}" alt="Illustration d’un film de moment" loading="lazy"></figure><b>↗</b></a>
+      </div>
+    </section>
+
+    <section class="home-pricing motion-reveal" id="tarif-mariage">
+      <div class="home-pricing__backdrop" aria-hidden="true"><img src="${visuals.moment}" alt=""><i></i></div>
+      <div class="home-pricing__top"><span class="fab-dot-label">Film de mariage</span><h2>À partir de <em>1 500 €.</em></h2><p>Une base simple pour savoir immédiatement si le projet correspond à votre budget. Le montant final est confirmé au devis selon les options choisies.</p></div>
+      <div class="home-pricing__offer">
+        <div class="home-pricing__price"><small>Base</small><strong>1 500 €</strong><span>à partir de</span></div>
+        <ul><li><b>30 min</b><span>Film final</span></li><li><b>12 h → 00 h</b><span>Couverture sur la journée de votre choix</span></li><li><b>Sur devis</b><span>Options et besoins particuliers</span></li></ul>
+        <a class="glassy-pricing-cta" href="/contact/?intent=moment">Parler de votre mariage <span>↗</span></a>
       </div>
     </section>
 
@@ -74,7 +89,7 @@ export function homePage(){
       ${focusTestimonials(site.testimonials,{maxVisible:3})}
     </section>
 
-    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'Avant de commencer.',intro:'Les réponses utiles avant un premier échange.'})}
+    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les questions qui reviennent avant de travailler ensemble.'})}
 
     <section class="fab-contact-band motion-reveal">
       <div><small>Disponible pour de nouveaux projets</small><h2>Parlons.</h2></div><p>Une idée, une date ou un problème à résoudre suffisent pour commencer.</p><a href="/contact/">Écrire à Nolan <span>↗</span></a>
@@ -166,15 +181,13 @@ export function aboutPage(){
     ${lineToc([{id:'nolan',label:'Nolan'},{id:'parcours',label:'Parcours'},{id:'regard',label:'Regard'},{id:'methode',label:'Méthode'}])}
 
     <section class="fab-about-intro" id="parcours">
-      <figure class="fab-about-intro__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait><div class="about-story-hero__fallback" aria-hidden="true"><span>N</span><small>Portrait de Nolan à ajouter</small></div></figure>
-      <div class="fab-about-intro__copy motion-reveal"><span class="fab-dot-label">Moi, c’est Nolan</span><h2>Je n’aime pas créer<br>juste pour remplir.</h2><p>Depuis petit, ce qui m’attire, c’est de créer des vidéos, raconter mes propres histoires et mettre une vision derrière ce que je montre.</p><p>J’ai aussi connu l’excès inverse : passer tellement de temps à réfléchir et à me structurer que je créais moins. Ça m’a ralenti. Aujourd’hui, cette exigence me sert surtout à poser les bonnes questions plus tôt et à garder un fil clair jusqu’au rendu.</p></div>
+      <figure class="fab-about-intro__portrait motion-reveal"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure>
+      <div class="fab-about-intro__copy motion-reveal"><span class="fab-dot-label">Moi, c’est Nolan</span><h2>Je préfère comprendre<br>avant de produire.</h2><p>Je crée des vidéos depuis longtemps, mais ce qui m’intéresse n’est pas d’accumuler les images. J’aime comprendre ce qui donne une identité à un projet, puis construire autour de ça.</p><p>J’ai parfois passé trop de temps à chercher la bonne direction avant de créer. Aujourd’hui, j’utilise cette exigence autrement : poser les questions importantes plus tôt, éviter les choix gratuits et garder une cohérence du premier échange jusqu’au rendu.</p><a class="fab-arrow-link" href="/contact/">Me parler de votre contexte <span>↗</span></a></div>
     </section>
 
-    <section class="fab-about-stats motion-reveal">${animatedStats(site.proofStats,{theme:'light',layout:'grid',replay:true,animation:'fade'})}</section>
-
     <section class="fab-about-view" id="regard">
-      <header class="fab-section-heading motion-reveal"><div><small>(02)</small><h2>Le regard.</h2></div><p>Je remarque vite quand un univers tient jusque dans ses détails : cadrage, matière, rythme, manière de parler ou de montrer les choses.</p></header>
-      <div class="fab-about-view__grid"><article class="motion-reveal"><span>01</span><h3>Pas simplement « beau ».</h3><p>Je cherche les décisions qui donnent au projet une identité juste pour son contexte.</p></article><article class="motion-reveal"><span>02</span><h3>Pas de technique pour la technique.</h3><p>Caméra, lumière ou mouvement servent une idée. Ils ne remplacent pas l’idée.</p></article><article class="motion-reveal"><span>03</span><h3>Un seul fil.</h3><p>Ce qui est décidé au départ doit encore se sentir au montage et dans les livrables.</p></article></div>
+      <header class="fab-section-heading motion-reveal"><div><small>(02)</small><h2>Ce qui m’accroche.</h2></div><p>Un projet devient intéressant quand ses détails racontent la même chose : le cadre, le rythme, la matière, le ton et la façon dont on choisit de montrer.</p></header>
+      <div class="fab-about-view__grid"><article class="motion-reveal"><span>01</span><h3>Une identité reconnaissable.</h3><p>J’aime les univers dont on comprend la personnalité avant même qu’ils aient besoin de l’expliquer.</p></article><article class="motion-reveal"><span>02</span><h3>Des choix qui ont une raison.</h3><p>Une caméra, une lumière ou un mouvement m’intéressent surtout lorsqu’ils changent réellement ce que l’on ressent.</p></article><article class="motion-reveal"><span>03</span><h3>Une relation simple.</h3><p>Je préfère dire clairement ce qui fonctionne, ce qui manque et ce que je peux prendre en charge plutôt que multiplier les couches d’interlocuteurs.</p></article></div>
     </section>
 
     <section class="fab-process fab-process--dark" id="methode">
@@ -185,7 +198,7 @@ export function aboutPage(){
 
     <section class="fab-about-quote motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
 
-    <section class="fab-contact-band motion-reveal"><div><small>Le travail avant les promesses</small><h2>Voir ce que ça donne.</h2></div><p>Le plus simple reste de regarder un projet puis de me dire ce que vous préparez.</p><a href="/work/">Voir le Work <span>↗</span></a></section>
+    <section class="fab-contact-band motion-reveal"><div><small>Vous savez maintenant comment je pense</small><h2>Reste à voir si ça colle à votre projet.</h2></div><p>Regardez un film si vous voulez juger le travail, ou écrivez-moi directement si votre contexte est déjà clair.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
 
@@ -218,7 +231,7 @@ export function contactPage(){
         <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
       </form>
     </section>
-    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ',title:'Avant d’envoyer.',intro:'Les réponses utiles sans rallonger le formulaire.'})}
+    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ',title:'FAQ.',intro:'Ce qu’il est utile de savoir avant d’envoyer votre message.'})}
   </main>` + footer();
 }
 

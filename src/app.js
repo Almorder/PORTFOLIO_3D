@@ -3,42 +3,51 @@ const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 const clamp = (v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Logo Preloader — fail-safe first.
-// This runs before every other interactive module so a later runtime error can never trap the visitor.
+// Logo Preloader — minimal branded entrance on Home only.
+// The component follows the public Framer behaviour: entrance → optional hold → fade-out,
+// with hard fail-safes so it can never trap navigation.
 const preloader=$('[data-brand-preloader]');
 if(preloader){
   const navEntry=performance.getEntriesByType?.('navigation')?.[0];
   const internalRef=document.referrer && (()=>{try{return new URL(document.referrer).origin===location.origin}catch{return false}})();
   const skip=internalRef || navEntry?.type==='back_forward' || reduced;
-  const hold=Math.max(0,Number(preloader.dataset.preloaderHold||120));
+  const hold=Math.max(0,Number(preloader.dataset.preloaderHold||240));
   let removed=false;
   const leave=()=>{
     if(removed) return;
     preloader.classList.add('is-leaving');
     preloader.style.pointerEvents='none';
-    setTimeout(()=>{
-      if(document.contains(preloader)) preloader.remove();
-      removed=true;
-    },620);
+    setTimeout(()=>{if(document.contains(preloader)) preloader.remove();removed=true;},540);
   };
-  const percent=$('[data-preloader-percent]',preloader);
   if(skip) requestAnimationFrame(leave);
-  else {
-    const duration=760+hold;
-    const start=performance.now();
-    const tick=now=>{
-      const p=clamp((now-start)/duration);
-      const eased=1-Math.pow(1-p,3);
-      if(percent) percent.textContent=String(Math.round(eased*100)).padStart(2,'0');
-      if(p<1 && !removed) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-    setTimeout(leave,duration+80);
-  }
-  // Hard fallback: even if another module throws later, the overlay is removed.
-  setTimeout(leave,1700);
+  else setTimeout(leave,620+hold);
+  setTimeout(leave,1320);
   addEventListener('pageshow',e=>{if(e.persisted) leave();},{once:true});
 }
+
+// Nolan Arc custom cursor — a rounded orange square that becomes transparent on interaction.
+const customCursor=$('[data-custom-cursor]');
+if(customCursor && matchMedia('(hover:hover) and (pointer:fine)').matches && !reduced){
+  document.documentElement.classList.add('has-custom-cursor');
+  let cx=-100,cy=-100,tx=-100,ty=-100,raf=0;
+  const render=()=>{cx+=(tx-cx)*.34;cy+=(ty-cy)*.34;customCursor.style.transform=`translate3d(${cx-11}px,${cy-11}px,0)`;raf=requestAnimationFrame(render);};
+  render();
+  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;customCursor.style.opacity='1';},{passive:true});
+  addEventListener('pointerdown',()=>customCursor.classList.add('is-pressed'),{passive:true});
+  addEventListener('pointerup',()=>customCursor.classList.remove('is-pressed'),{passive:true});
+  document.addEventListener('pointerover',e=>{customCursor.classList.toggle('is-interactive',Boolean(e.target.closest('a,button,input,textarea,select,summary,[role="button"],[data-video-slide-show],[data-stacked-flow]')));});
+  document.addEventListener('mouseleave',()=>{customCursor.style.opacity='0';});
+  addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
+}
+
+// Route prefetch — contact/work/services/about are warmed before the click without delaying first paint.
+const prefetched=new Set();
+const prefetchRoute=href=>{
+  try{const url=new URL(href,location.href);if(url.origin!==location.origin||prefetched.has(url.pathname)||url.pathname===location.pathname)return;prefetched.add(url.pathname);const link=document.createElement('link');link.rel='prefetch';link.as='document';link.href=url.pathname+url.search;document.head.append(link);}catch{}
+};
+document.addEventListener('pointerover',e=>{const a=e.target.closest('a[href^="/"]');if(a)prefetchRoute(a.getAttribute('href'));},{passive:true});
+document.addEventListener('focusin',e=>{const a=e.target.closest?.('a[href^="/"]');if(a)prefetchRoute(a.getAttribute('href'));});
+if('requestIdleCallback' in window) requestIdleCallback(()=>['/contact/','/work/','/services/','/a-propos/'].forEach(prefetchRoute),{timeout:1800});
 
 // Scroll progress + scene choreography. Native scroll remains the source of truth.
 const scenes = $$('.scroll-scene');

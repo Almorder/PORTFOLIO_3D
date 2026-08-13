@@ -40,6 +40,7 @@ export function head({ title, description, path='/', image='https://images.unspl
 <link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' : ''}
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
 <style id="critical-shell">.mobile-tabs{display:none}.mobile-menu[hidden]{display:none!important}</style>
 <link rel="stylesheet" href="/__SITE_CSS__">
@@ -57,7 +58,7 @@ const activeFor = (active, href) => {
 
 export function header(active='') {
   const nav = site.nav.map(item => `<a class="fab-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
-  return `${logoPreloader({hold:180})}<a class="skip-link" href="#main-content">Aller au contenu</a><div class="page-progress" aria-hidden="true"><i></i></div>
+  return `${active==='/'?logoPreloader({hold:240}):''}<a class="skip-link" href="#main-content">Aller au contenu</a><div class="page-progress" aria-hidden="true"><i></i></div><div class="custom-cursor" data-custom-cursor aria-hidden="true"><i></i></div>
   <header class="site-header fab-header" data-header>
     <a class="brand fab-brand" href="/" aria-label="Nolan Arc — Accueil"><span>Nolan</span><b>.</b><span>Arc</span></a>
     <nav class="site-nav fab-nav" aria-label="Navigation principale">${nav}<a class="fab-nav__link fab-nav__contact" href="/contact/">Contact</a></nav>
@@ -108,8 +109,8 @@ export function projectMeta(project) {
 }
 
 
-export function logoPreloader({hold=180}={}){
-  return `<div class="brand-preloader fab-preloader" data-brand-preloader data-preloader-hold="${Number(hold)||180}" aria-hidden="true"><div class="fab-preloader__grain"></div><div class="fab-preloader__mark"><span>Nolan</span><b>.</b><span>Arc</span></div><div class="fab-preloader__meta"><span>Réalisateur · Direction artistique</span><b data-preloader-percent>00</b></div><i class="fab-preloader__line"></i></div>`;
+export function logoPreloader({hold=240}={}){
+  return `<div class="brand-preloader logo-preloader" data-brand-preloader data-preloader-hold="${Number(hold)||240}" aria-hidden="true"><div class="logo-preloader__grain"></div><div class="logo-preloader__halo"></div><div class="logo-preloader__mark"><span>Nolan</span><b>.</b><span>Arc</span></div></div>`;
 }
 
 export function lineToc(items=[]){
@@ -138,7 +139,7 @@ export function gradientMotionBackground({style='mesh', speed=18, blur=68, opaci
 export function focusTestimonials(items=[], {maxVisible=2}={}){
   if(!items.length) return '';
   const max=Math.max(1,Math.min(items.length,Number(maxVisible)||items.length));
-  return `<section class="focus-testimonials motion-reveal" data-focus-testimonials data-max-visible="${max}" aria-labelledby="focus-testimonials-title"><div class="focus-testimonials__head"><span class="eyebrow">Retours</span><h2 id="focus-testimonials-title">Quelques phrases<br><em>qui comptent.</em></h2></div><div class="focus-testimonials__stream" id="focus-testimonials-stream" data-testimonials-stream>${items.map((item,i)=>`${i?'<i class="focus-testimonials__sep" data-testimonial-sep="'+i+'" aria-hidden="true"> / </i>':''}<button type="button" data-testimonial-index="${i}"${i>=max?' hidden':''}><span>« ${esc(item.quote)} »</span><small class="focus-testimonials__author">${esc(item.name)} · ${esc(item.role)}</small></button>`).join('')}</div>${items.length>max?`<div class="focus-testimonials__actions"><button class="focus-testimonials__more glassy-control" type="button" data-testimonials-toggle aria-expanded="false" aria-controls="focus-testimonials-stream"><span>Voir tous les retours</span><i aria-hidden="true">+</i></button></div>`:''}</section>`;
+  return `<section class="focus-testimonials motion-reveal" data-focus-testimonials data-max-visible="${max}" aria-labelledby="focus-testimonials-title"><div class="focus-testimonials__head"><span class="eyebrow">Retours</span><h2 id="focus-testimonials-title">Quelques phrases<br><em>qui comptent.</em></h2></div><div class="focus-testimonials__stream" id="focus-testimonials-stream" data-testimonials-stream>${items.map((item,i)=>`<button type="button" data-testimonial-index="${i}"${i>=max?' hidden':''}><span>« ${esc(item.quote)} »</span><small class="focus-testimonials__author">${esc(item.name)}<i>${esc(item.role)}</i></small></button>`).join('')}</div>${items.length>max?`<div class="focus-testimonials__actions"><button class="focus-testimonials__more glassy-control" type="button" data-testimonials-toggle aria-expanded="false" aria-controls="focus-testimonials-stream"><span>Voir tous les retours</span><i aria-hidden="true">+</i></button></div>`:''}</section>`;
 }
 
 export function glassShowcase(images=[], {direction='ltr', transmission=.94, ior=1.45, thickness=.7, float=.08}={}){
