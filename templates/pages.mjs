@@ -199,24 +199,28 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact page-fabrica'}) + header('/contact/') + `<main id="main-content" class="fab-contact-page">
-    <section class="fab-contact-hero">
-      <div class="fab-contact-hero__intro motion-reveal"><span>(01)</span><h1>Contact.</h1><p>Une idée, une date ou un problème à résoudre suffisent pour commencer. Je réponds sous 48 h ouvrées.</p><div class="fab-contact-direct"><a href="mailto:${site.email}">${site.email}</a><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div></div>
-      <form class="fab-contact-form motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact page-fabrica'}) + header('/contact/') + `<main id="main-content" class="contact-page">
+    <section class="contact-composer motion-gradient" data-gradient-host>
+      ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
+      <div class="contact-composer__intro motion-reveal">
+        <span class="eyebrow">Contact</span>
+        <h1>Dites-moi simplement<br><em>ce que vous préparez.</em></h1>
+        <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer. Je vous réponds sous 48 h ouvrées.</p>
+        <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
+      </div>
+      <form class="contact-form contact-form--composer motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot">
         <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-        <div class="fab-contact-form__top"><small>Parler du projet</small><span>01 / 03</span></div>
-        <fieldset class="fab-intent"><legend>Ça concerne quoi ?</legend><div class="form-intent"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
-        <label class="fab-message"><span>Votre message</span><textarea required name="message" rows="5" placeholder="Dites-moi ce que vous préparez, pour qui, la date si elle existe et ce que vous attendez du projet."></textarea></label>
-        <div class="fab-contact-fields"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
-        <details class="fab-contact-more"><summary>Ajouter entreprise / budget <span>optionnel</span></summary><div class="fab-contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
-        <div class="fab-contact-submit"><p>Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
+        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
+        <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
+        <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
+        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+        <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
       </form>
     </section>
-    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ',title:'Avant d’envoyer.',intro:'Le formulaire reste volontairement court. Voilà les réponses utiles autour.'})}
+    ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ',title:'Avant d’envoyer.',intro:'Les réponses utiles sans rallonger le formulaire.'})}
   </main>` + footer();
 }
-
 
 const legalNav = `<nav class="legal-tabs" aria-label="Pages légales"><a href="/mentions-legales/">Mentions</a><a href="/confidentialite/">Confidentialité</a><a href="/cgv/">CGV</a><a href="/cookies/">Cookies</a><a href="/retractation/">Rétractation</a></nav>`;
 

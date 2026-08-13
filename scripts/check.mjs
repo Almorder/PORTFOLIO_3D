@@ -67,45 +67,45 @@ const about=await readFile(join(dist,'a-propos/index.html'),'utf8');
 const journal=await readFile(join(dist,'journal/index.html'),'utf8');
 const contact=await readFile(join(dist,'contact/index.html'),'utf8');
 
-// V13 visual grammar: Fabrica-inspired, content remains Nolan Arc.
-for(const token of ['class="fab-hero"','class="fab-hero__wordmark"','class="fab-clients','id="work-preview"','class="fab-proof','class="fab-services','class="fab-process','data-focus-testimonials','id="faq-home"','class="fab-contact-band']) if(!home.includes(token)) errors.push(`Home V13: missing ${token}`);
-if((home.match(/class="fab-client-grid[\s\S]*?<div>/g)||[]).length===0 || (home.match(/<strong>(Ouilove Proposal|A One Permis|Carat Créations Paris|Reka Security)<\/strong>/g)||[]).length!==4) errors.push('Home V13: four documented client proofs expected');
-if((home.match(/class="fab-project-card/g)||[]).length<4) errors.push('Home V13: project grid incomplete');
-if((home.match(/data-stat-card/g)||[]).length!==4) errors.push('Home V13: four proof stats expected');
-if((home.match(/class="fab-service-row/g)||[]).length!==3) errors.push('Home V13: three service rows expected');
-if(!home.includes('data-glass-showcase')) errors.push('Home V13: process showcase missing');
-if(!css.includes('feTurbulence')||!css.includes('body::after')) errors.push('V13: global grain layer missing');
-if(!css.includes('.fab-hero')||!css.includes('.fab-project-grid')||!css.includes('.fab-service-row')) errors.push('V13: core Fabrica-style system missing');
+// V14 visual grammar: Fabrica structure, Nolan Arc identity and components.
+for(const token of ['class="fab-hero"','class="fab-hero__wordmark"','class="fab-clients','id="work-preview"','class="fab-proof','class="fab-services','class="fab-process','data-focus-testimonials','id="faq-home"','class="fab-contact-band']) if(!home.includes(token)) errors.push(`Home V14: missing ${token}`);
+if((home.match(/class="fab-client-grid[\s\S]*?<div>/g)||[]).length===0 || (home.match(/<strong>(Ouilove Proposal|A One Permis|Carat Créations Paris|Reka Security)<\/strong>/g)||[]).length!==4) errors.push('Home V14: four documented client proofs expected');
+if((home.match(/class="fab-project-card/g)||[]).length<4) errors.push('Home V14: project grid incomplete');
+if((home.match(/data-stat-card/g)||[]).length!==4) errors.push('Home V14: four proof stats expected');
+if((home.match(/class="fab-service-row/g)||[]).length!==3) errors.push('Home V14: three service rows expected');
+if(!home.includes('data-glass-showcase')) errors.push('Home V14: process showcase missing');
+if(!css.includes('feTurbulence')||!css.includes('body::after')) errors.push('V14: global grain layer missing');
+if(!css.includes('.fab-hero')||!css.includes('.fab-project-grid')||!css.includes('.fab-service-row')) errors.push('V14: core Fabrica-style system missing');
 
 // Preloader: global, percentage + hard fail-safe.
-if(!components.includes('data-preloader-percent')||!css.includes('@keyframes preloaderFailsafe')) errors.push('Preloader V13: percentage/failsafe missing');
-if(!app.includes('data-preloader-percent')||!app.includes('percent.textContent')) errors.push('Preloader V13: percentage animation missing');
+if(!components.includes('data-preloader-percent')||!css.includes('@keyframes preloaderFailsafe')) errors.push('Preloader V14: percentage/failsafe missing');
+if(!app.includes('data-preloader-percent')||!app.includes('percent.textContent')) errors.push('Preloader V14: percentage animation missing');
 
 // Work owns discovery carousel and stacked collaborations.
-if(!work.includes('data-video-slide-show')) errors.push('Work V13: Video Slide Show missing');
-if((work.match(/data-video-slide(?=\s|>)/g)||[]).length<5) errors.push('Work V13: five slideshow cards expected');
-if(project.includes('data-video-slide-show')) errors.push('Project V13: Video Slide Show must remain in Work');
-if(!work.includes('data-stacked-flow')) errors.push('Work V13: Stacked Flow missing');
+if(!work.includes('data-video-slide-show')) errors.push('Work V14: Video Slide Show missing');
+if((work.match(/data-video-slide(?=\s|>)/g)||[]).length<5) errors.push('Work V14: five slideshow cards expected');
+if(project.includes('data-video-slide-show')) errors.push('Project V14: Video Slide Show must remain in Work');
+if(!work.includes('data-stacked-flow')) errors.push('Work V14: Stacked Flow missing');
 if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) errors.push('Video Slide Show: inertia engine missing');
 
 // Project: film first, technical proof only once, contextual navigation.
-if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-hold-confirm')) errors.push('Project V13: film-first player missing');
-if((project.match(/class="project-meta-list"/g)||[]).length!==1) errors.push('Project V13: metadata must appear once');
-if(/Détails de production|La fiche technique/i.test(project)) errors.push('Project V13: redundant production-details wording found');
-if(!project.includes('data-page-view-counter')) errors.push('Project V13: page view counter hook missing');
+if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-hold-confirm')) errors.push('Project V14: film-first player missing');
+if((project.match(/class="project-meta-list"/g)||[]).length!==1) errors.push('Project V14: metadata must appear once');
+if(/Détails de production|La fiche technique/i.test(project)) errors.push('Project V14: redundant production-details wording found');
+if(!project.includes('data-page-view-counter')) errors.push('Project V14: page view counter hook missing');
 
 // Services / About: one strong page grammar, left TOC, clear chapters.
-for(const id of ['marques','recits','moments']) if(!services.includes(`id="${id}"`)) errors.push(`Services V13: ${id} chapter missing`);
-if(!services.includes('data-line-toc')) errors.push('Services V13: left TOC missing');
-if((services.match(/<section class="fab-service-section/g)||[]).length!==3) errors.push('Services V13: three detailed service sections expected');
-if(!about.includes('data-line-toc')||!about.includes('data-glass-showcase')) errors.push('About V13: TOC/process showcase missing');
-if((about.match(/data-stat-card/g)||[]).length<3) errors.push('About V13: proof stats missing');
-if(/animé|anime/i.test(about)) errors.push('About V13: anime wording must not return');
+for(const id of ['marques','recits','moments']) if(!services.includes(`id="${id}"`)) errors.push(`Services V14: ${id} chapter missing`);
+if(!services.includes('data-line-toc')) errors.push('Services V14: left TOC missing');
+if((services.match(/<section class="fab-service-section/g)||[]).length!==3) errors.push('Services V14: three detailed service sections expected');
+if(!about.includes('data-line-toc')||!about.includes('data-glass-showcase')) errors.push('About V14: TOC/process showcase missing');
+if((about.match(/data-stat-card/g)||[]).length<3) errors.push('About V14: proof stats missing');
+if(/animé|anime/i.test(about)) errors.push('About V14: anime wording must not return');
 
 // Contact: compact form + FAQ, no qualification maze.
-if(!contact.includes('class="fab-contact-hero"')||!contact.includes('class="fab-contact-form')) errors.push('Contact V13: compact split/form layout missing');
-if(!contact.includes('id="faq-contact"')||!contact.includes('data-faq-section')) errors.push('Contact V13: FAQ missing');
-if(!contact.includes('https://formsubmit.co/ajax/')||!contact.includes('name="_honey"')||!contact.includes('href="/confidentialite/"')) errors.push('Contact V13: form wiring/privacy guard missing');
+if(!contact.includes('class="contact-composer motion-gradient"')||!contact.includes('class="contact-form contact-form--composer')) errors.push('Contact V14: V11 composer layout missing');
+if(!contact.includes('id="faq-contact"')||!contact.includes('data-faq-section')) errors.push('Contact V14: FAQ missing');
+if(!contact.includes('https://formsubmit.co/ajax/')||!contact.includes('name="_honey"')||!contact.includes('href="/confidentialite/"')) errors.push('Contact V14: form wiring/privacy guard missing');
 
 // Interactive component engines preserved under the new skin.
 if(!app.includes('easeOutExpo')||!app.includes('IntersectionObserver')) errors.push('Animated Stats Pro: scroll engine missing');
@@ -116,10 +116,18 @@ if(!app.includes("flow.addEventListener('wheel'")) errors.push('Stacked Flow: wh
 if(!css.includes('.line-toc{position:fixed')||!css.includes('left:14px')||!app.includes('scheduleClose(1900)')) errors.push('Line TOC: left hover behaviour missing');
 for(const style of ['radial','conic','mesh','linear','diamond']) if(!css.includes(`data-gradient-style="${style}"`)) errors.push(`Gradient Motion: ${style} engine missing`);
 
+// Nolan Arc identity restored on Fabrica structure.
+for(const token of ['--ink:#080706','--paper:#f0ebe2','--ember:#cc460c',"--serif:'Yrsa'", "--ui:'Syne'", "--body:'DM Sans'"]) if(!css.includes(token)) errors.push(`V14 DA token missing: ${token}`);
+if(!css.includes('V14 — FABRICA STRUCTURE × NOLAN ARC DA')) errors.push('V14 theme integration block missing');
+if(!components.includes('class="mobile-tabs"')) errors.push('V14 mobile glass dock markup missing');
+if(!css.includes('.mobile-tabs{position:fixed')||!css.includes('backdrop-filter:blur(24px)')) errors.push('V14 mobile glass dock styling missing');
+if(!css.includes('.fab-testimonials .focus-testimonials__stream.has-focus')) errors.push('V14 Focus Testimonials fluid interaction styling missing');
+if(!contact.includes('data-gradient-host')||!contact.includes('Budget / entreprise')) errors.push('Contact V14: gradient composer / optional fields missing');
+
 // Cross-page pathing.
-if(!journal.includes('journal-bridge')) errors.push('Journal V13: Work bridge missing');
-if(!about.includes('/contact/')) errors.push('About V13: Contact continuation missing');
-if(!work.includes('/services/')||!work.includes('/contact/')) errors.push('Work V13: Services/Contact continuations missing');
+if(!journal.includes('journal-bridge')) errors.push('Journal V14: Work bridge missing');
+if(!about.includes('/contact/')) errors.push('About V14: Contact continuation missing');
+if(!work.includes('/services/')||!work.includes('/contact/')) errors.push('Work V14: Services/Contact continuations missing');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
-console.log(`QA OK — ${htmls.length} HTML files; V13 Fabrica grammar, routes, legal links, hashed assets and interactive component engines verified.`);
+console.log(`QA OK — ${htmls.length} HTML files; V14 Fabrica structure × Nolan Arc DA, mobile dock, contact composer, routes and component engines verified.`);

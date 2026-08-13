@@ -1,35 +1,45 @@
 # Nolan Arc — Portfolio 2026
-## V13 · Fabrica direction
+## V14 · Fabrica structure × Nolan Arc DA
 
 Repository source de `nolanarc.com`.
 
-La V13 est une refonte visuelle majeure. La référence principale est désormais **Fabrica®**, le template Framer d’Anatolii Dmitrienko : structure monochrome, grande typographie sans-serif, médias arrondis, grain, navigation minimale, preuves rapides, projets très présents et transitions sobres.
+La V14 garde **Fabrica comme référence de structure** : hiérarchie forte, Work prioritaire, grands médias, espaces maîtrisés, navigation simple et pages clairement différenciées. Elle restaure en revanche **l’identité Nolan Arc** : noir chaud, ivoire, orange, grain, Yrsa / Syne / DM Sans, surfaces arrondies, profondeur glass et composants interactifs déjà validés dans les versions précédentes.
 
-> Important : ce repository est une **implémentation indépendante HTML/CSS/JS**. Il ne contient ni le code source ni les assets propriétaires du template Fabrica. Si une reproduction littérale du template source est souhaitée, il faut acquérir la licence du template et fournir les fichiers/remix autorisés.
+> Le code reste une implémentation indépendante HTML/CSS/JS. Aucun code propriétaire du template Fabrica ou de composants premium Framer n’est présenté comme ayant été copié.
 
-## Ce que la V13 change
+## Direction V14
 
-- nouveau hero plein écran inspiré de la grammaire Fabrica : grand wordmark Nolan.Arc, média monochrome, liste de domaines, promesse courte et carte contact ;
-- grain global continu sur l’ensemble du site ;
-- nouveau preloader noir avec identité Nolan.Arc, pourcentage et barre de progression, avec fail-safe anti-blocage ;
-- navigation desktop beaucoup plus calme et compacte ;
-- menu mobile clair, pleine largeur, typographie forte ;
-- collaborations placées très tôt comme preuve ;
-- Work en grande grille éditoriale, projets prioritaires ;
-- Services construits comme de grands chapitres numérotés plutôt que comme une succession de petites cartes ;
-- À propos pensé comme une page Studio adaptée à une personne : portrait, histoire, preuves, regard et méthode ;
-- Contact en split layout très simple, formulaire immédiatement accessible ;
-- footer éditorial structuré ;
-- les composants interactifs demandés précédemment restent disponibles, mais leur apparence est désormais harmonisée avec le système Fabrica ;
-- refonte des contrôles QA pour vérifier cette nouvelle architecture au lieu des anciennes V12.
+- **Structure** : Fabrica.
+- **Palette** : `#080706`, `#F0EBE2`, `#CC460C`, `#E97736`.
+- **Titres / signature** : Yrsa.
+- **Navigation / labels / UI** : Syne.
+- **Lecture / formulaires** : DM Sans.
+- **Matière** : grain continu, arrondis, verre ponctuel, profondeur douce.
+- **Mobile** : header compact + menu à droite + dock glass Accueil / Work / Services / Contact.
+- **Contact** : retour au composer compact de la V11.
+
+## Composants conservés
+
+- Logo Preloader avec fail-safe.
+- Glassy Button.
+- Animated Stats Pro engine.
+- Focus Testimonials en flux interactif.
+- Glass Showcase / WebGL progressive enhancement.
+- Ambient Video Player.
+- Hold Confirm.
+- Stacked Flow.
+- Video Slide Show avec inertie.
+- Line Menu TOC vertical à gauche sur desktop.
+- Gradient Motion Background localisé.
+- Page View Counter prêt pour Supabase, masqué sans configuration.
 
 ## Stack
 
 - HTML sémantique généré statiquement
 - CSS natif
 - JavaScript ES modules
-- Node.js 24 pour le build
-- GitHub Pages + GitHub Actions
+- Node.js 24 pour le build GitHub Actions
+- GitHub Pages
 - Three.js chargé à la demande pour Glass Showcase
 - aucune dépendance npm de production
 
@@ -48,47 +58,37 @@ Serveur local : `http://127.0.0.1:4173`
 npm run check
 ```
 
-Le contrôle doit terminer par `QA OK`.
+Le contrôle doit finir par `QA OK`.
 
-## Remplacer la version actuellement clonée
+## Remplacer la version actuelle
 
-Garde le repository GitHub `Almorder/PORTFOLIO_3D` et son dossier caché `.git`.
+1. Décompresse le ZIP V14.
+2. Dans ton dossier local cloné `PORTFOLIO_3D`, garde uniquement le dossier caché `.git`.
+3. Supprime le reste de l’ancienne version.
+4. Copie tout le contenu V14 directement à la racine de `PORTFOLIO_3D`.
+5. GitHub Desktop → `Commit to main` → `Push origin`.
+6. Attends le workflow GitHub Pages vert.
+7. Contrôle Home, Work, Services, À propos, Projet et Contact en desktop + mobile.
 
-1. Décompresse le ZIP V13.
-2. Dans le dossier local cloné `PORTFOLIO_3D`, supprime l’ancien contenu **sans supprimer `.git`**.
-3. Copie tout le contenu de la V13 directement à la racine du repository.
-4. GitHub Desktop : `Commit to main` puis `Push origin`.
-5. Attends que le workflow GitHub Pages soit vert.
-6. Contrôle la Home, Work, Services, À propos, Projet et Contact en desktop + mobile.
+## Fichiers importants
 
-## Arborescence utile
+- `content/site.mjs` — identité, collaborations, témoignages, FAQ et repères.
+- `content/projects.mjs` — projets et collaborations.
+- `content/legal.mjs` — informations légales et commerciales.
+- `templates/pages.mjs` — architecture et textes.
+- `templates/components.mjs` — composants réutilisables.
+- `src/styles.css` — design system + responsive.
+- `src/app.js` — interactions.
+- `scripts/check.mjs` — QA prépublication.
+- `DESIGN_SYSTEM_V14.md` — règles de DA.
+- `AUDIT_V14_HYBRID.md` — décisions de la V14.
 
-- `content/site.mjs` — identité, collaborations, témoignages, FAQ et repères
-- `content/projects.mjs` — projets et collaborations
-- `content/legal.mjs` — données légales et commerciales
-- `templates/pages.mjs` — structure et copy des pages
-- `templates/components.mjs` — composants réutilisables
-- `src/styles.css` — design system et responsive
-- `src/app.js` — interactions et animations
-- `scripts/build.mjs` — génération statique
-- `scripts/check.mjs` — QA prépublication
-- `supabase/page_views.sql` — compteur de vues optionnel
-- `ASSET_MANIFEST.md` — état des médias
-- `CONTENT_MANIFEST.md` — provenance et statut du contenu
-- `AUDIT_V13_FABRICA.md` — décisions de structure et écarts assumés
+## Médias encore nécessaires
 
-## Assets encore nécessaires
+- `public/assets/nolan-portrait.jpg`
+- médias Ouilove Proposal
+- médias A One Permis
+- vrais médias Moments
+- nouveaux case studies lorsqu’ils sont suffisamment documentés
 
-Ne pas les inventer :
-
-- portrait réel : `public/assets/nolan-portrait.jpg` ;
-- médias Ouilove Proposal ;
-- médias A One Permis ;
-- vrais médias Moments ;
-- 2 à 4 case studies supplémentaires à terme.
-
-Les illustrations temporaires servent uniquement à vérifier la composition. Elles ne sont jamais présentées comme des réalisations de Nolan.
-
-## QA visuel
-
-Le build, les routes, la structure, les composants, les liens internes, les pages légales, le chargement différé YouTube et les assets hashés sont automatisés. Chromium headless ne termine pas correctement dans l’environnement de génération ; le dernier contrôle pixel-perfect doit donc être fait sur l’URL GitHub Pages après push.
+Aucun média temporaire ne doit être présenté comme une réalisation réelle de Nolan Arc.
