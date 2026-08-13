@@ -49,5 +49,27 @@ for(const f of htmls){
   if(/<iframe[^>]+youtube/i.test(html)) errors.push(`${rel}: YouTube iframe present before user consent`);
 }
 
+
+// V5 UX invariants: no legacy vertical rail, no repeated YouTube thumbnail poster,
+// project specs rendered once, compact contact and horizontal progress on every page.
+for(const f of htmls){
+  const html=await readFile(f,'utf8');
+  const rel=relative(dist,f);
+  if(html.includes('http-equiv="refresh"')) continue;
+  if(!html.includes('class="page-progress"')) errors.push(`${rel}: horizontal progress bar missing`);
+  if(html.includes('class="arc-rail"')) errors.push(`${rel}: legacy vertical scroll rail still rendered`);
+  if(/img\.youtube\.com/i.test(html)) errors.push(`${rel}: YouTube thumbnail poster still exposed`);
+  if(rel==='projet/le-bol-den-face/index.html'){
+    const metaCount=(html.match(/class="project-meta-list"/g)||[]).length;
+    if(metaCount!==1) errors.push(`${rel}: expected project metadata once, got ${metaCount}`);
+    if(/Détails de production|La fiche technique/i.test(html)) errors.push(`${rel}: duplicate production-details section still visible`);
+  }
+  if(rel==='contact/index.html'){
+    if(!html.includes('Quel projet préparez-vous ?')) errors.push(`${rel}: compact contact intent heading missing`);
+    if(!html.includes('name="message"')) errors.push(`${rel}: message field missing`);
+    if(!html.includes('<details class="contact-more">')) errors.push(`${rel}: optional details disclosure missing`);
+  }
+}
+
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 console.log(`QA OK — ${htmls.length} HTML files, hashed assets wired, JS syntax valid, no duplicate IDs.`);

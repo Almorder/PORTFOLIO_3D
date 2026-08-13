@@ -1,42 +1,32 @@
-# ASSET MANIFEST — Nolan Arc 2026
+# ASSET MANIFEST — Nolan Arc 2026 · V5
 
 ## Médias actuellement branchés
 
 | Asset | Usage | Source | Statut |
 |---|---|---|---|
-| YouTube `GbeOQ-hgrtU` | Le bol d'en face / Home / case study | Projet existant | VERIFIED |
-| Thumbnail YouTube `GbeOQ-hgrtU` | Posters du film | YouTube | VERIFIED |
+| YouTube `GbeOQ-hgrtU` | Film complet *Le bol d’en face* | Projet existant | VERIFIED |
+| Image plateau caméra | Illustration Récits / Work / gate vidéo | Unsplash · Redd Francisco | TEMPORARY / LICENSED PLACEHOLDER |
+| Image studio produit | Hero / méthode / Marques | Unsplash · Bianca Maria | TEMPORARY / LICENSED PLACEHOLDER |
+| Image mariage escalier | Carte Moments | Unsplash · Leo_Visions | TEMPORARY / LICENSED PLACEHOLDER |
+
+## Important
+
+Les trois photographies Unsplash servent uniquement à éviter de répéter la miniature YouTube et à permettre de juger la direction visuelle du site. Elles **ne sont jamais présentées comme des réalisations Nolan Arc** et doivent être remplacées en priorité par les médias réels du portfolio.
 
 ## Médias à rattacher
 
 ### Ouilove Proposal
-
-- **Besoin** : média hero du case study / images de direction artistique.
-- **Ratio recommandé hero** : 16:9 ou 3:2 horizontal.
-- **Résolution recommandée** : minimum 2400 px de large.
-- **Complément idéal** : 3 à 6 images verticales/horizontales montrant le système visuel.
-- **Destination future** : `/projet/ouilove/`.
+- média hero réel ; 3 à 6 images/stills montrant le système visuel ; destination future `/projet/ouilove/`.
 
 ### A One Permis
-
-- **Besoin** : exemples de contenu social réellement produits.
-- **Ratios** : conserver les ratios réels (9:16 / 4:5 / 1:1 selon les contenus).
-- **Résolution** : source originale ou export haute qualité.
-- **Destination future** : `/projet/a-one-permis/`.
+- contenus sociaux réellement produits ; conserver leurs ratios réels ; destination future `/projet/a-one-permis/`.
 
 ### Moments / mariage
-
-- **Besoin** : un mariage réel identifiable avec film principal.
-- **Hero** : poster horizontal 16:9 ou 3:2.
-- **Galerie** : 4 à 10 images/stills réels.
-- **Témoignage** : rattacher le bon couple au bon film.
-- **Destination future** : `/projet/<nom-du-mariage>/`.
+- un mariage réel identifiable avec film principal ; 4 à 10 images/stills ; témoignage rattaché au bon couple.
 
 ### Demande en mariage
-
-- Les données Paris / Venise du portfolio historique sont contradictoires.
-- Ne publier une étude de cas qu'après identification du média correspondant au bon lieu.
+- identifier le bon média et le bon lieu avant publication d’une étude de cas.
 
 ## Règle
 
-Aucun faux travail IA ne doit être présenté comme une réalisation Nolan Arc.
+Aucun média d’illustration ou IA ne doit être présenté comme une réalisation Nolan Arc.

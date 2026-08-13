@@ -4,7 +4,7 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image='https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg', bodyClass='' }) {
+export function head({ title, description, path='/', image='https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000', bodyClass='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const schema = {
     '@context':'https://schema.org',
@@ -34,6 +34,7 @@ export function head({ title, description, path='/', image='https://img.youtube.
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${image}">
+<link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
@@ -53,7 +54,7 @@ const activeFor = (active, href) => {
 
 export function header(active='') {
   const nav = site.nav.map(item => `<a class="site-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
-  return `<header class="site-header" data-header>
+  return `<div class="page-progress" aria-hidden="true"><i></i></div><header class="site-header" data-header>
     <a class="brand" href="/" aria-label="Nolan Arc — Accueil"><span>Nolan</span><b>.</b><span>Arc</span></a>
     <nav class="site-nav" aria-label="Navigation principale">${nav}</nav>
     <a class="header-cta" href="/contact/">Parler d’un projet <span aria-hidden="true">↗</span></a>
@@ -74,9 +75,6 @@ export function header(active='') {
   </nav>`;
 }
 
-export function arcRail() {
-  return `<div class="arc-rail" aria-hidden="true" data-arc-rail><svg viewBox="0 0 120 860" preserveAspectRatio="none"><path d="M18 0 C 125 180, -20 350, 88 520 S 18 760 100 860" pathLength="1"></path></svg><i data-arc-dot></i></div>`;
-}
 
 export function footer() {
   return `<footer class="site-footer">

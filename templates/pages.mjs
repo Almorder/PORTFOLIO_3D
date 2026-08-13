@@ -2,26 +2,31 @@ import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
 import { legal } from '../content/legal.mjs';
-import { head, header, footer, arcRail, esc, projectMeta, placeholderVisual } from './components.mjs';
+import { head, header, footer, esc, projectMeta, placeholderVisual } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
+const visuals = {
+  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000',
+  story: bol.poster,
+  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000'
+};
 
 export function homePage(){
   return head({
     title:'Nolan Arc — Réalisateur & directeur artistique',
     description:"Portfolio de Nolan Arc, réalisateur et directeur artistique. Films de marque, récits et moments.",
     path:'/', bodyClass:'page-home'
-  }) + header('/') + arcRail() + `
+  }) + header('/') + `
   <main>
     <section class="home-hero scroll-scene" data-scene="hero">
       <div class="home-hero__sticky scene-sticky">
-        <div class="home-hero__media" aria-hidden="true"><img src="${bol.poster}" alt="" fetchpriority="high"><div class="home-hero__shade"></div></div>
+        <div class="home-hero__media" aria-hidden="true"><img src="${visuals.brand}" alt="" fetchpriority="high"><div class="home-hero__shade"></div></div>
         <div class="home-hero__ghost home-hero__ghost--a">RÉALISER</div>
         <div class="home-hero__ghost home-hero__ghost--b">RACONTER</div>
         <div class="home-hero__copy">
           <span class="eyebrow">${site.role}</span>
-          <h1>Avant le plan,<br>il y a <em>ce qu’on veut raconter.</em></h1>
-          <p>Je peux intervenir dès l’idée, préparer la direction, tourner, puis garder la main jusqu’au montage final.</p>
+          <h1>Une intention.<br><em>Puis une image.</em></h1>
+          <p>Je réalise des films et des directions visuelles en partant de ce que le projet doit faire comprendre, ressentir ou retenir.</p>
           <div class="hero-actions"><a class="button" href="/work/">Voir le travail <span>↘</span></a><a class="text-link" href="/projet/le-bol-den-face/">Voir le film <span>↗</span></a></div>
         </div>
         <div class="home-hero__index"><span>01</span><span>Descendre pour découvrir</span></div>
@@ -30,7 +35,7 @@ export function homePage(){
     </section>
 
     <section class="project-rift" id="work-preview">
-      <div class="project-rift__intro"><span class="eyebrow">Travail sélectionné</span><h2>Quelques projets<br>pour comprendre<br><em>comment je travaille.</em></h2></div>
+      <div class="project-rift__intro"><span class="eyebrow">Travail sélectionné</span><h2>Des projets pour voir<br><em>ce que je construis.</em></h2></div>
       <a class="project-slab project-slab--hero" href="/projet/le-bol-den-face/">
         <img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="lazy">
         <div class="project-slab__overlay"></div><div class="project-slab__number">01</div>
@@ -48,7 +53,7 @@ export function homePage(){
       <div class="journey__sticky scene-sticky">
         <div class="journey__counter"><span>02</span><b data-journey-count>01 / 03</b></div>
         <div class="journey__stage">
-          <div class="journey__object"><div class="journey__halo"></div><figure class="journey__frame"><img src="${bol.poster}" alt="Plan du court métrage Le bol d’en face" loading="lazy"></figure><div class="journey__ring"></div></div>
+          <div class="journey__object"><div class="journey__halo"></div><figure class="journey__frame"><img src="${visuals.brand}" alt="Coulisses d’une production visuelle" loading="lazy"></figure><div class="journey__ring"></div></div>
           <article class="journey-copy is-active" data-journey-step="0"><small>INTENTION</small><h2>D’abord, savoir<br><em>ce qu’on veut faire ressentir.</em></h2><p>Je commence par le message, la sensation ou le souvenir que le projet doit laisser.</p></article>
           <article class="journey-copy" data-journey-step="1"><small>DÉCISIONS</small><h2>Ensuite, choisir<br><em>comment le raconter.</em></h2><p>Cadre, lumière, mouvement, son et montage sont des choix de mise en scène — pas une liste d’effets.</p></article>
           <article class="journey-copy" data-journey-step="2"><small>RENDU</small><h2>Puis laisser<br><em>le film faire le reste.</em></h2><p>Le spectateur n’a pas besoin de connaître la méthode. Le film doit simplement faire passer ce qu’on voulait raconter.</p></article>
@@ -57,11 +62,11 @@ export function homePage(){
     </section>
 
     <section class="entry-zone" id="services-preview">
-      <div class="entry-zone__head"><div><span class="eyebrow">Que cherchez-vous ?</span><h2>Trois portes d’entrée.<br><em>Choisissez la vôtre.</em></h2></div><div class="entry-carousel__controls"><button type="button" data-entry-prev aria-label="Carte précédente">←</button><button type="button" data-entry-next aria-label="Carte suivante">→</button></div></div>
+      <div class="entry-zone__head"><div><span class="eyebrow">Votre projet</span><h2>Qu’est-ce que vous<br><em>préparez ?</em></h2></div><div class="entry-carousel__controls"><button type="button" data-entry-prev aria-label="Carte précédente">←</button><button type="button" data-entry-next aria-label="Carte suivante">→</button></div></div>
       <div class="entry-carousel" data-entry-carousel>
-        <a class="entry-card entry-card--brand" href="/services/#marques"><span>01</span><small>MARQUE / ENTREPRISE</small><strong>Un film, du contenu ou une direction visuelle.</strong><p>Pour présenter, positionner ou donner une cohérence à votre image.</p><i>Découvrir →</i></a>
-        <a class="entry-card entry-card--story" href="/work/?territory=Récits"><span>02</span><small>RÉCIT / CRÉATION</small><strong>Un film de fiction ou un projet d’auteur.</strong><p>Pour construire une narration, une atmosphère et une mise en scène.</p><i>Voir les récits →</i></a>
-        <a class="entry-card entry-card--moment" href="/services/#moments"><span>03</span><small>MOMENT IMPORTANT</small><strong>Un mariage, une demande ou un événement humain.</strong><p>Pour garder une trace forte sans transformer le moment en tournage.</p><i>Découvrir →</i></a>
+        <a class="entry-card" href="/services/#marques" style="--card-image:url('${visuals.brand}')"><span>01</span><small>MARQUE / ENTREPRISE</small><strong>Un film ou une direction visuelle.</strong><p>Présenter une activité, construire une image ou produire du contenu avec une vraie cohérence.</p><i>Voir les solutions →</i></a>
+        <a class="entry-card" href="/work/?territory=Récits" style="--card-image:url('${visuals.story}')"><span>02</span><small>RÉCIT / CRÉATION</small><strong>Un film à écrire et mettre en scène.</strong><p>Fiction, projet d’auteur ou collaboration narrative.</p><i>Voir les récits →</i></a>
+        <a class="entry-card" href="/services/#moments" style="--card-image:url('${visuals.moment}')"><span>03</span><small>MOMENT / ÉVÉNEMENT</small><strong>Un moment que vous voulez garder.</strong><p>Mariage, demande en mariage ou événement personnel, filmé sans prendre la place.</p><i>Voir les moments →</i></a>
       </div>
     </section>
 
@@ -91,7 +96,7 @@ export function homePage(){
 export function workPage(){
   const verified = projects.filter(p=>p.status==='verified');
   const collaborations = projects.filter(p=>p.status!=='verified');
-  return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work'}) + header('/work/') + arcRail() + `<main>
+  return head({title:'Work — Nolan Arc', description:'Films, direction artistique et collaborations sélectionnées de Nolan Arc.', path:'/work/', bodyClass:'page-work'}) + header('/work/') + `<main>
     <section class="page-hero page-hero--work"><span class="eyebrow">Work</span><h1>Travaux<br><em>sélectionnés.</em></h1><p>Films, direction artistique et collaborations. Les filtres servent uniquement à aller plus vite vers ce qui vous intéresse.</p></section>
     <div class="filter-row" data-filter-row aria-label="Filtrer les projets"><button type="button" data-filter="all" aria-pressed="true">Tout</button><button type="button" data-filter="Marques">Marques</button><button type="button" data-filter="Récits">Récits</button><button type="button" data-filter="Moments">Moments</button></div>
     <section class="work-field" data-work-field>
@@ -103,7 +108,7 @@ export function workPage(){
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project'}) + header() + `<main>
+  return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project'}) + header('/projet/le-bol-den-face/') + `<main>
     <section class="project-intro">
       <a class="back-link" href="/work/">← Work</a><span class="eyebrow">${bol.type} · ${bol.year}</span>
       <div class="project-intro__grid"><h1>${bol.title}</h1><div><p>${bol.summary}</p><span>${bol.role}</span></div></div>
@@ -118,13 +123,12 @@ export function projectPage(){
       <div class="project-story__lead"><span class="eyebrow">Contexte</span><h2>${bol.intent}</h2><p>${bol.contextText}</p></div>
       <div class="project-story__decisions">${bol.decisions.map((d,i)=>`<article><span>0${i+1}</span><div><h3>${d.title}</h3><p>${d.text}</p></div></article>`).join('')}</div>
     </section>
-    <section class="project-tech"><div><span class="eyebrow">Détails de production</span><h2>La fiche technique.</h2></div>${projectMeta(bol)}<p>Je conserve ici les informations présentes dans l’ancien portfolio : format 16:9 en 4K UHD et tournage au Lumix S1 II. Les éléments non documentés ne sont pas inventés.</p></section>
     <section class="project-next"><span class="eyebrow">Continuer</span><a href="/work/"><small>Autres projets</small><strong>Retour au Work.</strong><span>↗</span></a><a href="/services/"><small>Vous avez un besoin</small><strong>Voir comment je peux intervenir.</strong><span>↗</span></a><a href="/contact/"><small>Un projet en tête</small><strong>Écrire à Nolan.</strong><span>↗</span></a></section>
   </main>` + footer();
 }
 
 export function servicesPage(){
-  return head({title:'Services — Nolan Arc',description:'Films, direction artistique, contenu et captation de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + arcRail() + `<main>
+  return head({title:'Services — Nolan Arc',description:'Films, direction artistique, contenu et captation de moments par Nolan Arc.',path:'/services/',bodyClass:'page-services'}) + header('/services/') + `<main>
     <section class="services-hero"><span class="eyebrow">Services</span><h1>Ce que je peux<br><em>prendre en charge.</em></h1><p>Pas de catalogue compliqué : trois situations, trois façons de travailler avec moi.</p><nav class="services-jump" aria-label="Accès rapide aux services"><a href="#marques">Marques</a><a href="#recits">Récits</a><a href="#moments">Moments</a></nav></section>
 
     <section class="service-chapter service-chapter--brand" id="marques">
@@ -137,7 +141,7 @@ export function servicesPage(){
 
     <section class="service-chapter service-chapter--story" id="recits">
       <div class="service-chapter__number">02</div><div class="service-chapter__head"><span class="eyebrow">Récits & création</span><h2>Écrire, mettre en scène<br>et réaliser un récit.</h2><p>Fiction, projet d’auteur ou collaboration narrative : ici, la mise en scène et le rythme prennent le premier rôle.</p></div>
-      <a class="service-feature" href="/projet/le-bol-den-face/"><img src="${bol.poster}" alt="Le bol d’en face"><div><small>COURT MÉTRAGE · 2026</small><strong>Le bol d’en face</strong><span>Réalisation & scénario →</span></div></a>
+      <a class="service-feature" href="/projet/le-bol-den-face/"><img src="${visuals.story}" alt="Illustration de réalisation audiovisuelle"><div><small>COURT MÉTRAGE · 2026</small><strong>Le bol d’en face</strong><span>Réalisation & scénario →</span></div></a>
     </section>
 
     <section class="service-chapter service-chapter--moment" id="moments">
@@ -157,7 +161,7 @@ export function marquesPage(){ return servicesPage(); }
 export function momentsPage(){ return servicesPage(); }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Le regard, la démarche et le sens du nom Nolan Arc.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + arcRail() + `<main>
+  return head({title:'À propos — Nolan Arc',description:'Le regard, la démarche et le sens du nom Nolan Arc.',path:'/a-propos/',bodyClass:'page-about'}) + header('/a-propos/') + `<main>
     <section class="about-hero"><span class="eyebrow">À propos</span><h1>Je m’appelle Nolan.<br>Je réalise des films<br>et je construis<br><em>des directions visuelles.</em></h1><p>J’aime intervenir assez tôt pour comprendre ce qu’un projet doit raconter, puis rester impliqué jusqu’au rendu final.</p><div class="about-hero__sig">Nolan Ribeiro · Nolan Arc</div></section>
     <section class="arc-meaning scroll-scene" data-scene="arc-meaning"><div class="arc-meaning__sticky scene-sticky"><div class="arc-meaning__word">ARC</div><div class="arc-meaning__items"><article><span>01</span><h2>Récit</h2><p>Une histoire avance d’un point à un autre.</p></article><article><span>02</span><h2>Lumière</h2><p>Le cadre choisit ce qu’on montre et ce qu’on laisse de côté.</p></article><article><span>03</span><h2>Trajectoire</h2><p>Une idée de départ devient une série de décisions concrètes.</p></article><article><span>04</span><h2>Ensemble</h2><p>Image, son, rythme et texte doivent appartenir au même projet.</p></article></div></div></section>
     <section class="principles-grid"><article><span>01</span><h2>Comprendre</h2><p>Clarifier le besoin avant de choisir le format.</p></article><article><span>02</span><h2>Préparer</h2><p>Arriver au tournage avec une direction claire, sans figer ce qui doit rester vivant.</p></article><article><span>03</span><h2>Réaliser</h2><p>Faire des choix de cadre, de lumière et de rythme qui servent réellement le projet.</p></article><article><span>04</span><h2>Finir</h2><p>Garder la même direction jusqu’au montage et à la livraison.</p></article></section>
@@ -165,7 +169,7 @@ export function aboutPage(){
 }
 
 export function journalPage(){
-  return head({title:'Journal — Nolan Arc',description:'Notes de Nolan Arc sur le cadrage, la mise en scène, le rythme et l’intention.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + arcRail() + `<main>
+  return head({title:'Journal — Nolan Arc',description:'Notes de Nolan Arc sur le cadrage, la mise en scène, le rythme et l’intention.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main>
     <section class="journal-hero"><span class="eyebrow">Journal</span><h1>Notes de travail,<br><em>coulisses et méthode.</em></h1><p>Cadrage, lumière, montage, préparation : des notes courtes autour de la fabrication des images.</p></section>
     <section class="journal-stack">${notes.map((n,i)=>`<article id="${n.slug}"><span>0${i+1}</span><small>${n.category} · ${n.date}</small><h2>${n.title}</h2><p>${n.excerpt}</p><a class="text-link" href="/contact/?intent=other">Discuter de cette réflexion <span>↗</span></a></article>`).join('')}</section>
     <section class="journal-to-work"><h2>Envie de voir le résultat plutôt que les notes ?</h2><a class="button" href="/work/">Voir le Work <span>↗</span></a></section>
@@ -173,14 +177,15 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + arcRail() + `<main>
-    <section class="contact-hero"><span class="eyebrow">Contact</span><h1>Racontez-moi<br><em>ce que vous préparez.</em></h1><p>Quelques lignes suffisent. Je vous réponds sous 48 h ouvrées.</p></section>
-    <section class="contact-experience"><form class="contact-form contact-form--editorial" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST"><input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-      <div class="contact-step"><span>01</span><div><small>Votre besoin</small><h2>Qu’est-ce que vous cherchez ?</h2><div class="form-intent form-intent--cards"><button type="button" data-form-intent="brand"><strong>Une marque</strong><small>Film · contenu · DA</small></button><button type="button" data-form-intent="moment"><strong>Un moment</strong><small>Mariage · demande · événement</small></button><button type="button" data-form-intent="story"><strong>Un récit</strong><small>Fiction · collaboration</small></button><button type="button" data-form-intent="other"><strong>Autre</strong><small>Expliquez-moi</small></button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></div></div>
-      <div class="contact-step contact-step--message"><span>02</span><label><small>Le projet</small><h2>Expliquez-le comme vous le diriez à quelqu’un.</h2><textarea required name="message" rows="7" placeholder="Ce que vous voulez faire, pour qui, quand, où, ce qui compte pour vous…"></textarea></label></div>
-      <div class="contact-step"><span>03</span><div class="contact-fields"><label>Votre nom<input required name="nom" autocomplete="name" placeholder="Nolan Ribeiro"></label><label>Votre email<input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label><label>Entreprise <small>optionnel</small><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label>Budget <small>optionnel</small><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></div>
-      <div class="contact-submit"><p class="form-privacy">Les informations envoyées servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
-    </form><aside class="contact-direct"><span class="eyebrow">Vous préférez aller droit au but ?</span><a href="mailto:${site.email}">${site.email}</a><p>${site.responseTime}</p><a href="${site.calendly}" target="_blank" rel="noreferrer">Réserver 30 min ↗</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></aside></section>
+  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un moment à Nolan Arc.',path:'/contact/',bodyClass:'page-contact'}) + header('/contact/') + `<main>
+    <section class="contact-hero contact-hero--compact"><span class="eyebrow">Contact</span><h1>Parlons de<br><em>votre projet.</em></h1><p>Pas besoin d’un brief parfait. Dites-moi simplement ce que vous préparez.</p></section>
+    <section class="contact-experience contact-experience--compact"><form class="contact-form contact-form--glass" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST"><input type="text" name="_honey" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
+      <div class="contact-glass__head"><span class="eyebrow">Quel projet préparez-vous ?</span><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Film / image de marque</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="story">Récit / collaboration</button><button type="button" data-form-intent="other">Autre projet</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></div>
+      <label class="contact-message"><span>Votre message</span><textarea required name="message" rows="5" placeholder="Le projet, la date si vous l’avez, le lieu et ce que vous attendez de moi…"></textarea></label>
+      <div class="contact-fields contact-fields--essential"><label>Votre nom<input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label>Votre email<input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
+      <details class="contact-more"><summary>Ajouter des précisions <span>optionnel</span></summary><div class="contact-fields"><label>Entreprise<input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label>Budget<select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+      <div class="contact-submit contact-submit--compact"><button class="button button--light" type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><p class="form-status" role="status" data-form-status></p></div>
+    </form><aside class="contact-direct contact-direct--glass"><span class="eyebrow">Direct</span><a href="mailto:${site.email}">${site.email}</a><p>${site.responseTime}</p><div><a href="${site.calendly}" target="_blank" rel="noreferrer">Réserver 30 min ↗</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></div></aside></section>
   </main>` + footer();
 }
 

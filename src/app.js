@@ -104,7 +104,7 @@ if(form){
   const buttons=$$('[data-form-intent]',form);
   const input=$('[data-intent-input]',form);
   const initialIntent=new URLSearchParams(location.search).get('intent') || 'other';
-  const map={brand:'Marque / Organisation',moment:'Moment',story:'Récit / Collaboration',other:'Autre'};
+  const map={brand:'Film / image de marque',moment:'Mariage / moment',story:'Récit / collaboration',other:'Autre projet'};
   const setIntent=(key='other')=>{
     const safe=map[key]?key:'other';
     input.value=map[safe];

@@ -1,6 +1,16 @@
 > **Version publication immédiate** : le build n'est plus bloqué par l'absence de médiateur de la consommation. Le site peut être déployé, mais l'adhésion à un médiateur reste à régulariser pour toute activité B2C. Voir `LEGAL_READINESS.md`.
 
-# Nolan Arc — Portfolio 2026
+# Nolan Arc
+## V5 — changements UX/UI
+
+- le rail vertical a été remplacé par une barre de progression horizontale de 2 px en haut de chaque page ;
+- la miniature YouTube du Bol d’en face n’est plus utilisée comme poster du site ;
+- le projet affiche la vidéo puis une seule grille de métadonnées ;
+- les éléments angulaires principaux ont été remplacés par des surfaces arrondies / vitrées ;
+- le contact est compact : besoin, message, nom/email, puis précisions optionnelles ;
+- les images Unsplash sont des placeholders de direction artistique, clairement listés dans `ASSET_MANIFEST.md`.
+
+ — Portfolio 2026
 
 Ce dossier est **le nouveau repository complet** de `nolanarc.com`.
 
