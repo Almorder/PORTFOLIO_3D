@@ -109,6 +109,9 @@ if(!components.includes('data-cookie-settings')||!components.includes('data-cook
 if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');
 if(!components.includes('role="region"')||!components.includes('aria-labelledby="${esc(id)}-question-${i}"')) fail('V20 a11y: FAQ region relationships missing');
 if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
+if((home.match(/class=\"v20-dimension__thumb\"/g)||[]).length!==3) fail('Home V20.1: three unique dimension thumbnails expected');
+for(const thumb of ['/assets/dimensions/realisation.webp','/assets/dimensions/direction-artistique.webp','/assets/dimensions/strategie.webp']) if(!home.includes(thumb)) fail(`Home V20.1: dimension thumbnail missing ${thumb}`);
+for(const html of htmls.map(f=>f.html)){ if(/<img\b[^>]*\bsrc=[\"']https?:\/\//i.test(html)) fail('V20.1 local media: remote <img> source remains in generated HTML'); }
 
 // Navigation hierarchy: Journal footer-only.
 const headerChunk=home.slice(home.indexOf('<header'),home.indexOf('</header>')+9);
@@ -118,7 +121,7 @@ if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V17: Journal
 // WORK — exploration first, projects, compact 3-hat selector.
 if(!work.includes('data-video-slide-show')) fail('Work V17: Video Slide Show missing');
 if((work.match(/data-video-slide(?=\s|>)/g)||[]).length<5) fail('Work V17: five slideshow cards expected');
-for(const src of ['photo-1727451139462-cd34008cd50b','photo-1709316132989-55ef2437b920','photo-1740350631567-5d813fe78adf','photo-1779896412277-c4fd15c7a89c']) if(!work.includes(src)) fail(`Work V17: mood image missing ${src}`);
+for(const src of ['/assets/media/mood-plateau.webp','/assets/media/mood-rig.webp','/assets/media/mood-tournage.webp','/assets/media/mood-post.webp','/assets/media/mood-moment.webp']) if(!work.includes(src)) fail(`Work V20.1: local mood image missing ${src}`);
 if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
 if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');
 if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) fail('Work V17: velocity/inertia slideshow engine missing');

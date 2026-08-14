@@ -29,7 +29,16 @@ const pages = new Map([
   ['404/index.html',notFoundPage()],
   ['404.html',notFoundPage()]
 ]);
-const cssSource=await readFile(join(root,'src/styles.css'),'utf8');
+const cssRaw=await readFile(join(root,'src/styles.css'),'utf8');
+// Conservative production minification: comments + layout whitespace only.
+// No selector/value rewriting, so the rendered design remains byte-for-byte equivalent in meaning.
+const minifyCss=(value)=>value
+  .replace(/\/\*[\s\S]*?\*\//g,'')
+  .replace(/\s+/g,' ')
+  .replace(/\s*([{}:;,>])\s*/g,'$1')
+  .replace(/;}/g,'}')
+  .trim();
+const cssSource=minifyCss(cssRaw);
 const jsSource=await readFile(join(root,'src/app.js'),'utf8');
 const cssHash=createHash('sha256').update(cssSource).digest('hex').slice(0,10);
 const jsHash=createHash('sha256').update(jsSource).digest('hex').slice(0,10);
