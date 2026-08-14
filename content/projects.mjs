@@ -13,7 +13,7 @@ export const projects = [
     status: 'verified',
     href: '/projet/le-bol-den-face/',
     videoId: 'GbeOQ-hgrtU',
-    poster: '/assets/media/le-bol-den-face.webp',
+    poster: 'https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg',
     summary: "Un court métrage sur le deuil, raconté par un repas, des gestes, des objets et une place qui reste vide.",
     contextText: "Réalisé dans le cadre de 1minute2court, le film suit un repas de Nouvel An lunaire marqué par une absence. Je voulais que le spectateur la comprenne avant qu’on la lui explique : par une place, un bol, des gestes qui se répètent et des silences.",
     intent: "Faire sentir l’absence avant de l’expliquer.",

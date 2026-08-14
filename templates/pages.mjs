@@ -6,15 +6,9 @@ import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassSh
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const visuals = {
-  brand: '/assets/media/brand-direction.webp',
-  story: '/assets/media/story-camera.webp',
-  moment: '/assets/media/moment-event.webp'
-};
-const homeHeroPoster = '/assets/media/hero-cinematic.webp';
-const dimensionThumbs = {
-  realisation:'/assets/dimensions/realisation.webp',
-  direction:'/assets/dimensions/direction-artistique.webp',
-  strategie:'/assets/dimensions/strategie.webp'
+  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
+  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
+  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
 };
 
 // Sony France lists this creator film as an Alpha 7 IV showcase. It is used as a silent,
@@ -26,11 +20,11 @@ const homeHeroVideo = {
 
 
 const workMoodSlides = [
-  { poster:'/assets/media/mood-plateau.webp', position:'center', kicker:'Plateau', title:'Lumière & espace', credit:'Étude visuelle · Nolan Arc' },
-  { poster:'/assets/media/mood-rig.webp', position:'50% center', kicker:'Image', title:'Caméra & rig', credit:'Étude visuelle · Nolan Arc' },
-  { poster:'/assets/media/mood-tournage.webp', position:'58% center', kicker:'Tournage', title:'Cadre en situation', credit:'Étude visuelle · Nolan Arc' },
-  { poster:'/assets/media/mood-post.webp', position:'48% center', kicker:'Post-production', title:'Montage & étalonnage', credit:'Étude visuelle · Nolan Arc' },
-  { poster:'/assets/media/mood-moment.webp', position:'center', kicker:'Moment', title:'Événement & émotion', credit:'Étude visuelle · Nolan Arc' },
+  { poster:'https://images.unsplash.com/photo-1727451139462-cd34008cd50b?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'center', kicker:'Plateau', title:'Lumière & espace', credit:'Joshua Wann · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'50% center', kicker:'Image', title:'Caméra & rig', credit:'Redd Francisco · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1740350631567-5d813fe78adf?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'58% center', kicker:'Tournage', title:'Cadre en situation', credit:'Alex Lam · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1779896412277-c4fd15c7a89c?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'48% center', kicker:'Post-production', title:'Montage & étalonnage', credit:'SanDisk · Unsplash' },
+  { poster:'https://images.unsplash.com/photo-1772945492345-ee8d17e9a74b?auto=format&fit=crop&fm=jpg&q=72&w=1600', position:'center', kicker:'Moment', title:'Événement & émotion', credit:'Brooke Balentine · Unsplash' },
 ];
 
 const expertiseTabs = [
@@ -58,11 +52,11 @@ const expertiseTabs = [
 ];
 
 const ecosystem = [
-  {name:'Sony', role:'Boîtiers · optiques', logo:'/assets/logos/sony.svg', logoClass:'is-sony'},
-  {name:'Sigma', role:'Optiques', logo:'/assets/logos/sigma.svg'},
-  {name:'Adobe', role:'Post-production', logo:'/assets/logos/adobe.svg'},
-  {name:'NiSi', role:'Filtres', logo:'/assets/logos/nisi.svg'},
-  {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'/assets/logos/smallrig.svg', logoClass:'is-smallrig'},
+  {name:'Sony', role:'Boîtiers · optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg', logoClass:'is-sony'},
+  {name:'Sigma', role:'Optiques', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8f/Sigma%27s_new_updated_logo_revealed%2C_February_2025.svg'},
+  {name:'Adobe', role:'Post-production', logo:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Adobe_Logo_Standard.svg'},
+  {name:'NiSi', role:'Filtres', logo:'https://images.squarespace-cdn.com/content/v1/5abbd54bd274cb288dbee575/1580147234198-OZKG3ETPSV8IJXDIYUFM/NiSi-logo-2018-01%403x-1.png'},
+  {name:'SmallRig', role:'Rig · lumière · accessoires', logo:'https://static.smallrig.com/mall/static/pc/common/svg/logo2023.svg', logoClass:'is-smallrig'},
   {name:'PGYTECH', role:'Workflow média', logo:'/assets/pgytech-logo.png', logoClass:'is-pgytech'}
 ];
 
@@ -76,7 +70,7 @@ export function homePage(){
   }) + header('/') + `
   <main id="main-content" class="v16-home">
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${homeHeroPoster}" alt="" fetchpriority="high" decoding="async" width="1600" height="900"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <p class="v20-hero__line">Une idée. Une direction.<br><strong>Un rendu qui tient jusqu’au bout.</strong></p>
       <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
@@ -105,7 +99,7 @@ export function homePage(){
       <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
       <div class="v16-dimensions__grid v19-dimensions__grid">
         ${expertiseTabs.map((x,i)=>`<article class="v16-dimension v19-dimension motion-reveal" data-dimension="${esc(x.key)}">
-          <div class="v19-dimension__visual" aria-hidden="true"><span>${x.index}</span><img class="v20-dimension__thumb" src="${dimensionThumbs[x.key]}" alt="" loading="lazy" decoding="async" width="900" height="600"><b>${i===0?'R':i===1?'DA':'S'}</b><i></i></div>
+          <div class="v19-dimension__visual" aria-hidden="true"><span>${x.index}</span><b>${i===0?'R':i===1?'DA':'S'}</b><i></i></div>
           <div class="v19-dimension__body">
             <div class="v19-dimension__label"><span>${x.index}</span><small>${esc(x.label)}</small></div>
             <h3>${esc(x.headline)}</h3>
@@ -131,7 +125,7 @@ export function homePage(){
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather motion-reveal" aria-labelledby="brand-ecosystem-title">
       <div class="brand-ecosystem__head"><span class="fab-dot-label">Écosystème de production</span><h2 id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain.</h2><p>Matériel de prise de vue, optiques, accessoires et post-production. Ce bloc montre mon environnement de travail, pas une liste de clients.</p></div>
-      <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy" decoding="async"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
+      <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
     <section class="home-pricing v16-pricing motion-reveal" id="pricing" data-pricing-switcher>

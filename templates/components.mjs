@@ -4,7 +4,7 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc', imageWidth='', imageHeight='', bodyClass='' }) {
+export function head({ title, description, path='/', image='https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000', imageAlt='Nolan Arc', imageWidth='', imageHeight='', bodyClass='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const schema = {
     '@context':'https://schema.org',
@@ -41,6 +41,7 @@ ${imageHeight?`<meta property="og:image:height" content="${esc(imageHeight)}">`:
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${image}">
 <meta name="twitter:image:alt" content="${esc(imageAlt)}">
+<link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' : ''}
