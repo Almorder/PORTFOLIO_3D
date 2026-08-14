@@ -1304,8 +1304,14 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
     font-size:14px;
   }
 
-  /* ECOSYSTEM: cards read as separate modules on narrow screens. */
+  /* ECOSYSTEM: cards keep a real gutter on narrow screens. */
   .page-home .brand-ecosystem__grid{
-    gap:8px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:16px;
+    row-gap:16px;
+    padding-inline:2px;
+  }
+  .page-home .brand-ecosystem__grid>div{
+    min-width:0;
   }
 }
