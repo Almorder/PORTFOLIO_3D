@@ -36,8 +36,9 @@ for(const file of htmls){
   if(!html.includes('id="main-content"')) fail(`${rel}: main-content missing`);
   if(!html.includes('class="skip-link"')) fail(`${rel}: skip link missing`);
   if(!html.includes('name="referrer" content="strict-origin-when-cross-origin"')) fail(`${rel}: referrer policy missing`);
-  if(!html.includes('class="site-header fab-header"')) fail(`${rel}: common header missing`);
-  if(!html.includes('class="site-footer fab-footer"')) fail(`${rel}: common footer missing`);
+  const isAdmin=rel==='admin/index.html';
+  if(!isAdmin && !html.includes('class="site-header fab-header"')) fail(`${rel}: common header missing`);
+  if(!isAdmin && !html.includes('class="site-footer fab-footer"')) fail(`${rel}: common footer missing`);
   if(rel==='index.html' && !html.includes('data-brand-preloader')) fail('Home: preloader missing');
   if(rel!=='index.html' && html.includes('data-brand-preloader')) fail(`${rel}: preloader must be Home-only`);
   const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
@@ -51,8 +52,8 @@ for(const file of htmls){
   }
   const cssMatch=html.match(/href="\/(assets\/site\.[a-f0-9]{10}\.css)"/),jsMatch=html.match(/src="\/(assets\/app\.[a-f0-9]{10}\.js)"/);
   if(!cssMatch||!existing.has(cssMatch?.[1])) fail(`${rel}: hashed CSS missing/broken`);
-  if(!jsMatch||!existing.has(jsMatch?.[1])) fail(`${rel}: hashed JS missing/broken`);
-  for(const href of requiredLegalLinks) if(!html.includes(`href="${href}"`)) fail(`${rel}: legal footer link missing ${href}`);
+  if(!isAdmin && (!jsMatch||!existing.has(jsMatch?.[1]))) fail(`${rel}: hashed JS missing/broken`);
+  if(!isAdmin) for(const href of requiredLegalLinks) if(!html.includes(`href="${href}"`)) fail(`${rel}: legal footer link missing ${href}`);
   if(/<iframe[^>]+youtube/i.test(html) && !(rel==='index.html' && html.includes('class="v16-hero__video"'))) fail(`${rel}: YouTube iframe preloaded before user action`);
   if(/animé|anime/i.test(html)) fail(`${rel}: unwanted anime wording found`);
   if(html.includes('site-footer__lead')) fail(`${rel}: obsolete oversized footer CTA found`);
@@ -72,6 +73,8 @@ for(const source of [pagesSource,siteSource,legalSource]){
 const home=await readFile(join(dist,'index.html'),'utf8');
 const adminHtml=await readFile(join(dist,'admin/index.html'),'utf8');
 if(!adminHtml.includes('noindex,nofollow')) fail('Admin: page must be noindex');
+if(!/admin\.js\?v=[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.js must carry a content hash (cache)');
+if(/<script[^>]+src="https?:/i.test(adminHtml)) fail('Admin: no third-party script');
 if(/service_role|sb_secret_/i.test(adminHtml+await readFile(join(root,'public/admin/admin.js'),'utf8')+JSON.stringify(siteData))) fail('Admin: a secret key must never be shipped');
 if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('Admin: must not be in sitemap');
 const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
