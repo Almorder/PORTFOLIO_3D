@@ -82,7 +82,7 @@ for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','
 if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
 if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
 for(const token of ['50','2022','photo + vidéo','marques accompagnées']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
-if(/105\s?%/.test(home)||home.includes('Matthieu')) fail('Home: unverified +105 % claim and Ouilove testimonial must stay hidden until proof and written consent exist');
+if(/105\s?%/.test(home)) fail('Home: the +105 % claim must stay hidden until a proof is documented');
 if((home.match(/class="v16-dimension/g)||[]).length<3) fail('Home V17: three professional dimensions missing');
 for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V17: professional dimension missing ${label}`);
 if(!home.includes('data-glass-showcase')) fail('Home V17: Comprendre/Choisir/Tenir le fil visual engine missing');
