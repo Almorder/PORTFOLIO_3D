@@ -167,7 +167,8 @@ if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V17: Journal
 // WORK — exploration first, projects, compact 3-hat selector.
 if(work.includes('data-video-slide-show')||/images\.unsplash\.com/.test(work.split('<main')[1]||'')) fail('Work: stock mood carousel must not come back (R1: real work only)');
 if((work.match(/data-bento-tile/g)||[]).length!==5||(work.match(/data-bento-focus/g)||[]).length!==5||!work.includes('view-transition-name:bento-4')) fail('Work: bento expects five tiles, each focusable');
-if((work.match(/data-tilt/g)||[]).length!==4||!app.includes("card?.classList.contains('is-playing')")) fail('Work: four tilting phones expected, tilt off while a video plays');
+if((work.match(/data-tilt/g)||[]).length!==4||!app.includes("stage.addEventListener('pointermove'")) fail('Work: four tilting phones expected, tilt driven by the whole section (still works once a video plays)');
+if(!home.includes('v16-testimonial-bento')||!home.includes('is-featured')||!home.includes('class="v16-stars"')) fail('Home: testimonials keep their original card layout');
 if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
 if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');
 if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) fail('Work V17: velocity/inertia slideshow engine missing');
