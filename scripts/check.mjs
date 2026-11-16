@@ -70,6 +70,10 @@ for(const source of [pagesSource,siteSource,legalSource]){
 }
 
 const home=await readFile(join(dist,'index.html'),'utf8');
+const adminHtml=await readFile(join(dist,'admin/index.html'),'utf8');
+if(!adminHtml.includes('noindex,nofollow')) fail('Admin: page must be noindex');
+if(/service_role|sb_secret_/i.test(adminHtml+await readFile(join(root,'public/admin/admin.js'),'utf8')+JSON.stringify(siteData))) fail('Admin: a secret key must never be shipped');
+if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('Admin: must not be in sitemap');
 const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
 if(!home.includes('nolanarc-audience-token" content="1c1cf63d191049d8acc58b62961377c6"')) fail('Audience: token meta missing on home');
 if(/static\.cloudflareinsights\.com/.test(home)) fail('Audience: beacon must not be hard-coded in HTML (opt-out must run first)');

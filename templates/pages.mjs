@@ -333,6 +333,12 @@ export function withdrawalPage(){
   <p class="legal-update">Dernière mise à jour : 16 novembre 2026.</p></article></main>` + footer();
 }
 
+export function adminPage(){
+  return head({title:'Administration — Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-legal page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>') + header() + `<main id="main-content" class="legal-page-shell"><article class="legal-content admin-shell"><span class="eyebrow">Accès réservé</span><h1>Administration</h1>
+  <div class="admin-app" data-admin-app data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
+  </article></main>` + footer().replace('</footer>','</footer><script src="/admin/supabase.js" defer></script><script src="/admin/admin.js" defer></script>');
+}
+
 export function notFoundPage(){
   return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="not-found"><span>404</span><h1>Ce plan<br><em>n’existe pas.</em></h1><a class="button" href="/work/">Retour au Work <span>↗</span></a></main>` + footer();
 }

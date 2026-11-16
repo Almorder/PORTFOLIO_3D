@@ -1336,3 +1336,13 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
 .video-slide-show__dots i{width:9px;height:9px}
 .fab-footer__grid a{display:block;min-height:24px;padding-block:4px}
 .v16-expertise-panels p{color:rgba(8,7,6,.72)}
+
+/* Dashboard admin */
+.admin-app{display:grid;gap:14px;margin-top:24px}.admin-app h2{margin:22px 0 0}
+.admin-button{justify-self:start;font:inherit;font-weight:600;color:#fff;background:#080706;border:1px solid #080706;border-radius:999px;padding:.75em 1.4em;cursor:pointer}.admin-button:hover,.admin-button:focus-visible{background:var(--ember,#cc460c);border-color:var(--ember,#cc460c)}.admin-button:disabled{opacity:.45;cursor:not-allowed}
+.admin-button--ghost{color:inherit;background:transparent;padding:.4em 1em;font-weight:500}
+.admin-who{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:14px}
+.admin-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}.admin-list li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding:12px 16px;border-radius:14px;background:rgba(255,255,255,.6)}.admin-list span{opacity:.7;font-size:14px}
+.admin-row{display:flex;flex-wrap:wrap;gap:10px}.admin-input{flex:1 1 260px;font:inherit;padding:.7em 1em;border:1px solid rgba(8,7,6,.3);border-radius:999px;background:#fff}
+.admin-status{min-height:1.4em;font-size:14px}.admin-status[data-kind=error]{color:#a3180f}.admin-status[data-kind=ok]{color:#1c6b33}.admin-status[data-kind=warn]{color:#8a4b00}
+.page-admin .legal-page-shell{display:block}.admin-shell{max-width:760px;margin-inline:auto}
