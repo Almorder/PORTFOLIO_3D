@@ -124,6 +124,10 @@ if(!home.includes('Une idée. Une direction.')||!home.includes('Un rendu qui tie
 if(/v16-testimonial-bento[\s\S]{0,800}tabindex="0"/.test(home)) fail('Home V20 a11y: testimonial cards must not be keyboard stops');
 for(const id of ['pricing-tab-wedding','pricing-panel-wedding','pricing-tab-direction','pricing-panel-direction','pricing-tab-strategy','pricing-panel-strategy']) if(!home.includes(`id="${id}"`)) fail(`Home V20 a11y: pricing ARIA relation missing ${id}`);
 if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
+if(/if\(!readConsent\(\)\)\s*showConsent\(\)/.test(app)) fail('Home: the video consent must not open by itself (it covered the hero buttons and the mobile dock)');
+if(!home.includes('data-hero-video-toggle')) fail('Home: hero video toggle missing');
+if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Header: no light variant per page (it made the navigation unreadable)');
+if(/<b data-counter data-counter-target="(19|20)\d\d"/.test(home)) fail('Home: a year must not be animated as a counter');
 if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');
 if(!components.includes('role="region"')||!components.includes('aria-labelledby="${esc(id)}-question-${i}"')) fail('V20 a11y: FAQ region relationships missing');
 if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');

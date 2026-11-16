@@ -286,13 +286,15 @@ if(heroVideo && !reduced){
     observer.observe(heroVideo);
   }else mountHeroVideo();
   document.addEventListener('visibilitychange',()=>document.hidden?unmountHeroVideo():visible&&mountHeroVideo());
-  if(!readConsent()) showConsent();
-  else if(readConsent()==='accepted') mountHeroVideo();
+  // Pas de bandeau imposé : le visiteur active le fond vidéo depuis le bouton du hero ou le footer.
+  if(readConsent()==='accepted') mountHeroVideo();
 }
 
+const syncVideoToggle=()=>$$('[data-hero-video-toggle]').forEach(button=>button.setAttribute('aria-pressed',String(readConsent()==='accepted')));
+syncVideoToggle();
 consentBox?.addEventListener('click',event=>{
-  if(event.target.closest('[data-cookie-accept]')){writeConsent('accepted');hideConsent();mountHeroVideo();}
-  if(event.target.closest('[data-cookie-reject]')){writeConsent('rejected');unmountHeroVideo();hideConsent();}
+  if(event.target.closest('[data-cookie-accept]')){writeConsent('accepted');hideConsent();mountHeroVideo();syncVideoToggle();}
+  if(event.target.closest('[data-cookie-reject]')){writeConsent('rejected');unmountHeroVideo();hideConsent();syncVideoToggle();}
 });
 $$('[data-cookie-settings]').forEach(button=>button.addEventListener('click',()=>{unmountHeroVideo();showConsent();}));
 
@@ -408,7 +410,7 @@ $$('[data-animated-stats]').forEach(section=>{
       const decimals=Math.max(0,Number(counter.dataset.counterDecimals||0));
       card.classList.remove('is-stat-visible');
       card.classList.add('is-stat-prep');
-      counter.textContent=(0).toFixed(decimals);
+      if(!counter.hasAttribute('data-counter-static')) counter.textContent=(0).toFixed(decimals);
     });
   };
   const run=()=>{
@@ -425,7 +427,7 @@ $$('[data-animated-stats]').forEach(section=>{
         if(token!==runToken) return;
         card.classList.remove('is-stat-prep');
         card.classList.add('is-stat-visible');
-        if(reduced){counter.textContent=target.toFixed(decimals);return;}
+        if(reduced||counter.hasAttribute('data-counter-static')){counter.textContent=target.toFixed(decimals);if(index===cards.length-1){running=false;section.classList.remove('is-animating');}return;}
         const started=performance.now(),duration=1320;
         const tick=now=>{
           if(token!==runToken) return;
