@@ -359,6 +359,14 @@ $$('[data-external-video]').forEach(gate=>{
 });
 
 // Instagram posts are embedded only after an explicit click on the card.
+const igFrames=new WeakMap();
+addEventListener('message',event=>{
+  if(event.origin!=='https://www.instagram.com') return;
+  let data=event.data; try{ if(typeof data==='string') data=JSON.parse(data); }catch{ return; }
+  const height=data?.type==='MEASURE'?Number(data.details?.height):0;
+  const frame=igFrames.get(event.source);
+  if(frame && height>100 && height<2000) frame.style.height=`${Math.ceil(height)}px`;
+});
 $$('[data-instagram-post]').forEach(card=>{
   const button=$('[data-load-instagram]',card);
   button?.addEventListener('click',()=>{
@@ -372,6 +380,7 @@ $$('[data-instagram-post]').forEach(card=>{
     iframe.referrerPolicy='strict-origin-when-cross-origin';
     card.classList.add('is-playing');
     $('.ig-card__cover',card).replaceChildren(iframe);
+    igFrames.set(iframe.contentWindow,iframe);
   },{once:true});
 });
 
