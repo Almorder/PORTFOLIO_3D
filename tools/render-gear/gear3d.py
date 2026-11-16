@@ -299,7 +299,7 @@ def earbuds(L):
     bud(-1); bud(1)
 
 
-def tablet(L, screen_png=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screen.png')):
+def tablet(L, screen_png='/tmp/r3d/screen.png'):
     """Grande tablette, écran allumé sur un storyboard, stylet posé à côté."""
     rslab('chassis', 0.3264, 0.2086, 0.0052, 0.0125, L['ano'], 0.0, bevel=0.0016, segs=4)
     rslab('glass', 0.3240, 0.2062, 0.0006, 0.0115, L['gloss'], 0.0051, bevel=0.0003)
@@ -403,6 +403,38 @@ def mat_board(L, size=(0.90, 0.75)):
     o.data.materials.append(m)
 
 
+def phone(L):
+    """Téléphone générique posé à plat. L'écran est rendu transparent : la page y place la vidéo."""
+    ti = grain(mat('titanium', '#2b2a29', 0.34, 1.0, aniso=0.4), 3200, 0.05, 2, 0.0001, 0.05)
+    rslab('body', 0.0745, 0.158, 0.0078, 0.0118, ti, 0.0, bevel=0.0014, segs=5)
+    rslab('glass', 0.0733, 0.1568, 0.0005, 0.0112, L['gloss'], 0.0077, bevel=0.0002)
+    hm = bpy.data.materials.new('holdout'); hm.use_nodes = True; nt = hm.node_tree
+    out = next(n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL'); ho = nt.nodes.new('ShaderNodeHoldout')
+    nt.links.new(ho.outputs[0], out.inputs['Surface'])
+    rslab('screen', 0.0695, 0.153, 0.0002, 0.0092, hm, 0.00825, bevel=None)
+    box('power', (0.0014, 0.013, 0.0030), (0.0377, 0.028, 0.0040), ti, 0.0005)
+    box('volup', (0.0014, 0.009, 0.0030), (-0.0377, 0.040, 0.0040), ti, 0.0005)
+    box('voldown', (0.0014, 0.009, 0.0030), (-0.0377, 0.027, 0.0040), ti, 0.0005)
+
+
+def stage(L):
+    """Table rouge profond éclairée par un seul disque de lumière chaude : le décor des vidéos sociales."""
+    bpy.ops.mesh.primitive_plane_add(size=1); o = bpy.context.object; o.scale = (1.40, 1.00, 1)
+    bpy.ops.object.transform_apply(scale=True)
+    m = mat('stage', '#8c1407', 0.62, sheen=0.15, spec=0.15); nt = m.node_tree; b = bsdf(m)
+    tc = nt.nodes.new('ShaderNodeTexCoord'); nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 3.0; nz.inputs['Detail'].default_value = 6.0
+    nt.links.new(tc.outputs['Object'], nz.inputs['Vector'])
+    mix = nt.nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.inputs['A'].default_value = lin('#a81505'); mix.inputs['B'].default_value = lin('#d02c0a')
+    nt.links.new(nz.outputs[0], mix.inputs['Factor']); nt.links.new(mix.outputs['Result'], b.inputs['Base Color'])
+    fine = nt.nodes.new('ShaderNodeTexNoise'); fine.inputs['Scale'].default_value = 1800.0; fine.inputs['Detail'].default_value = 4.0
+    nt.links.new(tc.outputs['Object'], fine.inputs['Vector'])
+    bp = nt.nodes.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = 0.3; bp.inputs['Distance'].default_value = 0.0003
+    nt.links.new(fine.outputs[0], bp.inputs['Height']); nt.links.new(bp.outputs['Normal'], b.inputs['Normal'])
+    o.data.materials.append(m)
+    bpy.ops.object.light_add(type='SPOT', location=(0.0, 0.05, 1.25)); sp = bpy.context.object
+    sp.data.energy = 88 * K / 0.15; sp.data.spot_size = R(64); sp.data.spot_blend = 0.85; sp.data.shadow_soft_size = 0.2; sp.data.color = (1.0, 0.86, 0.72)
+
+
 # ---------------------------------------------------------------- scène, lumière, rendu
 def setup(samples, transparent=True):
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -439,8 +471,10 @@ def bounds():
     return lo, hi
 
 
-def render(name, build, px, samples, catcher=True, margin=0.16, exposure=0.0, dscale=2.2, rot_z=0.0):
+def render(name, build, px, samples, catcher=True, margin=0.16, exposure=0.0, dscale=2.2, rot_z=0.0, studio=1.0, catch_color='#c9430b', ambient=0.22):
     t = time.time(); s = setup(samples, transparent=catcher)
+    bgn = next((n for n in s.world.node_tree.nodes if n.type == 'BACKGROUND'), None)
+    if bgn: bgn.inputs[1].default_value = ambient
     L = library(); build(L)
     if rot_z:
         bpy.ops.object.empty_add(location=(0, 0, 0)); pivot = bpy.context.object
@@ -452,15 +486,15 @@ def render(name, build, px, samples, catcher=True, margin=0.16, exposure=0.0, ds
     if catcher:
         # plan qui reçoit l'ombre ; sa teinte orange renvoie la couleur du tapis sous les objets
         bpy.ops.mesh.primitive_plane_add(size=6, location=(cx, cy, 0)); p = bpy.context.object; p['catcher'] = 1
-        p.is_shadow_catcher = True; p.data.materials.append(mat('catch', '#c9430b', 0.7))
+        p.is_shadow_catcher = True; p.data.materials.append(mat('catch', catch_color, 0.7))
         pad = margin * span + 0.012 + hi.z * 0.55
         w2, h2 = w + 2 * pad, h + 2 * pad; ox, oy = cx + hi.z * 0.22, cy - hi.z * 0.22   # l'ombre part en bas à droite
     else:
         w2, h2, ox, oy = w, h, cx, cy
     d = max(span * dscale, 0.5)
-    light('key', (cx - d * 0.62, cy + d * 0.55, d * 1.05), (cx, cy, 0), 95 * d * d, d * 0.85, (1.0, 0.96, 0.9))
-    light('fill', (cx + d * 0.8, cy - d * 0.5, d * 0.9), (cx, cy, 0), 16 * d * d, d * 1.6, (0.9, 0.94, 1.0))
-    light('top', (cx, cy, d * 1.6), (cx, cy, 0), 22 * d * d, d * 2.2)
+    light('key', (cx - d * 0.62, cy + d * 0.55, d * 1.05), (cx, cy, 0), 95 * d * d * studio, d * 0.85, (1.0, 0.96, 0.9))
+    light('fill', (cx + d * 0.8, cy - d * 0.5, d * 0.9), (cx, cy, 0), 16 * d * d * studio, d * 1.6, (0.9, 0.94, 1.0))
+    light('top', (cx, cy, d * 1.6), (cx, cy, 0), 22 * d * d * studio, d * 2.2)
     bpy.ops.object.camera_add(location=(ox, oy, 3.0)); c = bpy.context.object; c.data.type = 'ORTHO'; c.data.clip_end = 10
     if w2 >= h2: s.render.resolution_x = px; s.render.resolution_y = max(8, round(px * h2 / w2)); c.data.ortho_scale = w2
     else: s.render.resolution_y = px; s.render.resolution_x = max(8, round(px * w2 / h2)); c.data.ortho_scale = h2
@@ -483,6 +517,8 @@ JOBS = {
     'strip-1': lambda px, sp: render('strip-1', lambda L: strip(L, '#070606', 0.150, 0.040, 11), round(px * SIZE['strip']), sp, margin=0.06),
     'strip-2': lambda px, sp: render('strip-2', lambda L: strip(L, '#f3eee4', 0.250, 0.032, 23), round(px * SIZE['strip']), sp, margin=0.05),
     'strip-3': lambda px, sp: render('strip-3', lambda L: strip(L, '#f8f4ed', 0.200, 0.042, 37), round(px * SIZE['strip']), sp, margin=0.05),
+    'phone': lambda px, sp: render('phone', phone, round(px * 1.3), sp, catch_color='#8c1407'),
+    'stage': lambda px, sp: render('stage', stage, round(px * 1.74), max(24, sp // 2), catcher=False, studio=0.0, ambient=0.02),
     'mat': lambda px, sp: render('mat', mat_board, round(px * SIZE['mat']), max(24, sp // 2), catcher=False, dscale=1.15),
     'mat-mobile': lambda px, sp: render('mat-mobile', lambda L: mat_board(L, (0.47, 1.0105)), round(px * 1.75), max(24, sp // 2), catcher=False, dscale=1.15),
 }
