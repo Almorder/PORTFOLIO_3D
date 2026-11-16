@@ -211,7 +211,7 @@ const audienceOptedOut=()=>{
   return navigator.doNotTrack==='1'||window.doNotTrack==='1'||navigator.globalPrivacyControl===true;
 };
 const audienceToken=document.querySelector('meta[name="nolanarc-audience-token"]')?.content;
-if(audienceToken && !audienceOptedOut()){
+if(audienceToken && !audienceOptedOut() && !location.pathname.startsWith('/admin')){
   const beacon=document.createElement('script');
   beacon.defer=true;
   beacon.src='https://static.cloudflareinsights.com/beacon.min.js';

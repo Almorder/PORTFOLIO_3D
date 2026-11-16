@@ -2,7 +2,7 @@ import { rm, mkdir, writeFile, cp, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { homePage, workPage, projectPage, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage } from '../templates/pages.mjs';
+import { homePage, workPage, projectPage, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage, adminPage } from '../templates/pages.mjs';
 import { site } from '../content/site.mjs';
 
 const root=new URL('../',import.meta.url).pathname;
@@ -26,6 +26,7 @@ const pages = new Map([
   ['cookies/index.html',cookiesPage()],
   ['cgv/index.html',cgvPage()],
   ['retractation/index.html',withdrawalPage()],
+  ['admin/index.html',adminPage()],
   ['404/index.html',notFoundPage()],
   ['404.html',notFoundPage()]
 ]);
@@ -43,6 +44,12 @@ for(const [file,rawHtml] of pages){
 await writeFile(join(out,cssAsset),cssSource,'utf8');
 await writeFile(join(out,jsAsset),jsSource,'utf8');
 await writeFile(join(out,'.nojekyll'),'','utf8');
+// Contenu actuel du site, importable dans les brouillons du dashboard (données déjà publiques).
+const { projects } = await import('../content/projects.mjs');
+const { instagramPosts } = await import('../content/instagram.mjs');
+const { legal } = await import('../content/legal.mjs');
+const { testimonials, ...siteSettings } = site;
+await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: instagramPosts, legal, site: siteSettings }),'utf8');
 
 const redirects = {
   'ma-demarche.html':'/a-propos/',

@@ -10,6 +10,8 @@ export const site = {
   location: 'France · disponible partout',
   responseTime: 'Réponse sous 48 h ouvrées',
   domain: 'https://nolanarc.com',
+  supabaseUrl: 'https://gpvmnwidbazvaleuviyr.supabase.co',
+  supabasePublishableKey: 'sb_publishable_6E-y01ooFXCQ96uEr9p_ug_1cbtf9-a', // clé publique, protégée par les règles RLS
   analyticsToken: '1c1cf63d191049d8acc58b62961377c6',
   clients: ['Ouilove Proposal', 'A One Permis', 'Carat Créations Paris', 'Reka Security'],
   testimonials: [
