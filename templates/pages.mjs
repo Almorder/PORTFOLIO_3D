@@ -5,6 +5,7 @@ import { legal } from '../content/legal.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
 
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
+const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 const visuals = {
   brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
   story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
@@ -82,9 +83,7 @@ export function homePage(){
       <header class="fab-section-heading motion-reveal"><div><small>(01)</small><h2>Work.</h2><span>sélection</span></div><p>Le projet parle d’abord. Si vous voulez aller plus loin, la fiche donne simplement mon rôle, le contexte et les choix qui ont compté.</p></header>
       <div class="fab-project-grid">
         <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/?expertise=direction"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration temporaire du projet Ouilove Proposal" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/?expertise=strategie"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu & stratégie</i></div><figure><img src="${visuals.story}" alt="Illustration temporaire du projet A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-        <a class="fab-project-card motion-reveal" href="/services/?expertise=realisation"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Réalisation</i></div><figure><img src="${visuals.moment}" alt="Illustration temporaire de films de moments" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+        ${projectCards}
       </div>
       <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
     </section>
@@ -167,9 +166,7 @@ export function workPage(){
     ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'Références visuelles',heading:'Explorer une direction, pas répéter un seul projet.',intro:'Faites glisser les cartes. Ces images d’ambiance servent uniquement à illustrer le carrousel ; elles ne sont pas présentées comme mes réalisations.'})}
     <section class="fab-work-grid v16-project-gallery">
       <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/?expertise=direction"><div class="fab-project-card__meta"><strong>Ouilove Proposal.</strong><span>/2024</span><i>Direction artistique</i></div><figure><img src="${visuals.brand}" alt="Illustration temporaire Ouilove Proposal" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/?expertise=strategie"><div class="fab-project-card__meta"><strong>A One Permis.</strong><span>/2024</span><i>Contenu & stratégie</i></div><figure><img src="${visuals.story}" alt="Illustration temporaire A One Permis" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
-      <a class="fab-project-card motion-reveal" href="/services/?expertise=realisation"><div class="fab-project-card__meta"><strong>Moments.</strong><span>/2025</span><i>Réalisation</i></div><figure><img src="${visuals.moment}" alt="Illustration temporaire Films de moments" loading="lazy"><span>Voir le contexte ↗</span></figure></a>
+      ${projectCards}
     </section>
     <section class="v16-expertise-switcher motion-reveal" data-expertise-switcher>
       <header><span class="fab-dot-label">Trois casquettes</span><h2>Choisissez celle qui vous concerne.</h2></header>

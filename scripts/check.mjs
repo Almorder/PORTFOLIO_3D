@@ -2,6 +2,8 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { legalRequiredFields } from '../content/legal.mjs';
+import { site as siteData } from '../content/site.mjs';
+import { projects as projectData } from '../content/projects.mjs';
 
 const root=new URL('../',import.meta.url).pathname;
 const dist=join(root,'dist');
@@ -122,7 +124,11 @@ for(const src of ['photo-1727451139462-cd34008cd50b','photo-1709316132989-55ef24
 if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
 if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');
 if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.velocity*240')||!app.includes('steps=clamp(steps,-3,3)')) fail('Work V17: velocity/inertia slideshow engine missing');
-if((work.match(/class="fab-project-card/g)||[]).length<4) fail('Work V17: temporary project gallery incomplete');
+const visibleCards=1+projectData.filter(p=>p.visible&&p.card&&p.card.image).length;
+if((work.match(/<a class="fab-project-card[\s"]/g)||[]).length!==visibleCards) fail(`Work: ${visibleCards} carte(s) projet attendue(s) (projets visibles), trouvé autre chose`);
+if((home.match(/<a class="fab-project-card[\s"]/g)||[]).length!==visibleCards) fail(`Home: ${visibleCards} carte(s) projet attendue(s) (projets visibles), trouvé autre chose`);
+for(const p of projectData){ if(p.visible&&p.slug!=='le-bol-den-face'&&!(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))) fail(`Projet « ${p.title} » visible sans média réel (R1) : mettre card.image réel ou visible:false`); }
+for(const file of htmls){ if(/Illustration temporaire/i.test(await readFile(file,'utf8'))) fail(`Placeholder « Illustration temporaire » visible (${relative(dist,file)}) — R1`); }
 if(!work.includes('data-expertise-switcher')||(work.match(/data-expertise-tab=/g)||[]).length!==3||(work.match(/data-expertise-panel=/g)||[]).length!==3) fail('Work V17: compact three-expertise switcher incomplete');
 if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
@@ -172,6 +178,17 @@ if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route p
 
 // Form wiring and external-content restraint.
 for(const page of [home,contact]) if(!page.includes('https://formsubmit.co/ajax/')||!page.includes('name="_honey"')||!page.includes('href="/confidentialite/"')) fail('Forms V17: FormSubmit/privacy guard incomplete');
+
+// Données structurées et aperçus de lien : JSON-LD valide, sans email en clair, jamais de photo de stock comme image de partage.
+for(const file of htmls){
+  const html=await readFile(file,'utf8'),label=relative(dist,file);
+  for(const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)){
+    try{JSON.parse(m[1])}catch{fail(`JSON-LD invalide : ${label}`);continue}
+    if(m[1].includes('mailto:')||m[1].includes(siteData.email)) fail(`JSON-LD : email publié en clair (${label})`);
+  }
+  const og=html.match(/property="og:image" content="([^"]+)"/)?.[1];
+  if(og&&/images\.unsplash\.com/.test(og)) fail(`Image de partage = photo de stock (${label}) : utiliser un visuel Nolan Arc`);
+}
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 if(/mediator:\s*\{[\s\S]*?name:\s*''/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — consumer mediator is not configured; complete adhesion before concluding B2C contracts.');

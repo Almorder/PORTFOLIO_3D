@@ -11,6 +11,7 @@ export const projects = [
     format: '16:9 · 4K UHD',
     camera: 'Lumix S1 II',
     status: 'verified',
+visible: true,
     href: '/projet/le-bol-den-face/',
     videoId: 'GbeOQ-hgrtU',
     poster: 'https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg',
@@ -41,6 +42,8 @@ export const projects = [
     year: '2024',
     context: 'Ouilove Proposal',
     status: 'partial',
+visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
+card: { href: '/services/?expertise=direction', label: 'Direction artistique', image: '', alt: '' },
     href: '/services/#ouilove-proof',
     summary: 'Direction artistique pour Ouilove Proposal : cadrer le message et maintenir une cohérence visuelle jusqu’au rendu.'
   },
@@ -53,6 +56,8 @@ export const projects = [
     year: '2024',
     context: 'A One Permis',
     status: 'partial',
+visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
+card: { href: '/services/?expertise=strategie', label: 'Contenu & stratégie', image: '', alt: '' },
     href: '/services/#marques',
     summary: 'Création de contenus sociaux pensés pour les usages de A One Permis, de la préparation au rendu.'
   },
@@ -65,6 +70,8 @@ export const projects = [
     year: '2025',
     context: 'Mariages · demandes · événements',
     status: 'partial',
+visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
+card: { href: '/services/?expertise=realisation', label: 'Réalisation', image: '', alt: '' },
     href: '/services/#moments',
     summary: 'Préparer les moments clés, capter sans interrompre et construire un film cohérent à partir de ce qui s’est réellement passé.'
   }
