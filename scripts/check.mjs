@@ -71,10 +71,14 @@ for(const source of [pagesSource,siteSource,legalSource]){
 }
 
 const home=await readFile(join(dist,'index.html'),'utf8');
-// Planche matériel : six objets dessinés, aucune image externe ni fichier image.
+// Planche matériel : six objets rendus en 3D, servis par le site (aucune ressource externe).
 const gearHtml=home.slice(home.indexOf('data-gear-board'),home.indexOf('brand-ecosystem__head'));
 if((gearHtml.match(/class="gear-item /g)||[]).length!==6) fail('Home: gear board must show six items');
-if(/<img|https?:\/\//.test(gearHtml)) fail('Home: gear board must not load any image file or external resource');
+if(/https?:\/\//.test(gearHtml)) fail('Home: gear board must not load any external resource');
+for(const m of gearHtml.matchAll(/<img src="([^"]+)"/g)){
+  if(!m[1].startsWith('/assets/gear/')||!existing.has(m[1].slice(1))) fail(`Home: gear visual missing or outside /assets/gear/ (${m[1]})`);
+}
+for(const file of ['assets/gear/mat.webp','assets/gear/mat-mobile.webp','assets/gear/strip-1.webp','assets/gear/strip-2.webp','assets/gear/strip-3.webp']) if(!existing.has(file)) fail(`Home: gear board asset missing (${file})`);
 // Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
 const {weddingPhotos}=await import('../content/wedding.mjs');
 if(!weddingPhotos.length && home.includes('class="wedding-wall')) fail('Home: wedding wall must stay hidden until real photos are provided');
