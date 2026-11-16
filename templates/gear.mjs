@@ -2,10 +2,21 @@ import { gearItems, gearNotes, gearTitle, gearBoardMm } from '../content/gear.mj
 import { gearAssets } from '../content/gear-assets.mjs';
 
 const esc = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const pct = value => `${Math.round(value * 100) / 100}%`;
+const round = value => Math.round(value * 100) / 100;
+const ASPECT = { desk: 16 / 8.4, mobile: 10 / 24 };   // largeur ÷ hauteur de la planche (voir .gear-board)
 // Largeur à l'écran = taille réelle × coefficient ÷ largeur réelle de la planche.
-const width = (asset, scale, layout) => pct(asset.mm * scale / gearBoardMm[layout] * 100);
-const place = (asset, scale, desk, mobile, index) => `--x:${desk.x}%;--y:${desk.y}%;--w:${width(asset, scale, 'desk')};--mx:${mobile.x}%;--my:${mobile.y}%;--mw:${width(asset, scale, 'mobile')};--i:${index}`;
+// x, y désignent le coin haut-gauche de l'objet lui-même : on retire la marge que l'ombre ajoute au visuel.
+const layout = (asset, scale, pos, mode) => {
+  const w = asset.mm * scale / gearBoardMm[mode] * 100;
+  const h = w * asset.h / asset.w * ASPECT[mode];
+  const [bx, by] = asset.box || [0, 0];
+  return { x: round(pos.x - bx * w), y: round(pos.y - by * h), w: round(w) };
+};
+const place = (asset, scale, desk, mobile, index) => {
+  const d = layout(asset, scale, desk, 'desk'), m = layout(asset, mobile.scale || scale, mobile, 'mobile');
+  const [bx, by, bw, bh] = asset.box || [0, 0, 1, 1];
+  return `--x:${d.x}%;--y:${d.y}%;--w:${d.w}%;--mx:${m.x}%;--my:${m.y}%;--mw:${m.w}%;--bx:${round(bx * 100)}%;--by:${round(by * 100)}%;--bw:${round(bw * 100)}%;--bh:${round(bh * 100)}%;--i:${index}`;
+};
 const img = (name, asset) => `<img src="/assets/gear/${name}.webp" alt="" width="${asset.w}" height="${asset.h}" loading="lazy" decoding="async">`;
 
 // La planche : un tapis de découpe orange, le matériel rendu en 3D posé dessus, le titre en bandes de papier déchiré.

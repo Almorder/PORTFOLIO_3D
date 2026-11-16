@@ -1321,7 +1321,7 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
 
 .legal-optout{font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:999px;padding:.7em 1.3em;cursor:pointer}.legal-optout:hover,.legal-optout:focus-visible{background:rgba(255,255,255,.08)}
 
-.ig-section{padding:56px var(--page) 80px}.ig-section header{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-bottom:28px}.ig-section header .fab-dot-label{flex-basis:100%}.ig-section h2{margin:0}
+.ig-section{padding:56px var(--page) 80px}.ig-section header{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-bottom:28px}.ig-section header .fab-dot-label{flex-basis:100%}.ig-section h2{margin:0;font:500 clamp(48px,6.400vw,104px)/.86 var(--serif);letter-spacing:-.045em}
 .ig-info{display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid currentColor;border-radius:50%;font-size:12px;font-style:italic;opacity:.4;text-decoration:none}.ig-info:hover,.ig-info:focus-visible{opacity:.9}
 .ig-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,326px),400px));justify-content:center;gap:22px}
 .ig-card{display:flex;flex-direction:column;gap:8px}
@@ -1416,12 +1416,12 @@ body.page-home .v16-logo-card small{text-align:center}
 .gear-item,.gear-note{position:absolute;left:var(--x);top:var(--y);width:var(--w)}
 .gear-item{z-index:2}
 .gear-item img,.gear-note img{display:block;width:100%;height:auto}
-.gear-tag{position:absolute;z-index:1;left:50%;top:100%;translate:-50% -4px;margin:0;display:grid;gap:3px;padding:7px 11px 8px;white-space:nowrap;border-radius:2px;background:linear-gradient(175deg,#fbf8f2,#ebe4d8);color:#080706;font:500 11px/1.1 var(--body);box-shadow:0 1px 1px rgba(40,10,0,.35),3px 6px 10px -2px rgba(40,10,0,.45)}
+.gear-tag{position:absolute;z-index:1;left:calc(var(--bx) + var(--bw) / 2);top:calc(var(--by) + var(--bh));translate:-50% 8px;margin:0;display:grid;gap:3px;padding:7px 11px 8px;white-space:nowrap;border-radius:2px;background:linear-gradient(175deg,#fbf8f2,#ebe4d8);color:#080706;font:500 11px/1.1 var(--body);box-shadow:0 1px 1px rgba(40,10,0,.35),3px 6px 10px -2px rgba(40,10,0,.45)}
 .gear-tag b{font:700 12px/1.1 var(--ui)}
-.gear-tag--right .gear-tag{left:100%;top:50%;translate:6px -50%}
-.gear-tag--left .gear-tag{left:auto;right:100%;top:50%;translate:-6px -50%}
-.gear-tag--inside .gear-tag{left:28%;top:auto;bottom:7%;translate:-50% 0}
-.gear-title{position:absolute;z-index:3;left:39%;top:47%;margin:0;display:flex;flex-direction:column;align-items:flex-start;font:500 4.600cqw/1 var(--serif);letter-spacing:-.035em}
+.gear-tag--right .gear-tag{left:calc(var(--bx) + var(--bw));top:calc(var(--by) + var(--bh) / 2);translate:10px -50%}
+.gear-tag--left .gear-tag{left:var(--bx);top:calc(var(--by) + var(--bh) / 2);translate:calc(-100% - 10px) -50%}
+.gear-tag--inside .gear-tag{left:calc(var(--bx) + var(--bw) * .3);top:calc(var(--by) + var(--bh));translate:-50% -60%}
+.gear-title{position:absolute;z-index:3;left:37%;top:47%;margin:0;display:flex;flex-direction:column;align-items:flex-start;font:500 4.600cqw/1 var(--serif);letter-spacing:-.035em}
 .gear-strip{position:relative;display:block}
 .gear-strip>span{position:relative;display:block;padding:.3em .62em .4em;white-space:nowrap}
 .gear-strip>span::before{content:"";position:absolute;z-index:-1;left:0;top:0;width:calc(100% / var(--pw));height:calc(100% / var(--ph));background:center/100% 100% no-repeat}
@@ -1438,14 +1438,14 @@ body.page-home .v16-logo-card small{text-align:center}
 .gear-section .brand-ecosystem__head p{max-width:66ch;margin:0;font-size:14px;line-height:1.55;opacity:.72}
 .gear-section .brand-ecosystem__grid{max-width:1560px;margin-inline:auto;padding-inline:clamp(10px,2vw,28px)}
 @media(max-width:760px){
-  .gear-board{aspect-ratio:10/21.500;border-radius:22px;background-image:url(/assets/gear/mat-mobile.webp)}
+  .gear-board{aspect-ratio:10/24;border-radius:22px;background-image:url(/assets/gear/mat-mobile.webp);background-size:cover}
   .gear-item,.gear-note{left:var(--mx);top:var(--my);width:var(--mw)}
-  .gear-title{left:5%;top:26%;font-size:11.800cqw}
-  .gear-note i{font-size:4.500cqw}
-  .gear-item .gear-tag{left:50%;right:auto;top:100%;bottom:auto;translate:-50% -4px;padding:6px 9px 7px}
-  .gear-mtag--inside .gear-tag{left:30%;top:auto;bottom:5%;translate:-50% 0}
-  .gear-mtag--left .gear-tag{left:auto;right:88%;top:76%;translate:0 -50%}
-  .gear-mtag--right .gear-tag{left:100%;top:50%;translate:6px -50%}
+  .gear-title{left:5%;top:24.500%;font-size:11.800cqw}
+  .gear-note i{font-size:3.900cqw}
+  .gear-item .gear-tag{left:calc(var(--bx) + var(--bw) / 2);top:calc(var(--by) + var(--bh));translate:-50% 6px;padding:6px 9px 7px}
+  .gear-mtag--inside .gear-tag{left:calc(var(--bx) + var(--bw) * .32);translate:-50% -60%}
+  .gear-mtag--left .gear-tag{left:var(--bx);top:calc(var(--by) + var(--bh) * .8);translate:calc(-100% - 6px) -50%}
+  .gear-mtag--right .gear-tag{left:calc(var(--bx) + var(--bw));top:calc(var(--by) + var(--bh) / 2);translate:8px -50%}
 }
 
 /* ================= Mariage : polaroids (accueil) et prestations (Services) =================
