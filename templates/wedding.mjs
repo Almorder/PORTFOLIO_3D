@@ -4,14 +4,15 @@ const esc = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const tilts = [-7, 3, 8, -4, 6, -2];
 const offerHref = photo => `/services/#${(weddingOffers[photo.offer] || weddingOffers.mariage).id}`;
 
-const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}"><img src="${esc(photo.src)}" alt="${esc(photo.alt || '')}" loading="lazy" decoding="async"><span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
+const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}<span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
 
 // Accueil : un grand titre cliquable et trois polaroids. Rien n'est rendu tant qu'aucune photo n'est fournie.
 export function weddingWall() {
-  if (!weddingPhotos.length) return '';
+  // Sans photo fournie : trois polaroids aux tons de la DA, sans fausse image, qui mènent déjà aux prestations.
+  const photos = weddingPhotos.length ? weddingPhotos.slice(0, 3) : [{ offer: 'mariage' }, { offer: 'demande' }, { offer: 'mariage', caption: 'Le jour J' }];
   return `<section class="wedding-wall motion-reveal" aria-labelledby="wedding-wall-title">
       <h2 class="wedding-wall__title" id="wedding-wall-title"><a href="/services/#mariage">Mariage<span class="sr-only"> : voir les prestations mariage et demande en mariage</span></a></h2>
-      <ul class="wedding-wall__photos">${weddingPhotos.slice(0, 3).map(polaroid).join('')}</ul>
+      <ul class="wedding-wall__photos">${photos.map(polaroid).join('')}</ul>
       <p class="wedding-wall__hint">Choisissez une photo pour voir la prestation</p>
     </section>`;
 }

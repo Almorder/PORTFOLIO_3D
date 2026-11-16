@@ -657,13 +657,20 @@ $$('[data-hero-stack]').forEach(stack=>{
   update();
 });
 
-// Accueil, « Trois dimensions » : une entrée ouverte à la fois.
-$$('[data-dims]').forEach(list=>{
-  const rows=$$('[data-dim]',list);
-  rows.forEach(row=>$('button',row)?.addEventListener('click',()=>{
-    const open=!row.classList.contains('is-open');
-    rows.forEach(other=>{const on=other===row&&open;other.classList.toggle('is-open',on);$('button',other)?.setAttribute('aria-expanded',String(on));});
-  }));
+// Accueil, « Comment je travaille » : un anneau en trois arcs ; survol, clic ou clavier choisit l'étape.
+$$('[data-ring]').forEach(ring=>{
+  const arcs=$$('[data-ring-arc]',ring), steps=$$('[data-ring-step]',ring), panels=$$('[data-ring-panel]',ring);
+  const count=$('[data-ring-count]',ring), name=$('[data-ring-name]',ring);
+  const select=index=>{
+    arcs.forEach((arc,i)=>arc.classList.toggle('is-active',i===index));
+    steps.forEach((step,i)=>step.setAttribute('aria-pressed',String(i===index)));
+    panels.forEach((panel,i)=>panel.classList.toggle('is-active',i===index));
+    if(count) count.textContent=String(index+1);
+    if(name) name.textContent=steps[index]?.textContent.trim()||'';
+  };
+  arcs.forEach((arc,i)=>{arc.addEventListener('pointerenter',()=>select(i));arc.addEventListener('click',()=>select(i));});
+  steps.forEach((step,i)=>{step.addEventListener('click',()=>select(i));step.addEventListener('pointerenter',()=>select(i));step.addEventListener('focus',()=>select(i));});
+  select(0);
 });
 
 // Reveal elements only when JS is present; no content is hidden without JS.

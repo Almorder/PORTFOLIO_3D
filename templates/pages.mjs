@@ -17,9 +17,9 @@ const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
 const dimNeeds = {
-  realisation: { need: 'J’ai un film à faire.', price: 'Film de mariage à partir de 1 500 €. Autres films sur devis.' },
-  direction: { need: 'J’ai un univers à rendre cohérent.', price: 'Interventions ciblées dès 200 €.' },
-  strategie: { need: 'J’ai une marque à clarifier.', price: 'Session ciblée à 89 € de l’heure. Accompagnement sur devis.' },
+  realisation: { need: 'J’ai un film à faire.', price: 'Mariage dès 1 500 €' },
+  direction: { need: 'J’ai un univers à rendre cohérent.', price: 'Dès 200 €' },
+  strategie: { need: 'J’ai une marque à clarifier.', price: '89 € / h' },
 };
 const bentoTiles = [
   { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face — court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
@@ -95,8 +95,7 @@ export function homePage(){
       <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
-        <p class="v20-hero__line">Une idée. Une direction.<br><strong>Un rendu qui tient jusqu’au bout.</strong></p>
-        <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
+        <p class="hero-roles">Réalisation, direction artistique<br>et stratégie de marque</p>
         <div class="v16-hero__actions"><a class="is-primary" href="#work-preview">Voir le Work <span aria-hidden="true">↓</span></a><a href="#quick-contact">Parler d’un projet <span aria-hidden="true">↗</span></a></div>
       </div>
       <button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>
@@ -121,29 +120,37 @@ export function homePage(){
     </section>
 
     <section class="dims" id="dimensions" aria-labelledby="dims-title">
-      <header class="dims__head motion-reveal"><h2 id="dims-title">Trois dimensions.<br><em>Une seule vision.</em></h2><p>Partez de votre besoin. Chaque entrée dit ce que je fais, ce que ça change pour vous et à partir de quel budget.</p></header>
-      <div class="dims__list" data-dims>
-        ${expertiseTabs.map((x,i)=>`<article class="dims__row motion-reveal${i===0?' is-open':''}" data-dim>
-          <h3><button type="button" id="dim-tab-${esc(x.key)}" aria-expanded="${i===0?'true':'false'}" aria-controls="dim-panel-${esc(x.key)}"><span class="dims__need">${esc(dimNeeds[x.key].need)}</span><span class="dims__label">${esc(x.label)}</span><i aria-hidden="true"></i></button></h3>
-          <div class="dims__panel" id="dim-panel-${esc(x.key)}" role="region" aria-labelledby="dim-tab-${esc(x.key)}"><div class="dims__inner">
-            <div class="dims__what"><p class="dims__lead">${esc(x.headline)}</p><p>${esc(x.text)}</p><a class="dims__cta" href="${x.href}">Voir l’expertise <span aria-hidden="true">↗</span></a></div>
-            <dl><div><dt>Ce que ça change</dt><dd>${esc(x.value)}</dd></div><div><dt>Repère de prix</dt><dd>${esc(dimNeeds[x.key].price)}</dd></div></dl>
-          </div></div>
-        </article>`).join('')}
+      <header class="dims__head motion-reveal"><h2 id="dims-title">Trois dimensions.<br><em>Une seule vision.</em></h2><p>Partez de votre besoin.</p></header>
+      <div class="dims__grid">
+        ${expertiseTabs.map((x,i)=>`<a class="folder motion-reveal" href="${x.href}" style="--i:${i}">
+          <span class="folder__art" aria-hidden="true"></span>
+          <span class="folder__front">
+            <span class="folder__tab">${esc(x.label)}</span>
+            <span class="folder__top"><strong>${esc(dimNeeds[x.key].need)}</strong><i aria-hidden="true">↗</i></span>
+            <span class="folder__more">${esc(x.value)}</span>
+            <span class="folder__foot"><span>Repère de prix</span><b>${esc(dimNeeds[x.key].price)}</b></span>
+          </span>
+        </a>`).join('')}
       </div>
     </section>
 
-    <section class="plan" id="journey" aria-labelledby="plan-title">
-      <div class="plan__intro motion-reveal"><h2 id="plan-title">Comment<br>je travaille.</h2><p>Trois étapes, toujours dans cet ordre. À chacune, vous savez ce qui se passe et ce que vous avez entre les mains.</p><a class="plan__cta" href="#quick-contact">Commencer par un message <span aria-hidden="true">↓</span></a></div>
-      <ol class="plan__steps">
-        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">1</span><div><small>Comprendre</small><h3>Qu’est-ce que le projet doit faire comprendre ou ressentir ?</h3><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p><p class="plan__get"><b>Vous avez</b> mes premières questions utiles, généralement sous 48 h.</p></div></li>
-        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">2</span><div><small>Choisir</small><h3>Le cadre vient après.</h3><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p><p class="plan__get"><b>Vous avez</b> une direction claire, ce qu’il faut faire et dans quel ordre.</p></div></li>
-        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">3</span><div><small>Tenir le fil</small><h3>La même idée, jusqu’au rendu.</h3><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p><p class="plan__get"><b>Vous avez</b> des fichiers pensés pour leur support final.</p></div></li>
-      </ol>
+    <section class="ring-section" id="journey" aria-labelledby="ring-title" data-ring>
+      <div class="ring-section__head motion-reveal"><h2 id="ring-title">Comment je travaille.</h2></div>
+      <div class="ring motion-reveal">
+        <div class="ring__figure">
+          <svg viewBox="0 0 120 120" role="img" aria-label="Trois façons de travailler : comprendre, choisir, tenir le fil"><circle class="ring__arc" data-ring-arc="0" cx="60" cy="60" r="46" pathLength="300" style="--o:-3"/><circle class="ring__arc" data-ring-arc="1" cx="60" cy="60" r="46" pathLength="300" style="--o:-103"/><circle class="ring__arc" data-ring-arc="2" cx="60" cy="60" r="46" pathLength="300" style="--o:-203"/></svg>
+          <div class="ring__center" aria-hidden="true"><span data-ring-count>1</span><small data-ring-name>Comprendre</small></div>
+        </div>
+        <div class="ring__side">
+          <ul class="ring__legend"><li><button type="button" data-ring-step="0" aria-pressed="true"><b aria-hidden="true"></b>Comprendre</button></li><li><button type="button" data-ring-step="1" aria-pressed="false"><b aria-hidden="true"></b>Choisir</button></li><li><button type="button" data-ring-step="2" aria-pressed="false"><b aria-hidden="true"></b>Tenir le fil</button></li></ul>
+          <div class="ring__panels" aria-live="polite"><article class="ring__panel is-active" data-ring-panel="0"><small>Comprendre</small><h3>Qu’est-ce que le projet doit faire comprendre ou ressentir ?</h3><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p><p class="ring__get"><b>Vous avez</b> mes premières questions utiles, généralement sous 48 h.</p></article><article class="ring__panel" data-ring-panel="1"><small>Choisir</small><h3>Le cadre vient après.</h3><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p><p class="ring__get"><b>Vous avez</b> une direction claire, ce qu’il faut faire et dans quel ordre.</p></article><article class="ring__panel" data-ring-panel="2"><small>Tenir le fil</small><h3>La même idée, jusqu’au rendu.</h3><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p><p class="ring__get"><b>Vous avez</b> des fichiers pensés pour leur support final.</p></article></div>
+        </div>
+      </div>
     </section>
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
-      ${gearBoard('brand-ecosystem-title')}
+      <h2 class="sr-only" id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain</h2>
+      <figure class="gear-photo"><img src="/assets/gear/desk.webp" srcset="/assets/gear/desk-900.webp 900w, /assets/gear/desk.webp 1672w" sizes="100vw" width="1672" height="941" alt="Tablette et stylet, écouteurs, micro canon, boîtier Sony Alpha 7 IV, objectif et stabilisateur DJI RS 3 Pro posés sur un tapis de découpe orange" loading="lazy" decoding="async"></figure>
       <div class="brand-ecosystem__head"><p>Matériel de prise de vue, optiques, accessoires et post-production. Ce bloc montre mon environnement de travail, pas une liste de clients.</p></div>
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
@@ -167,8 +174,6 @@ export function homePage(){
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
 
     <section class="v16-quick-contact final-cta" id="quick-contact">
-      ${gradientMotionBackground({style:'mesh',speed:24,blur:90,opacity:.62,size:126,colors:['#D8330F','#7A0D08','#F0A23A','#120403']})}
-      <div class="final-cta__copy motion-reveal"><h2>Parlons de<br>votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Vous préférez écrire directement ? <a href="mailto:${site.email}">${site.email}</a></p></div>
       <form class="v16-quick-contact__form" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
         <small>Nolan.Arc</small><h2>Un message suffit.</h2>
@@ -177,6 +182,7 @@ export function homePage(){
         <label><span>Message</span><textarea required name="message" rows="4" placeholder="Ce que vous préparez, même si c’est encore flou."></textarea></label>
         <button type="submit" data-submit>Envoyer le message <span aria-hidden="true">↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
       </form>
+      <div class="final-cta__copy"><h2>Parlons de votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Ou par e-mail : <a href="mailto:${site.email}">${site.email}</a></p></div>
     </section>
   </main>` + footer();
 }
