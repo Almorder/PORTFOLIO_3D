@@ -91,7 +91,6 @@ export function homePage(){
     <section class="v16-proof" aria-labelledby="v16-proof-title">
       <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Quelques chiffres pour situer le niveau d’expérience.</h2></header>
       ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
-      <p class="v16-proof__note motion-reveal">Le +105 % correspond à une croissance de chiffre d’affaires observée sur Ouilove ; ce n’est pas une promesse généralisée à tous les projets.</p>
     </section>
 
     <section class="v16-dimensions" id="dimensions">
@@ -224,7 +223,6 @@ export function aboutPage(){
 
     <section class="v17-about-workstyle motion-reveal"><span class="fab-dot-label">Travailler avec moi</span><h2>Direct quand il faut trancher.<br>Autonome quand il faut avancer.</h2><div><p>Je peux rejoindre un projet déjà lancé, travailler avec une équipe existante ou prendre davantage de responsabilités quand il faut garder une cohérence de bout en bout.</p><p>Je n’ai pas besoin qu’un projet soit parfaitement défini pour commencer à réfléchir. En revanche, une fois la direction choisie, j’aime que les décisions deviennent rapidement des actions.</p></div></section>
 
-    <section class="v17-about-proof motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
     <section class="fab-contact-band motion-reveal"><div><small>La suite dépend de ce que vous cherchez</small><h2>Regarder ou parler.</h2></div><p>Le Work montre ce que je produis. Services précise ce que je peux prendre en charge. Le contact sert à voir ce que cela peut devenir dans votre contexte.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/services/">Voir les Services <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
   </main>` + footer();
 }

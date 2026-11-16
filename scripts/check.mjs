@@ -80,9 +80,9 @@ const privacy=await readFile(join(dist,'confidentialite/index.html'),'utf8');
 // V17 HOME — locked order / product logic.
 for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
 if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
-if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
-for(const token of ['50','2022','+105','photo + vidéo']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
-if(!home.includes('croissance de chiffre d’affaires observée sur Ouilove')) fail('Home V17: +105% must be contextualized as Ouilove observation');
+if((home.match(/data-stat-card/g)||[]).length!==3) fail('Home V17: exactly three stats expected');
+for(const token of ['50','2022','photo + vidéo']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
+if(/105\s?%/.test(home)||home.includes('Matthieu')) fail('Home: unverified +105 % claim and Ouilove testimonial must stay hidden until proof and written consent exist');
 if((home.match(/class="v16-dimension/g)||[]).length<3) fail('Home V17: three professional dimensions missing');
 for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V17: professional dimension missing ${label}`);
 if(!home.includes('data-glass-showcase')) fail('Home V17: Comprendre/Choisir/Tenir le fil visual engine missing');
