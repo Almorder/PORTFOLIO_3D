@@ -35,8 +35,8 @@ const visuals = {
 // Sony France lists this creator film as an Alpha 7 IV showcase. It is used as a silent,
 // non-interactive background; the still remains underneath as a resilient fallback.
 const homeHeroVideo = {
-  id:'KCReyepzxGU',
-  title:'L’expédition prodigieuse sur l’île de Madère — Sony Alpha 7 IV'
+  id:'xAapoE5OKIk',
+  title:'Vidéo de fond — Nolan Arc'
 };
 
 
@@ -92,7 +92,7 @@ export function homePage(){
   <main id="main-content" class="v16-home">
     <div class="hero-stack" data-hero-stack>
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
         <p class="hero-roles">Réalisation, direction artistique<br>et stratégie de marque</p>
@@ -113,12 +113,6 @@ export function homePage(){
 
     ${focusText(site.manifesto)}
 
-    ${weddingWall()}
-    <section class="v16-proof" aria-labelledby="v16-proof-title">
-      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Quelques chiffres pour situer le niveau d’expérience.</h2></header>
-      ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
-    </section>
-
     <section class="dims" id="dimensions" aria-labelledby="dims-title">
       <header class="dims__head motion-reveal"><h2 id="dims-title">Trois dimensions.<br><em>Une seule vision.</em></h2><p>Partez de votre besoin.</p></header>
       <div class="dims__grid">
@@ -134,6 +128,8 @@ export function homePage(){
       </div>
     </section>
 
+    ${weddingWall()}
+
     <section class="ring-section" id="journey" aria-labelledby="ring-title" data-ring>
       <div class="ring-section__head motion-reveal"><h2 id="ring-title">Comment je travaille.</h2></div>
       <div class="ring motion-reveal">
@@ -146,6 +142,16 @@ export function homePage(){
           <div class="ring__panels" aria-live="polite"><article class="ring__panel is-active" data-ring-panel="0"><small>Comprendre</small><h3>Qu’est-ce que le projet doit faire comprendre ou ressentir ?</h3><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p><p class="ring__get"><b>Vous avez</b> mes premières questions utiles, généralement sous 48 h.</p></article><article class="ring__panel" data-ring-panel="1"><small>Choisir</small><h3>Le cadre vient après.</h3><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p><p class="ring__get"><b>Vous avez</b> une direction claire, ce qu’il faut faire et dans quel ordre.</p></article><article class="ring__panel" data-ring-panel="2"><small>Tenir le fil</small><h3>La même idée, jusqu’au rendu.</h3><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p><p class="ring__get"><b>Vous avez</b> des fichiers pensés pour leur support final.</p></article></div>
         </div>
       </div>
+    </section>
+
+    <section class="v16-testimonials" id="retours">
+      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
+      ${morphTestimonials(site.testimonials)}
+    </section>
+
+    <section class="v16-proof" aria-labelledby="v16-proof-title">
+      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Quelques chiffres pour situer le niveau d’expérience.</h2></header>
+      ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
     </section>
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
@@ -166,15 +172,10 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
-      ${morphTestimonials(site.testimonials)}
-    </section>
-
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
 
     <section class="v16-quick-contact final-cta" id="quick-contact">
-      <form class="v16-quick-contact__form" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+      <form class="v16-quick-contact__form motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
         <small>Nolan.Arc</small><h2>Un message suffit.</h2>
         <label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
@@ -182,7 +183,7 @@ export function homePage(){
         <label><span>Message</span><textarea required name="message" rows="4" placeholder="Ce que vous préparez, même si c’est encore flou."></textarea></label>
         <button type="submit" data-submit>Envoyer le message <span aria-hidden="true">↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
       </form>
-      <div class="final-cta__copy"><h2>Parlons de votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Ou par e-mail : <a href="mailto:${site.email}">${site.email}</a></p></div>
+      <div class="final-cta__copy motion-reveal"><h2>Parlons de votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Ou par e-mail : <a href="mailto:${site.email}">${site.email}</a></p></div>
     </section>
   </main>` + footer();
 }
