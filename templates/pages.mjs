@@ -334,9 +334,10 @@ export function withdrawalPage(){
 }
 
 export function adminPage(){
-  return head({title:'Administration — Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-legal page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>') + header() + `<main id="main-content" class="legal-page-shell"><article class="legal-content admin-shell"><span class="eyebrow">Accès réservé</span><h1>Administration</h1>
-  <div class="admin-app" data-admin-app data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-  </article></main>` + footer().replace('</footer>','</footer><script src="/admin/supabase.js" defer></script><script src="/admin/admin.js" defer></script>');
+  return head({title:'Tableau de bord — Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
+<main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
+<div class="admin-app" data-admin-app data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

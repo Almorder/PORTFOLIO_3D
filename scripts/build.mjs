@@ -37,8 +37,9 @@ const jsHash=createHash('sha256').update(jsSource).digest('hex').slice(0,10);
 const cssAsset=`assets/site.${cssHash}.css`;
 const jsAsset=`assets/app.${jsHash}.js`;
 
+const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 for(const [file,rawHtml] of pages){
-  const html=rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset);
+  const html=rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion);
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');
