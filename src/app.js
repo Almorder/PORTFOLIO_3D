@@ -539,6 +539,18 @@ $$('[data-bento]').forEach(bento=>{
   const tiles=$$('[data-bento-tile]',bento);
   let order=tiles.map((_,i)=>i);
   const apply=()=>order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot;});
+  // Double clic sur une tuile : on ouvre directement le projet. Le premier clic peut déjà déplacer la tuile
+  // (et la transition masque brièvement la page), donc on retient la tuile visée au premier clic.
+  let aimed=null, aimedAt=0;
+  const openTile=tile=>{const link=tile&&$('.bento__link',tile);if(link) location.assign(link.href);};
+  bento.addEventListener('pointerdown',event=>{
+    const tile=event.target.closest('[data-bento-tile]');
+    if(tile&&performance.now()-aimedAt>500){aimed=tile;aimedAt=performance.now();}
+  });
+  bento.addEventListener('dblclick',event=>{if(!event.target.closest('a')) openTile(aimed||event.target.closest('[data-bento-tile]'));});
+  document.addEventListener('click',event=>{
+    if(event.detail===2&&aimed&&performance.now()-aimedAt<500&&!bento.contains(event.target)) openTile(aimed);
+  });
   bento.addEventListener('click',event=>{
     const hit=event.target.closest('[data-bento-focus]'); if(!hit) return;
     const index=tiles.indexOf(hit.closest('[data-bento-tile]'));
@@ -635,6 +647,24 @@ gl_FragColor=vec4((c0*w0+c1*w1+c2*w2+c3*w3)/(w0+w1+w2+w3),1.);}`;
     document.addEventListener('visibilitychange',start);
   });
 })();
+
+// Accueil : le héros recule doucement pendant que le Work monte par-dessus.
+$$('[data-hero-stack]').forEach(stack=>{
+  const hero=$('.v16-hero',stack); if(!hero||reduced) return;
+  let queued=false;
+  const update=()=>{queued=false;stack.style.setProperty('--hero-out',clamp(scrollY/Math.max(1,hero.offsetHeight*.9)).toFixed(3));};
+  addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update);}},{passive:true});
+  update();
+});
+
+// Accueil, « Trois dimensions » : une entrée ouverte à la fois.
+$$('[data-dims]').forEach(list=>{
+  const rows=$$('[data-dim]',list);
+  rows.forEach(row=>$('button',row)?.addEventListener('click',()=>{
+    const open=!row.classList.contains('is-open');
+    rows.forEach(other=>{const on=other===row&&open;other.classList.toggle('is-open',on);$('button',other)?.setAttribute('aria-expanded',String(on));});
+  }));
+});
 
 // Reveal elements only when JS is present; no content is hidden without JS.
 const revealTargets=$$('.motion-reveal,.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');

@@ -119,17 +119,17 @@ const contact=await readFile(join(dist,'contact/index.html'),'utf8');
 const privacy=await readFile(join(dist,'confidentialite/index.html'),'utf8');
 
 // V17 HOME — locked order / product logic.
-for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="v16-dimensions"','data-scene="journey"','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
+for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="dims"','class="plan"','data-hero-stack','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
 if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
 if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
 for(const token of ['50','2022','photo + vidéo','marques accompagnées']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
 if(/105\s?%/.test(home)) fail('Home: the +105 % claim must stay hidden until a proof is documented');
-if((home.match(/class="v16-dimension/g)||[]).length<3) fail('Home V17: three professional dimensions missing');
+if((home.match(/class="dims__row/g)||[]).length!==3) fail("Home: three dimensions expected");
 for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V17: professional dimension missing ${label}`);
-if(!home.includes('data-glass-showcase')) fail('Home V17: Comprendre/Choisir/Tenir le fil visual engine missing');
-if(!home.includes('class="journey v17-journey scroll-scene"')||!css.includes('.v17-journey .journey__sticky{position:sticky')) fail('Home V17: restored sticky journey choreography missing');
-if(!app.includes('--journey-shift')||!app.includes('--journey-ring')) fail('Home V17: journey motion variables missing');
-if((home.match(/data-journey-step/g)||[]).length!==3) fail('Home V17: three journey steps expected');
+if(/images\.unsplash\.com/.test((home.split('id="dimensions"')[1]||'').split('class="brand-ecosystem')[0])) fail('Home: no stock image in dimensions / method sections (R1)');
+if((home.match(/data-dim(?=[ >])/g)||[]).length!==3||(home.match(/aria-controls="dim-panel-/g)||[]).length!==3||!css.includes('.no-js .dims__panel{grid-template-rows:1fr}')) fail('Home: three need-led dimensions, each with its panel, readable without JS');
+if((home.match(/class="plan__num"/g)||[]).length!==3||(home.match(/class="plan__get"/g)||[]).length!==3) fail('Home: method needs three steps, each saying what the client gets');
+if(!home.includes('class="v16-quick-contact final-cta"')||!home.includes('Envoyer le message')||!home.includes('class="hero-copy"')||!home.includes('class="is-primary" href="#work-preview"')) fail('Home: hero needs one primary action and the final CTA its form');
 for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V17: ecosystem missing ${brand}`);
 if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
 for(const price of ['1 500 €','Interventions ciblées dès 200 €','Session ciblée — 89 € / h','Accompagnement — sur devis']) if(!home.includes(price)) fail(`Home V20: pricing missing ${price}`);
@@ -137,7 +137,7 @@ if((home.match(/data-pricing-tab=/g)||[]).length!==3||(home.match(/data-pricing-
 if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
 if(!app.includes("$('[data-pricing-switcher]').forEach")||!app.includes("$('[data-faq-section]').forEach")) fail('Home V18: pricing/FAQ interaction handlers missing');
 if(!home.includes('data-morph-list')||(home.match(/data-morph-open=/g)||[]).length!==(home.match(/<dialog class="morph-panel"/g)||[]).length||!(home.match(/data-morph-open=/g)||[]).length) fail('Home: each testimonial row needs its panel (morphing list)');
-if(!home.includes('v19-dimension')||!css.includes('V19 — presentation polish + stability pass')) fail('Home V19: redesigned Three dimensions presentation missing');
+if(!app.includes("bento.addEventListener('dblclick'")) fail('Work: double click on a bento tile must open the project');
 if(!home.includes('/assets/pgytech-logo.png')||!existing.has('assets/pgytech-logo.png')) fail('Home V19: local PGYTECH logo asset missing');
 if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-width:50%')) fail('Home V19: Sony optical size correction missing');
 if(!home.includes('Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha')||!home.includes('>Lola<')) fail('Home V19: Lola testimonial missing');
@@ -181,7 +181,7 @@ if(!work.includes('data-expertise-switcher')||(work.match(/data-expertise-tab=/g
 if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
 // PROJECT — film first, one compact technical grid.
-if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-hold-confirm')) fail('Project V17: film-first player missing');
+if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!project.includes('data-load-video')||project.includes('data-hold-confirm')) fail('Project: film-first player, one single click to play (no press-and-hold)');
 if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V17: project metadata must appear once');
 if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17: duplicate production-detail section found');
 
