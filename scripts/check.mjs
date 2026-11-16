@@ -61,6 +61,7 @@ for(const file of htmls){
 // Privacy and operational guardrails.
 if(/sessionStorage|localStorage/.test(app)) fail('app.js: browser storage detected');
 if(/googletagmanager|google-analytics|gtag\(/i.test(app)) fail('app.js: analytics detected');
+if(!/cloudflareinsights\.com\/beacon\.min\.js/.test(app)||!app.includes('nolanarc_audience_optout')||!app.includes('doNotTrack')) fail('Audience: Cloudflare beacon must be loaded from app.js with opt-out and DNT');
 for(const [field,value] of legalRequiredFields) if(!String(value||'').trim()) fail(`legal.mjs: required ${field} empty`);
 if(css.includes('var(--ember-soft;')) fail('styles.css: malformed CSS variable');
 for(const source of [pagesSource,siteSource,legalSource]){
@@ -69,6 +70,10 @@ for(const source of [pagesSource,siteSource,legalSource]){
 }
 
 const home=await readFile(join(dist,'index.html'),'utf8');
+const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
+if(!home.includes('nolanarc-audience-token" content="1c1cf63d191049d8acc58b62961377c6"')) fail('Audience: token meta missing on home');
+if(/static\.cloudflareinsights\.com/.test(home)) fail('Audience: beacon must not be hard-coded in HTML (opt-out must run first)');
+if(!cookiesHtml.includes('data-audience-optout')||!cookiesHtml.includes('Cloudflare Web Analytics')) fail('Audience: cookies page must document Cloudflare and offer opt-out');
 const work=await readFile(join(dist,'work/index.html'),'utf8');
 const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
 const services=await readFile(join(dist,'services/index.html'),'utf8');

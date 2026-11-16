@@ -204,6 +204,34 @@ $$('.v16-logo-media img').forEach(img=>{
   if(img.complete&&img.naturalWidth===0) fail();
 });
 
+// Audience measurement — Cloudflare Web Analytics (cookieless). Skipped on opt-out, Do Not Track or Global Privacy Control.
+const optOutKey='nolanarc_audience_optout';
+const audienceOptedOut=()=>{
+  if(document.cookie.split('; ').some(v=>v===`${optOutKey}=1`)) return true;
+  return navigator.doNotTrack==='1'||window.doNotTrack==='1'||navigator.globalPrivacyControl===true;
+};
+const audienceToken=document.querySelector('meta[name="nolanarc-audience-token"]')?.content;
+if(audienceToken && !audienceOptedOut()){
+  const beacon=document.createElement('script');
+  beacon.defer=true;
+  beacon.src='https://static.cloudflareinsights.com/beacon.min.js';
+  beacon.dataset.cfBeacon=JSON.stringify({token:audienceToken});
+  document.head.append(beacon);
+}
+$$('[data-audience-optout]').forEach(button=>{
+  const label=()=>{
+    const off=audienceOptedOut();
+    button.textContent=off?'Réactiver la mesure de ma visite':'Ne pas compter ma visite';
+    button.setAttribute('aria-pressed',String(off));
+  };
+  label();
+  button.addEventListener('click',()=>{
+    const secure=location.protocol==='https:'?'; Secure':'';
+    document.cookie=`${optOutKey}=${document.cookie.includes(`${optOutKey}=1`)?'0':'1'}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
+    label();
+  });
+});
+
 // Hero video facade — cinematic when authorised, zero YouTube request before consent.
 const heroVideo=$('[data-hero-video]');
 const consentBox=$('[data-cookie-consent]');
