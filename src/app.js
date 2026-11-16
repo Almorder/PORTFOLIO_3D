@@ -436,8 +436,13 @@ $$('[data-instagram-post]').forEach(card=>{
     iframe.allowFullscreen=true;
     iframe.referrerPolicy='strict-origin-when-cross-origin';
     card.classList.add('is-playing');
-    $('.ig-card__cover',card).replaceChildren(iframe);
-    igFrames.set(iframe.contentWindow,iframe);
+    const cover=$('.ig-card__cover',card);
+    cover.replaceChildren(iframe);
+    if(card.classList.contains('ig-phone')){
+      // Dans un téléphone, le lecteur garde sa largeur native (326 px) et se met à l'échelle de l'écran.
+      const fit=()=>cover.style.setProperty('--ig-s',(cover.clientWidth/326).toFixed(4));
+      fit(); if('ResizeObserver' in window) new ResizeObserver(fit).observe(cover);
+    } else igFrames.set(iframe.contentWindow,iframe);
   },{once:true});
 });
 
