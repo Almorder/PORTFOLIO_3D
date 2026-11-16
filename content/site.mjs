@@ -19,6 +19,7 @@ export const site = {
     { value: 50, suffix: '+', label: 'vidéos réalisées' },
     { value: 2022, suffix: '', label: 'je pratique la vidéo depuis' },
     { value: 2, suffix: '', label: 'pratiques terrain · photo + vidéo' },
+    { value: 4, suffix: '', label: 'marques accompagnées' },
   ],
   faqs: {
     home: [
