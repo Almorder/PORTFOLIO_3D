@@ -71,6 +71,21 @@ for(const source of [pagesSource,siteSource,legalSource]){
 }
 
 const home=await readFile(join(dist,'index.html'),'utf8');
+// Planche matériel : six objets dessinés, aucune image externe ni fichier image.
+const gearHtml=home.slice(home.indexOf('data-gear-board'),home.indexOf('brand-ecosystem__head'));
+if((gearHtml.match(/class="gear-item /g)||[]).length!==6) fail('Home: gear board must show six items');
+if(/<img|https?:\/\//.test(gearHtml)) fail('Home: gear board must not load any image file or external resource');
+// Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
+const {weddingPhotos}=await import('../content/wedding.mjs');
+if(!weddingPhotos.length && home.includes('class="wedding-wall')) fail('Home: wedding wall must stay hidden until real photos are provided');
+for(const photo of weddingPhotos){
+  if(!existing.has(String(photo.src).replace(/^\//,''))) fail(`Wedding: missing photo file ${photo.src}`);
+  if(!photo.alt) fail(`Wedding: photo ${photo.src} needs an alt description`);
+  if(!['mariage','demande'].includes(photo.offer)) fail(`Wedding: photo ${photo.src} needs offer 'mariage' or 'demande'`);
+}
+const weddingServicesHtml=await readFile(join(dist,'services/index.html'),'utf8');
+if(!weddingServicesHtml.includes('id="mariage"')||!weddingServicesHtml.includes('id="demande-en-mariage"')) fail('Services: wedding anchors missing (the home polaroids link to them)');
+if(/<iframe[^>]+instagram\.com|<img[^>]+(instagram|cdninstagram|fbcdn)/i.test(weddingServicesHtml)) fail('Instagram: no Instagram request allowed on Services before click');
 const adminHtml=await readFile(join(dist,'admin/index.html'),'utf8');
 if(!adminHtml.includes('noindex,nofollow')) fail('Admin: page must be noindex');
 if(!/admin\.js\?v=[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.js must carry a content hash (cache)');
