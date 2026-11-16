@@ -39,6 +39,8 @@ for(const file of htmls){
   const isAdmin=rel==='admin/index.html';
   if(!isAdmin && !html.includes('class="site-header fab-header"')) fail(`${rel}: common header missing`);
   if(!isAdmin && !html.includes('class="site-footer fab-footer"')) fail(`${rel}: common footer missing`);
+  // Navigation flottante : chaque page porte le fond repliable, la marque pliable et ses éléments mesurables.
+  if(!isAdmin && !(html.includes('data-header data-fnb') && html.includes('data-fnb-bg') && html.includes('class="fnb-tail"') && (html.match(/data-fnb-item/g)||[]).length>=6)) fail(`${rel}: floating navbar markup incomplete`);
   if(rel==='index.html' && !html.includes('data-brand-preloader')) fail('Home: preloader missing');
   if(rel!=='index.html' && html.includes('data-brand-preloader')) fail(`${rel}: preloader must be Home-only`);
   const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
@@ -145,6 +147,8 @@ for(const id of ['pricing-tab-wedding','pricing-panel-wedding','pricing-tab-dire
 if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
 if(/if\(!readConsent\(\)\)\s*showConsent\(\)/.test(app)) fail('Home: the video consent must not open by itself (it covered the hero buttons and the mobile dock)');
 if(!home.includes('data-hero-video-toggle')) fail('Home: hero video toggle missing');
+if(!(app.includes("classList.toggle('is-docked'") && app.includes('is-measuring-dock') && css.includes('.is-docked .fnb-bg{') && css.includes('.no-js .fnb-bg{'))) fail('Floating navbar: dock logic, pill style or no-JS fallback missing');
+if(/\bgsap\b|ScrollTrigger/.test(app)) fail('app.js: no animation library dependency (constitution)');
 if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Header: no light variant per page (it made the navigation unreadable)');
 if(/<b data-counter data-counter-target="(19|20)\d\d"/.test(home)) fail('Home: a year must not be animated as a counter');
 if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');

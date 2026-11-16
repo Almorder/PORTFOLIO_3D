@@ -65,12 +65,16 @@ const activeFor = (active, href) => {
 };
 
 export function header(active='') {
-  const nav = site.nav.map(item => `<a class="fab-nav__link ${activeFor(active,item.href)}" href="${item.href}">${item.label}</a>`).join('');
+  const nav = site.nav.map(item => `<a class="fab-nav__link ${activeFor(active,item.href)}" href="${item.href}" data-fnb-item>${item.label}</a>`).join('');
   return `${active==='/'?logoPreloader({hold:240}):''}<a class="skip-link" href="#main-content">Aller au contenu</a><div class="page-progress" aria-hidden="true"><i></i></div><div class="custom-cursor" data-custom-cursor aria-hidden="true"><i></i></div>
-  <header class="site-header fab-header" data-header>
-    <a class="brand fab-brand" href="/" aria-label="Nolan Arc — Accueil"><span>Nolan</span><b>.</b><span>Arc</span></a>
-    <nav class="site-nav fab-nav" aria-label="Navigation principale">${nav}<a class="fab-nav__link fab-nav__contact" href="/contact/">Contact</a></nav>
-    <button class="menu-button fab-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button><span data-menu-label>Menu</span></button>
+  <header class="site-header fab-header" data-header data-fnb>
+    <div class="fnb-bg" data-fnb-bg aria-hidden="true"></div><div class="fnb-ring" aria-hidden="true"></div>
+    <div class="fnb-row" data-fnb-row>
+      <a class="brand fab-brand" href="/" aria-label="Nolan Arc — Accueil" data-fnb-item><span>N</span><span class="fnb-tail"><span>olan</span></span><span class="fnb-rest"><b>.</b><span class="fnb-tail"><span>Arc</span></span></span></a>
+      <nav class="site-nav fab-nav" aria-label="Navigation principale">${nav}</nav>
+      <a class="fab-nav__link fab-nav__contact ${activeFor(active,'/contact/')}" href="/contact/" data-fnb-item>Contact</a>
+      <button class="menu-button fab-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button data-fnb-item><span data-menu-label>Menu</span></button>
+    </div>
   </header>
   <div class="mobile-menu fab-mobile-menu" id="mobile-menu" data-mobile-menu hidden>
     <div class="mobile-menu__inner fab-mobile-menu__inner">

@@ -72,7 +72,6 @@ img,video{display:block;max-width:100%}
 .mobile-menu__inner>a{display:flex;align-items:baseline;gap:14px;padding:13px 0;border-bottom:1px solid rgba(240,235,226,.12);color:var(--paper);font:400 clamp(40px,11vw,68px)/.95 var(--serif);letter-spacing:-.025em}
 .mobile-menu__inner small{padding-top:8px;font:700 9px/1 var(--ui);color:var(--ember-soft)}
 .mobile-menu__meta{margin-top:auto;display:flex;justify-content:space-between;gap:16px;color:rgba(240,235,226,.65);font-size:12px}
-body.menu-open .site-header{color:var(--paper)!important;background:rgba(8,7,6,.7)!important;border-color:rgba(240,235,226,.1)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
 .mobile-tabs{display:none}
 
 
@@ -449,8 +448,6 @@ body::after{content:"";position:fixed;z-index:9997;inset:-40%;pointer-events:non
 body.menu-open::after{z-index:9999;opacity:.04}
 
 /* Header: a thin, quiet bar like Fabrica. */
-.site-header.fab-header{position:fixed;top:0;left:0;z-index:200;width:100%;height:52px;padding:0 18px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:rgba(246,246,243,.96);color:var(--fab-ink);border-bottom:1px solid rgba(9,9,9,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background .3s ease,color .3s ease,border-color .3s ease;box-shadow:none;border-radius:0}
-.site-header.fab-header.is-scrolled{top:0;left:0;width:100%;height:52px;border:0;border-bottom:1px solid rgba(9,9,9,.08);border-radius:0;background:rgba(246,246,243,.93);color:var(--fab-ink);box-shadow:none}
 .fab-brand{font:600 20px/1 var(--serif);color:var(--fab-ink)}
 .fab-brand b{color:var(--ember-soft)}
 .fab-nav{display:flex;gap:clamp(24px,4vw,62px);align-items:center}
@@ -458,7 +455,6 @@ body.menu-open::after{z-index:9999;opacity:.04}
 .fab-nav__link::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:1px;background:var(--fab-ink);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
 .fab-nav__link:hover::after,.fab-nav__link.is-active::after{transform:scaleX(1)}
 .fab-menu-button{display:none;color:var(--fab-ink);font:650 10px/1 var(--body);letter-spacing:.06em;text-transform:uppercase}
-body.menu-open .site-header.fab-header{background:var(--fab-bg)!important;color:var(--fab-ink)!important;border-color:rgba(9,9,9,.1)!important;backdrop-filter:none!important}
 .page-progress{z-index:260;height:1px;background:transparent}
 .page-progress i{background:var(--ember-soft);box-shadow:none}
 
@@ -596,7 +592,7 @@ body.menu-open .site-header.fab-header{background:var(--fab-bg)!important;color:
 
 /* Responsive */
 @media(max-width:980px){
-  .site-header.fab-header{grid-template-columns:1fr auto}.fab-nav{display:none}.fab-menu-button{display:flex;grid-column:2}.fab-brand{grid-column:1}
+  .fab-nav{display:none}.fab-menu-button{display:flex;grid-column:2}.fab-brand{grid-column:1}
   .fab-hero{min-height:calc(100svh - 68px)}.fab-hero__wordmark{top:8vh;left:18px;font-size:clamp(66px,14vw,120px)}.fab-hero__wordmark small{display:block;position:absolute;left:4px;top:calc(100% + 18px);margin:0;font-size:18px}.fab-hero__services{right:22px;top:36vh}.fab-hero__statement{left:22px;bottom:28px;width:min(360px,50vw)}.fab-hero__contact{right:18px;bottom:18px}.fab-hero__copyright{display:none}
   .fab-section-heading,.fab-page-title,.fab-proof,.fab-contact-hero,.fab-about-quote{grid-template-columns:1fr;gap:28px}.fab-page-title{min-height:330px}.fab-page-title p{max-width:560px}
   .fab-service-row{grid-template-columns:52px 1fr 180px 22px}.fab-service-row ul{display:none}.fab-service-row figure{width:180px}.fab-proof .animated-stats__track,.fab-about-stats .animated-stats__track{grid-template-columns:repeat(2,1fr)}
@@ -605,7 +601,7 @@ body.menu-open .site-header.fab-header{background:var(--fab-bg)!important;color:
 }
 
 @media(max-width:720px){
-  :root{--page:16px}.site-header.fab-header{height:56px;padding:0 16px}.page-fabrica main,.page-journal main,.page-legal main{padding-top:56px}
+  :root{--page:16px}.page-fabrica main,.page-journal main,.page-legal main{padding-top:56px}
   body::after{opacity:.04}
   .fab-preloader__mark{font-size:16vw}.fab-preloader__meta{left:16px;right:16px;bottom:18px}.fab-preloader__meta span{max-width:190px}
   .fab-hero{margin:6px;border-radius:18px;min-height:calc(100svh - 68px)}.fab-hero__wordmark{top:7vh;left:14px;font-size:19vw;letter-spacing:-.09em}.fab-hero__wordmark small{font-size:14px;top:calc(100% + 12px)}.fab-hero__services{top:31vh;right:16px;font-size:9px;line-height:1.6}.fab-hero__statement{left:16px;right:16px;bottom:104px;width:auto;font-size:11px;max-width:310px}.fab-hero__contact{left:14px;right:14px;bottom:14px;grid-template-columns:42px 1fr auto}.fab-hero__avatar{width:42px;height:42px}.fab-cross{display:none}
@@ -670,22 +666,12 @@ body::after{opacity:.07;mix-blend-mode:multiply}
 .fab-section-meta,.fab-dot-label,.fab-project-card__meta,.fab-service-row>span,.fab-service-section__meta,.fab-nav__link,.line-toc,.eyebrow{font-family:var(--ui)}
 .fab-service-row h3,.fab-service-points h3,.fab-about-view__grid h3,.fab-process__steps strong{font-family:var(--ui);letter-spacing:-.035em}
 
-/* Header returns to the Nolan Arc floating glass language. */
-.site-header.fab-header,
-.site-header.fab-header.is-scrolled{
-  top:10px;left:14px;width:calc(100% - 28px);height:62px;padding:0 20px;
-  border:1px solid rgba(240,235,226,.12);border-radius:20px;
-  background:rgba(10,9,8,.72);color:var(--paper);
-  box-shadow:0 14px 48px rgba(0,0,0,.24);
-  backdrop-filter:blur(24px) saturate(1.18);-webkit-backdrop-filter:blur(24px) saturate(1.18)
-}
 .fab-brand{font:500 23px/1 var(--serif);color:var(--paper)}
 .fab-brand b{color:var(--ember-soft)}
 .fab-nav__link,.fab-nav__contact{color:var(--paper);font-family:var(--ui);text-transform:uppercase;letter-spacing:.08em;opacity:.72}
 .fab-nav__link:hover,.fab-nav__link.is-active{opacity:1}
 .fab-nav__link::after{background:var(--ember-soft)}
 .fab-menu-button{color:var(--paper);font-family:var(--ui)}
-body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;color:var(--paper)!important;border-color:rgba(240,235,226,.12)!important;backdrop-filter:blur(24px)!important}
 
 /* Mobile menu: same identity as desktop, not an unrelated light canvas. */
 .fab-mobile-menu{background:radial-gradient(circle at 82% 9%,rgba(204,70,12,.19),transparent 28%),rgba(8,7,6,.95);color:var(--paper);backdrop-filter:blur(28px) saturate(1.15);-webkit-backdrop-filter:blur(28px) saturate(1.15)}
@@ -786,7 +772,6 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
 .page-legal .legal-tabs{border-radius:24px;overflow:hidden;background:rgba(255,255,255,.28)}
 
 @media(max-width:980px){
-  .site-header.fab-header,.site-header.fab-header.is-scrolled{top:8px;left:10px;width:calc(100% - 20px);height:58px;padding:0 14px;border-radius:18px;grid-template-columns:1fr auto}
   .fab-menu-button{display:flex;grid-column:2;justify-self:end}
   .fab-brand{grid-column:1}
   .fab-mobile-menu{padding-top:92px;padding-bottom:104px}
@@ -795,7 +780,6 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
 @media(max-width:720px){
   body{padding-bottom:82px}
   :root{--page:16px}
-  .site-header.fab-header,.site-header.fab-header.is-scrolled{height:56px}
   .fab-brand{font-size:21px}.fab-menu-button{padding-right:2px}
   .page-fabrica main,.page-journal main,.page-legal main{padding-top:74px}
   .fab-hero{margin:8px;border-radius:24px;min-height:calc(100svh - 96px)}
@@ -1225,13 +1209,6 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
    changing the desktop composition or the visual system.
    ========================================================================== */
 @media(max-width:760px){
-  /* The floating header must fully mask content that scrolls underneath it. */
-  .site-header.fab-header,
-  .site-header.fab-header.is-scrolled{
-    background:rgba(10,9,8,.97)!important;
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
-  }
 
   /* HERO: use normal vertical flow on mobile instead of three independent
      absolute layers. This keeps roles, statement and CTAs impossible to overlap. */
@@ -1493,4 +1470,76 @@ body.page-home .v16-logo-card small{text-align:center}
   .wedding-wall__photos li:nth-child(2){margin:0 0 0 -3vw}
   .wedding-wall__photos li:nth-child(3){margin:-13vw 0 0}
   .wedding-offers{border-radius:22px;padding:44px 18px}
+}
+
+
+/* ================= Navigation flottante (2026-11) =================
+   En haut de page : une barre large, sans fond, posée sur la page.
+   Dès qu'on défile : elle se replie en pastille de verre centrée ; « Nolan.Arc » se plie en « N. ».
+   app.js mesure les deux dispositions et fournit les distances (--dx, --fnb-*) ; ici, on anime.
+   Mécanique adaptée du composant gratuit « Floating Navbar » (Annnimate), réécrite sans dépendance. */
+.site-header.fab-header,
+.site-header.fab-header.is-scrolled{
+  --fnb-h:76px;--fnb-d:.42s;--fnb-ease:cubic-bezier(.3,.9,.1,1);--fnb-dot:var(--ember);
+  position:fixed;top:0;left:0;z-index:200;width:100%;height:var(--fnb-h);padding:0;display:block;
+  border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+  color:var(--ink);pointer-events:none;transition:color .3s ease
+}
+/* Toutes les pages s'ouvrent sur un fond clair : texte encre en haut, texte ivoire dans la pastille. */
+.site-header.fab-header.is-docked,
+body.menu-open .site-header.fab-header,
+.no-js .site-header.fab-header{color:var(--paper);--fnb-dot:var(--ember-soft)}
+
+.fnb-bg{position:absolute;top:0;left:0;right:0;height:calc(var(--fnb-h) + 32px);background:rgba(12,10,9,.8);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);opacity:0;clip-path:inset(0 0 32px 0 round 0px);transition:clip-path var(--fnb-d) var(--fnb-ease),opacity var(--fnb-d) var(--fnb-ease);will-change:clip-path}
+.is-docked .fnb-bg{opacity:1;clip-path:inset(var(--fnb-ct,12px) var(--fnb-cx,32vw) var(--fnb-cb,46px) var(--fnb-cx,32vw) round var(--fnb-cr,25px))}
+.fnb-ring{position:absolute;top:var(--fnb-ct,12px);left:var(--fnb-cx,32vw);right:var(--fnb-cx,32vw);height:var(--fnb-ph,50px);border-radius:999px;box-shadow:inset 0 0 0 1px rgba(240,235,226,.11),0 16px 44px rgba(0,0,0,.26);opacity:0;transition:opacity .16s ease}
+.is-docked .fnb-ring{opacity:1;transition:opacity .28s ease .3s}
+
+.fnb-row{position:relative;height:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 clamp(20px,2.8vw,48px);transition:transform calc(var(--fnb-d)*.82) var(--fnb-ease) .04s}
+.is-docked .fnb-row{transform:translate3d(0,var(--fnb-dy,0px),0)}
+[data-fnb-item]{pointer-events:auto;transition:transform var(--fnb-d) var(--fnb-ease) .04s,opacity .2s ease}
+.is-docked [data-fnb-item]{transform:translate3d(var(--dx,0px),0,0)}
+
+.fab-brand{grid-column:1;justify-self:start;display:inline-flex;align-items:baseline;gap:0;font:500 25px/1 var(--serif);letter-spacing:.012em;color:inherit;white-space:nowrap}
+.fab-brand b{margin:0 .07em;color:var(--fnb-dot);transition:color .3s ease}
+.fnb-tail{display:inline-block;clip-path:inset(-.35em 0 -.35em 0)}
+.fnb-tail>span{display:inline-block;transition:transform calc(var(--fnb-d)*.74) var(--fnb-ease) .04s,opacity calc(var(--fnb-d)*.74) var(--fnb-ease) .04s}
+.fnb-rest{display:inline-flex;align-items:baseline;transition:transform var(--fnb-d) var(--fnb-ease) .04s}
+.is-docked .fnb-tail>span{transform:translateX(-100%);opacity:0}
+.is-docked .fnb-rest{transform:translateX(calc(-1*var(--fnb-t1,0px)))}
+
+.fab-nav{grid-column:2;display:flex;align-items:center;gap:clamp(24px,3.6vw,56px)}
+.fab-nav__link,.fab-nav__contact{color:inherit}
+.fab-nav__contact,.fab-menu-button{grid-column:3;justify-self:end;position:relative;isolation:isolate;align-items:center;justify-content:center;height:38px;padding:0 18px;border-radius:999px;color:inherit;opacity:1}
+.fab-nav__contact{display:inline-flex}
+.fab-nav__contact::before,.fab-menu-button::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:currentColor;opacity:.11;transition:opacity .2s ease}
+.fab-nav__contact:hover::before,.fab-nav__contact.is-active::before,.fab-menu-button:hover::before{opacity:.2}
+.fab-nav__contact::after{display:none}
+.fab-menu-button{min-width:84px;font-size:11px;letter-spacing:.08em}
+
+/* Sans JavaScript : la barre garde un fond plein, toujours lisible. */
+.no-js .fnb-bg{opacity:1;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,9,8,.97);clip-path:inset(0 0 32px 0)}
+
+/* États techniques posés par app.js le temps d'une mesure (jamais affichés). */
+.fnb-instant,.fnb-instant *,.fnb-instant *::before,.fnb-instant *::after{transition:none!important}
+.is-measuring .fnb-row,.is-measuring [data-fnb-item],.is-measuring .fnb-rest,.is-measuring .fnb-tail>span{transform:none!important}
+.is-measuring-dock .fnb-row{display:flex;justify-content:center}
+.is-measuring-dock .fnb-tail{display:none}
+.is-measuring-dock .fab-brand{margin-right:26px}
+.is-measuring-dock .fab-nav{gap:24px;margin-right:14px}
+
+@media(max-width:980px){
+  .site-header.fab-header,.site-header.fab-header.is-scrolled{--fnb-h:66px}
+  .fnb-row{padding:0 16px}
+  .fab-nav,.fab-nav__contact{display:none}
+  .fab-menu-button{display:inline-flex;grid-column:3}
+  .fab-brand{font-size:23px}
+  .is-measuring-dock .fab-brand{margin-right:16px}
+  /* Sur mobile, la pastille masque entièrement ce qui défile dessous (pas de flou : plus fluide). */
+  .fnb-bg{background:rgba(10,9,8,.97);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .site-header.fab-header{--fnb-d:.01s}
+  .fnb-row,[data-fnb-item],.fnb-tail>span,.fnb-rest{transition-delay:0s}
+  .fnb-bg{transition:clip-path .01s,opacity .2s ease}
 }

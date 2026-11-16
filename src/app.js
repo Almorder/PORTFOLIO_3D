@@ -112,6 +112,61 @@ if(!reduced && matchMedia('(pointer:fine)').matches){
 // Navigation remains available throughout the experience.
 header?.classList.toggle('is-scrolled', scrollY > 80);
 
+// Navigation flottante : barre large en haut de page, pastille centrée dès qu'on défile.
+// On lit la disposition « ouverte », puis la disposition « pastille » (un changement de classe
+// jamais affiché), et on transmet l'écart au CSS, qui anime. Adapté du composant gratuit
+// « Floating Navbar » d'Annnimate, réécrit sans dépendance.
+if(header?.hasAttribute('data-fnb')){
+  const bg=$('[data-fnb-bg]',header), items=$$('[data-fnb-item]',header), tail=$('.fnb-tail',header);
+  const DOCK_AT=80, RELEASE_AT=56, OFFSET=12, PAD=6, INSET=20;
+  let docked=false, lastWidth=0, resizeTimer=0;
+  const px=v=>`${v.toFixed(1)}px`;
+  const settle=()=>{void header.offsetWidth;header.classList.remove('fnb-instant');};
+  const measure=()=>{
+    header.classList.add('fnb-instant','is-measuring');
+    const width=header.getBoundingClientRect().width, barH=header.offsetHeight, bgH=bg.offsetHeight;
+    const tops=items.map(el=>el.getBoundingClientRect().left);
+    const tailWidth=tail?tail.getBoundingClientRect().width:0;
+    header.classList.add('is-measuring-dock');
+    const docks=items.map(el=>el.getClientRects().length?el.getBoundingClientRect():null);
+    const live=docks.filter(Boolean);
+    header.classList.remove('is-measuring','is-measuring-dock');
+    if(live.length){
+      const rowLeft=live[0].left, rowRight=live[live.length-1].right;
+      const pillH=live[live.length-1].height+PAD*2, pillW=rowRight-rowLeft+INSET+PAD, pillX=(width-pillW)/2;
+      const shift=pillX+INSET-rowLeft;
+      items.forEach((el,i)=>el.style.setProperty('--dx',docks[i]?px(docks[i].left+shift-tops[i]):'0px'));
+      const vars={ct:OFFSET,cx:pillX,cb:Math.max(0,bgH-OFFSET-pillH),cr:pillH/2,ph:pillH,dy:OFFSET+pillH/2-barH/2,t1:tailWidth};
+      for(const k in vars) header.style.setProperty(`--fnb-${k}`,px(vars[k]));
+    }
+    lastWidth=width;
+    settle();
+  };
+  const setDocked=(value,instant)=>{
+    if(value===docked) return;
+    docked=value;
+    if(instant) header.classList.add('fnb-instant');
+    header.classList.toggle('is-docked',docked);
+    if(instant) settle();
+  };
+  // Deux seuils : la pastille ne clignote pas quand on s'arrête pile sur la limite.
+  const syncDock=instant=>{
+    if(!docked&&scrollY>=DOCK_AT) setDocked(true,instant);
+    else if(docked&&scrollY<RELEASE_AT) setDocked(false,instant);
+  };
+  measure();
+  syncDock(true);
+  addEventListener('scroll',()=>syncDock(false),{passive:true});
+  addEventListener('resize',()=>{
+    clearTimeout(resizeTimer);
+    // Un simple changement de hauteur (barre d'adresse mobile) ne modifie pas la géométrie.
+    resizeTimer=setTimeout(()=>{if(header.getBoundingClientRect().width!==lastWidth) measure();},150);
+  },{passive:true});
+  document.fonts?.ready.then(measure);
+  // Le navigateur peut restaurer une position défilée après l'initialisation.
+  addEventListener('load',()=>{measure();syncDock(true);},{once:true});
+}
+
 // Accessible mobile menu: Escape, focus containment and focus restoration.
 const menuButton=$('[data-menu-button]');
 const mobileMenu=$('[data-mobile-menu]');
