@@ -1,19 +1,24 @@
 // Planche matériel de l'accueil. `category` = mot simple pour un visiteur non technicien, `name` = modèle exact.
-// Positions en % de la planche : x, y, w (largeur), r (rotation en degrés) — une série pour ordinateur, une pour mobile.
+// Les visuels sont des rendus 3D (public/assets/gear/), tous éclairés de la même façon.
+// La largeur de chaque objet est calculée depuis sa taille réelle : `scale` permet de tricher légèrement
+// pour l'équilibre de la composition. Positions x, y en % de la planche (coin haut-gauche du visuel).
+// `tag` : où se place l'étiquette — 'below' (dessous), 'right', 'left' ou 'inside' (sur le bas de l'objet).
+export const gearBoardMm = { desk: 900, mobile: 470 };
+
 export const gearItems = [
-  { key: 'tablet',  category: 'Tablette et stylet', name: 'Galaxy Tab S11 Ultra · S Pen', desk: { x: 3,  y: 8,  w: 27, r: -6 },  mobile: { x: 4,  y: 2.5, w: 56, r: -5 } },
-  { key: 'camera',  category: 'Caméra',             name: 'Sony A7 IV',                   desk: { x: 71, y: 8,  w: 19, r: 5 },   mobile: { x: 50, y: 47,  w: 44, r: 5 } },
-  { key: 'lens',    category: 'Objectif',           name: 'Sony 24-70 mm f/2.8',          desk: { x: 76, y: 52, w: 17, r: -14 }, mobile: { x: 5,  y: 49,  w: 37, r: -10 } },
-  { key: 'mic',     category: 'Micro',              name: 'Sennheiser MKE 600',           desk: { x: 4,  y: 73, w: 27, r: 3 },   mobile: { x: 5,  y: 86,  w: 58, r: -3 } },
-  { key: 'gimbal',  category: 'Stabilisateur',      name: 'DJI RS 3 Pro',                 desk: { x: 58, y: 50, w: 14, r: 10 },  mobile: { x: 67, y: 70,  w: 25, r: 9 } },
-  { key: 'earbuds', category: 'Écouteurs',          name: 'AirPods',                      desk: { x: 41, y: 70, w: 6,  r: -10 }, mobile: { x: 8,  y: 68.5, w: 15, r: -9 } }
+  { key: 'tablet',  category: 'Tablette et stylet', name: 'Galaxy Tab S11 Ultra · S Pen', scale: 0.85, desk: { x: 2,    y: 5,  tag: 'inside' }, mobile: { x: 2,  y: 2,    tag: 'inside' } },
+  { key: 'camera',  category: 'Caméra',             name: 'Sony A7 IV',                   scale: 1.2,  desk: { x: 60.5, y: 4,  tag: 'below' },  mobile: { x: 54, y: 45.5, tag: 'below' } },
+  { key: 'gimbal',  category: 'Stabilisateur',      name: 'DJI RS 3 Pro',                 scale: 0.8,  desk: { x: 80.5, y: 3,  tag: 'below' },  mobile: { x: 61, y: 68,   tag: 'left' } },
+  { key: 'lens',    category: 'Objectif',           name: 'Sony 24-70 mm f/2.8',          scale: 1.15, desk: { x: 81,   y: 68, tag: 'left' },   mobile: { x: 3,  y: 47,   tag: 'below' } },
+  { key: 'earbuds', category: 'Écouteurs',          name: 'AirPods',                      scale: 1.15, desk: { x: 4,    y: 56, tag: 'below' },  mobile: { x: 4,  y: 69,   tag: 'below' } },
+  { key: 'mic',     category: 'Micro',              name: 'Sennheiser MKE 600',           scale: 0.95, desk: { x: 3,    y: 84, tag: 'right' },  mobile: { x: 3,  y: 86.5, tag: 'below' } }
 ];
 
 // Les trois temps de la méthode (repris de la section « Comment je travaille »), écrits sur des post-its.
 export const gearNotes = [
-  { text: 'Comprendre',   tone: 'sun',   desk: { x: 35, y: 6,  w: 8, r: -6 }, mobile: { x: 70, y: 3,  w: 23, r: 6 } },
-  { text: 'Choisir',      tone: 'teal',  desk: { x: 44, y: 10, w: 8, r: 5 },  mobile: { x: 72, y: 15, w: 23, r: -4 } },
-  { text: 'Tenir le fil', tone: 'paper', desk: { x: 88, y: 77, w: 8, r: 8 },  mobile: { x: 33, y: 70, w: 22, r: 7 } }
+  { text: 'Comprendre',   sprite: 'note-sun',   ink: '#2a2208', r: -6, desk: { x: 40, y: 4 },  mobile: { x: 76, y: 2.5 } },
+  { text: 'Choisir',      sprite: 'note-teal',  ink: '#f0ebe2', r: 5,  desk: { x: 50, y: 9 },  mobile: { x: 77, y: 12.5 } },
+  { text: 'Tenir le fil', sprite: 'note-paper', ink: '#080706', r: 8,  desk: { x: 24, y: 55 }, mobile: { x: 40, y: 68.5 } }
 ];
 
 export const gearTitle = ['Des outils', 'que je connais vraiment', 'sur le terrain.'];
