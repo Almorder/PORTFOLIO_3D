@@ -14,10 +14,13 @@ export const site = {
   supabasePublishableKey: 'sb_publishable_6E-y01ooFXCQ96uEr9p_ug_1cbtf9-a', // clé publique, protégée par les règles RLS
   analyticsToken: '1c1cf63d191049d8acc58b62961377c6',
   clients: ['Ouilove Proposal', 'A One Permis', 'Carat Créations Paris', 'Reka Security'],
+  // Phrase lue mot à mot à l'accueil (section Focus Text).
+  manifesto: 'J’arrive tôt, je parle peu, je regarde longtemps. À la fin, il reste un film.',
   testimonials: [
-    { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal' },
-    { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment' },
-    { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '' },
+    // image : visuel du projet (adresse) ; link + linkLabel : lien facultatif affiché dans le panneau de l'avis.
+    { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal', image: '', link: '', linkLabel: '' },
+    { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment', image: '', link: '', linkLabel: '' },
+    { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '', image: '', link: '', linkLabel: '' },
   ],
   proofStats: [
     { value: 50, suffix: '+', label: 'vidéos réalisées' },

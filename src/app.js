@@ -446,6 +446,192 @@ $$('[data-instagram-post]').forEach(card=>{
   },{once:true});
 });
 
+// ---------------------------------------------------------------------------
+// Composants vitrine : effets écrits sans dépendance.
+// ---------------------------------------------------------------------------
+const finePointer=matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+// Phrase encadrée : le défilement fait avancer le cadre d'un mot à l'autre ; le survol prend la main.
+$$('[data-focus-text]').forEach(section=>{
+  if(reduced) return;
+  const stage=$('.focus-text__stage',section), frame=$('[data-ft-frame]',section), words=$$('[data-ft-word]',section);
+  if(!frame||!words.length) return;
+  section.classList.add('is-live');
+  let current=-1, hovered=-1, queued=false;
+  const PAD_X=.16, PAD_Y=.02;
+  const show=index=>{
+    if(index===current) return;
+    current=index;
+    words.forEach((w,i)=>w.classList.toggle('is-on',i===index));
+    place();
+  };
+  const place=()=>{
+    const word=words[current]; if(!word) return;
+    const s=stage.getBoundingClientRect(), r=word.getBoundingClientRect(), size=parseFloat(getComputedStyle(word).fontSize);
+    const padX=size*PAD_X, padY=size*PAD_Y;
+    frame.style.setProperty('--fx',`${(r.left-s.left-padX).toFixed(1)}px`);
+    frame.style.setProperty('--fy',`${(r.top-s.top-padY).toFixed(1)}px`);
+    frame.style.setProperty('--fw',`${(r.width+padX*2).toFixed(1)}px`);
+    frame.style.setProperty('--fh',`${(r.height+padY*2).toFixed(1)}px`);
+  };
+  const fromScroll=()=>{
+    queued=false;
+    if(hovered>=0) return;
+    const r=section.getBoundingClientRect(), span=r.height-innerHeight;
+    const p=span>0?clamp(-r.top/span,0,.9999):0;
+    show(Math.floor(p*words.length));
+  };
+  const queue=()=>{if(!queued){queued=true;requestAnimationFrame(fromScroll);}};
+  addEventListener('scroll',queue,{passive:true});
+  addEventListener('resize',()=>{place();queue();},{passive:true});
+  document.fonts?.ready.then(place);
+  if(finePointer) words.forEach((w,i)=>{
+    w.addEventListener('pointerenter',()=>{hovered=i;show(i);});
+    w.addEventListener('pointerleave',()=>{hovered=-1;queue();});
+  });
+  fromScroll();
+});
+
+// Avis : la ligne cliquée grandit en panneau, puis le panneau se replie dans sa ligne.
+$$('[data-morph-open]').forEach(row=>{
+  const panel=document.getElementById(row.dataset.morphOpen);
+  if(!panel||typeof panel.showModal!=='function') return;
+  const EASE='cubic-bezier(.3,.9,.1,1)';
+  // Départ : une fenêtre de la taille de la ligne, placée sur la ligne ; arrivée : le panneau entier.
+  const frames=()=>{
+    const a=row.getBoundingClientRect(), b=panel.getBoundingClientRect();
+    const insetX=Math.max(0,(b.width-a.width)/2), insetY=Math.max(0,(b.height-a.height)/2);
+    const dx=a.left+a.width/2-(b.left+b.width/2), dy=a.top+a.height/2-(b.top+b.height/2);
+    return [
+      {transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`,clipPath:`inset(${insetY.toFixed(1)}px ${insetX.toFixed(1)}px round 14px)`,opacity:.4},
+      {transform:'translate(0,0)',clipPath:'inset(0px 0px round 28px)',opacity:1}
+    ];
+  };
+  let busy=false;
+  const open=()=>{
+    if(panel.open||busy) return;
+    panel.showModal();
+    if(reduced) return;
+    panel.animate(frames(),{duration:520,easing:EASE});
+    $('.morph-panel__inner',panel).animate([{opacity:0},{opacity:0,offset:.35},{opacity:1}],{duration:520,easing:'ease-out'});
+  };
+  const close=()=>{
+    if(!panel.open||busy) return;
+    if(reduced){panel.close();return;}
+    busy=true;
+    panel.classList.add('is-closing');
+    $('.morph-panel__inner',panel).animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-in',fill:'forwards'});
+    const anim=panel.animate(frames().reverse(),{duration:380,easing:'cubic-bezier(.7,0,.16,1)',fill:'forwards'});
+    anim.finished.catch(()=>{}).then(()=>{
+      panel.close();panel.classList.remove('is-closing');
+      panel.getAnimations({subtree:true}).forEach(a=>a.cancel());
+      busy=false;
+    });
+  };
+  row.addEventListener('click',open);
+  $('[data-morph-close]',panel)?.addEventListener('click',close);
+  panel.addEventListener('cancel',event=>{event.preventDefault();close();});
+  panel.addEventListener('click',event=>{if(event.target===panel) close();});
+});
+
+// Bento : la tuile cliquée prend la grande place, les autres se réinstallent dans l'ordre.
+$$('[data-bento]').forEach(bento=>{
+  const tiles=$$('[data-bento-tile]',bento);
+  let order=tiles.map((_,i)=>i);
+  const apply=()=>order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot;});
+  bento.addEventListener('click',event=>{
+    const hit=event.target.closest('[data-bento-focus]'); if(!hit) return;
+    const index=tiles.indexOf(hit.closest('[data-bento-tile]'));
+    if(index<0||order[0]===index) return;
+    order=[index,...order.filter(i=>i!==index)];
+    const done=()=>$('.bento__link',tiles[index])?.focus({preventScroll:true});
+    if(document.startViewTransition&&!reduced) document.startViewTransition(apply).finished.then(done,done);
+    else{apply();done();}
+  });
+});
+
+// Téléphones : inclinaison 3D sous le curseur, reflet et ombre qui suivent.
+if(finePointer&&!reduced) $$('[data-tilt]').forEach(device=>{
+  const MAX=11, card=device.closest('[data-instagram-post]');
+  const reset=()=>{
+    device.classList.remove('is-tilting');
+    for(const name of ['--rx','--ry','--ts','--shx','--shy','--gx','--gy']) device.style.removeProperty(name);
+  };
+  device.addEventListener('pointermove',event=>{
+    if(card?.classList.contains('is-playing')){reset();return;}
+    const r=device.getBoundingClientRect();
+    const x=clamp((event.clientX-r.left)/r.width,0,1)-.5, y=clamp((event.clientY-r.top)/r.height,0,1)-.5;
+    device.classList.add('is-tilting');
+    device.style.setProperty('--ry',`${(x*2*MAX).toFixed(2)}deg`);
+    device.style.setProperty('--rx',`${(-y*2*MAX).toFixed(2)}deg`);
+    device.style.setProperty('--ts','1.05');
+    device.style.setProperty('--shx',`${(-x*34).toFixed(1)}px`);
+    device.style.setProperty('--shy',`${(16-y*30).toFixed(1)}px`);
+    device.style.setProperty('--gx',`${((x+.5)*100).toFixed(1)}%`);
+    device.style.setProperty('--gy',`${((y+.5)*100).toFixed(1)}%`);
+  });
+  device.addEventListener('pointerleave',reset);
+});
+
+// Dégradé vivant : des points de couleur dérivent lentement ; le curseur remue les couleurs.
+(function(){
+  const hosts=$$('[data-gradient-motion]');
+  if(!hosts.length||reduced) return;
+  const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  const FRAG=`precision mediump float;uniform vec2 r;uniform float t;uniform vec3 c0;uniform vec3 c1;uniform vec3 c2;uniform vec3 c3;uniform vec3 m;
+float w(vec2 p,vec2 q){float d=distance(p,q);return 1./(pow(d,2.4)+.012);}
+void main(){vec2 p=gl_FragCoord.xy/r;p.x*=r.x/r.y;vec2 mm=vec2(m.x*r.x/r.y,m.y);
+vec2 d=p-mm;p+=vec2(-d.y,d.x)*m.z*exp(-dot(d,d)*9.)*1.4;
+p+=.09*vec2(sin(p.y*2.6+t*.5),cos(p.x*2.9-t*.42));
+float a=r.x/r.y;
+vec2 q0=vec2(a*(.5+.42*sin(t*.23)),.5+.4*cos(t*.19));
+vec2 q1=vec2(a*(.5+.44*cos(t*.17+1.7)),.5+.42*sin(t*.21+.6));
+vec2 q2=vec2(a*(.5+.4*sin(t*.14+3.1)),.5+.44*cos(t*.25+2.2));
+vec2 q3=vec2(a*(.5+.46*cos(t*.2+4.4)),.5+.38*sin(t*.16+5.));
+float w0=w(p,q0),w1=w(p,q1),w2=w(p,q2),w3=w(p,q3);
+gl_FragColor=vec4((c0*w0+c1*w1+c2*w2+c3*w3)/(w0+w1+w2+w3),1.);}`;
+  const rgb=value=>{const m=/^#?([0-9a-f]{6})$/i.exec(value.trim());if(!m) return null;const n=parseInt(m[1],16);return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255];};
+  hosts.forEach(host=>{
+    const style=getComputedStyle(host);
+    const colors=[1,2,3,4].map(i=>rgb(style.getPropertyValue(`--gm-c${i}`)));
+    if(colors.some(c=>!c)) return;
+    const canvas=document.createElement('canvas');
+    const gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'low-power'});
+    if(!gl) return;
+    const compile=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null;};
+    const vs=compile(gl.VERTEX_SHADER,VERT), fs=compile(gl.FRAGMENT_SHADER,FRAG);
+    if(!vs||!fs) return;
+    const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS)) return;
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const loc=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    const U=name=>gl.getUniformLocation(program,name);
+    colors.forEach((c,i)=>gl.uniform3fv(U(`c${i}`),c));
+    host.append(canvas);host.classList.add('has-mesh');
+    // Le dégradé est flou par nature : un petit canvas agrandi suffit et ménage la batterie.
+    const resize=()=>{const b=host.getBoundingClientRect();canvas.width=Math.max(2,Math.round(b.width/5));canvas.height=Math.max(2,Math.round(b.height/5));gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(U('r'),canvas.width,canvas.height);};
+    resize();addEventListener('resize',resize,{passive:true});
+    const mouse={x:.5,y:.5,force:0};
+    (host.parentElement||host).addEventListener('pointermove',event=>{
+      const b=host.getBoundingClientRect();
+      mouse.x=(event.clientX-b.left)/b.width;mouse.y=1-(event.clientY-b.top)/b.height;mouse.force=Math.min(1,mouse.force+.12);
+    },{passive:true});
+    let visible=false, raf=0, last=0, time=Math.random()*40;
+    const frame=now=>{
+      raf=0;
+      if(!visible||document.hidden) return;
+      if(now-last>32){time+=Math.min(.1,(now-last)/1000);last=now;mouse.force*=.94;
+        gl.uniform1f(U('t'),time);gl.uniform3f(U('m'),mouse.x,mouse.y,mouse.force);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
+      raf=requestAnimationFrame(frame);
+    };
+    const start=()=>{if(!raf&&visible&&!document.hidden) raf=requestAnimationFrame(frame);};
+    new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;start();}).observe(host);
+    document.addEventListener('visibilitychange',start);
+  });
+})();
+
 // Reveal elements only when JS is present; no content is hidden without JS.
 const revealTargets=$$('.motion-reveal,.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');
 if('IntersectionObserver' in window && !reduced){
