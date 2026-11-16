@@ -732,17 +732,12 @@ $$('[data-hold-confirm]').forEach(button=>{
   const slug=location.pathname.replace(/\/+$/,'')||'/';
   const headers={apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
   try{
-    const endpoint=`${url}/rest/v1/page_views?slug=eq.${encodeURIComponent(slug)}&select=views`;
-    const read=await fetch(endpoint,{headers:{...headers,Accept:'application/json'}});if(!read.ok)throw new Error('read');
-    const rows=await read.json();let views=1;
-    if(rows[0]){
-      views=Number(rows[0].views||0)+1;
-      const update=await fetch(`${url}/rest/v1/page_views?slug=eq.${encodeURIComponent(slug)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({views,updated_at:new Date().toISOString()})});
-      if(!update.ok)throw new Error('update');
-    }else{
-      const insert=await fetch(`${url}/rest/v1/page_views`,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({slug,views})});
-      if(!insert.ok)throw new Error('insert');
-    }
+    // Écriture uniquement via la fonction SQL increment_page_view (voir supabase/page_views.sql) :
+    // le navigateur n'a plus aucun droit direct d'insert/update sur la table.
+    const res=await fetch(`${url}/rest/v1/rpc/increment_page_view`,{method:'POST',headers,body:JSON.stringify({p_slug:slug})});
+    if(!res.ok)throw new Error('rpc');
+    const views=Number(await res.json());
+    if(!Number.isFinite(views))throw new Error('rpc');
     counters.forEach(counter=>{
       counter.hidden=false;counter.dataset.counterStatus='live';const value=$('[data-page-view-value]',counter);if(!value)return;
       if(reduced){value.textContent=Intl.NumberFormat('fr-FR').format(views);return;}

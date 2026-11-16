@@ -4,18 +4,21 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image='https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000', imageAlt='Nolan Arc', imageWidth='', imageHeight='', bodyClass='' }) {
+export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc — halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
+  const personId = `${site.domain}/#nolan`;
+  const businessId = `${site.domain}/#business`;
+  const sameAs = [site.instagram, site.youtube];
   const schema = {
     '@context':'https://schema.org',
-    '@type':'Person',
-    name: site.legalName,
-    alternateName: site.name,
-    url: site.domain,
-    jobTitle: site.role,
-    email: `mailto:${site.email}`,
-    sameAs: [site.instagram, site.youtube]
+    '@graph':[
+      { '@type':'WebSite', '@id':`${site.domain}/#website`, url:site.domain, name:site.name, inLanguage:'fr-FR', publisher:{ '@id':businessId } },
+      { '@type':'Person', '@id':personId, name:site.legalName, alternateName:site.name, url:site.domain, jobTitle:site.role, sameAs, worksFor:{ '@id':businessId } },
+      { '@type':'ProfessionalService', '@id':businessId, name:site.name, url:site.domain, description:'Réalisation photo et vidéo, direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, founder:{ '@id':personId }, sameAs, knowsAbout:['Réalisation vidéo','Direction artistique','Stratégie de marque'] }
+    ]
   };
+  // L'email n'est volontairement pas publié ici : il reste protégé dans le HTML visible (anti-spam).
+  const schemaJson = JSON.stringify(schema).replaceAll('<','\\u003c');
   return `<!doctype html>
 <html lang="fr" class="no-js">
 <head>
@@ -49,7 +52,7 @@ ${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' 
 <style id="critical-shell">.mobile-tabs{display:none}.mobile-menu[hidden]{display:none!important}</style>
 <link rel="stylesheet" href="/__SITE_CSS__">
 <script>document.documentElement.classList.remove('no-js');</script>
-<script type="application/ld+json">${JSON.stringify(schema)}</script>
+<script type="application/ld+json">${schemaJson}</script>
 </head>
 <body class="${bodyClass}">`;
 }
