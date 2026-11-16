@@ -550,27 +550,31 @@ $$('[data-bento]').forEach(bento=>{
   });
 });
 
-// Téléphones : inclinaison 3D sous le curseur, reflet et ombre qui suivent.
-if(finePointer&&!reduced) $$('[data-tilt]').forEach(device=>{
-  const MAX=11, card=device.closest('[data-instagram-post]');
-  const reset=()=>{
+// Téléphones : inclinaison 3D, reflet et ombre qui suivent le curseur. On écoute toute la section :
+// le téléphone situé dans la colonne du curseur s'incline, même une fois sa vidéo lancée
+// (le lecteur Instagram garde le pointeur pour lui, mais le pourtour continue de faire bouger l'appareil).
+if(finePointer&&!reduced) $$('.ig-stage').forEach(stage=>{
+  const MAX=11, devices=$$('[data-tilt]',stage);
+  const reset=device=>{
     device.classList.remove('is-tilting');
     for(const name of ['--rx','--ry','--ts','--shx','--shy','--gx','--gy']) device.style.removeProperty(name);
   };
-  device.addEventListener('pointermove',event=>{
-    if(card?.classList.contains('is-playing')){reset();return;}
-    const r=device.getBoundingClientRect();
-    const x=clamp((event.clientX-r.left)/r.width,0,1)-.5, y=clamp((event.clientY-r.top)/r.height,0,1)-.5;
-    device.classList.add('is-tilting');
-    device.style.setProperty('--ry',`${(x*2*MAX).toFixed(2)}deg`);
-    device.style.setProperty('--rx',`${(-y*2*MAX).toFixed(2)}deg`);
-    device.style.setProperty('--ts','1.05');
-    device.style.setProperty('--shx',`${(-x*34).toFixed(1)}px`);
-    device.style.setProperty('--shy',`${(16-y*30).toFixed(1)}px`);
-    device.style.setProperty('--gx',`${((x+.5)*100).toFixed(1)}%`);
-    device.style.setProperty('--gy',`${((y+.5)*100).toFixed(1)}%`);
+  stage.addEventListener('pointermove',event=>{
+    devices.forEach(device=>{
+      const r=device.getBoundingClientRect();
+      if(event.clientX<r.left||event.clientX>r.right){reset(device);return;}
+      const x=clamp((event.clientX-r.left)/r.width,0,1)-.5, y=clamp((event.clientY-r.top)/r.height,0,1)-.5;
+      device.classList.add('is-tilting');
+      device.style.setProperty('--ry',`${(x*2*MAX).toFixed(2)}deg`);
+      device.style.setProperty('--rx',`${(-y*2*MAX).toFixed(2)}deg`);
+      device.style.setProperty('--ts','1.05');
+      device.style.setProperty('--shx',`${(-x*34).toFixed(1)}px`);
+      device.style.setProperty('--shy',`${(16-y*30).toFixed(1)}px`);
+      device.style.setProperty('--gx',`${((x+.5)*100).toFixed(1)}%`);
+      device.style.setProperty('--gy',`${((y+.5)*100).toFixed(1)}%`);
+    });
   });
-  device.addEventListener('pointerleave',reset);
+  stage.addEventListener('pointerleave',()=>devices.forEach(reset));
 });
 
 // Dégradé vivant : des points de couleur dérivent lentement ; le curseur remue les couleurs.

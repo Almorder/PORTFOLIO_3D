@@ -156,7 +156,7 @@ export function homePage(){
     </section>
 
     <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Ouvrez-en une pour la lire en entier.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
       ${morphTestimonials(site.testimonials)}
     </section>
 

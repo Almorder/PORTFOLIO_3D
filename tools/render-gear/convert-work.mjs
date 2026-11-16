@@ -7,7 +7,12 @@ const [src,repo]=process.argv.slice(2);const out=`${repo}/public/assets/work`;fs
   for(let y=0;y<im.height;y++)for(let x=0;x<im.width;x++){const a=A(x,y);if(a>10){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}if(a>=254){if(x<a0)a0=x;if(x>a1)a1=x;if(y<b0)b0=y;if(y>b1)b1=y;}}
   const cx=Math.round((a0+a1)/2),cy=Math.round((b0+b1)/2);let l=cx,r=cx,t=cy,b=cy;
   while(A(l-1,cy)<8)l--;while(A(r+1,cy)<8)r++;while(A(cx,t-1)<8)t--;while(A(cx,b+1)<8)b++;
-  const w=x1-x0+1,h=y1-y0+1;const buf=await sharp(file).extract({left:x0,top:y0,width:w,height:h}).webp({quality:88,alphaQuality:95,effort:6}).toBuffer();fs.writeFileSync(`${out}/phone.webp`,buf);
+  const w=x1-x0+1,h=y1-y0+1;
+  // Le rendu laisse un voile sombre très léger sur tout le cadre : on le retire et on fond l'ombre vers les bords,
+  // pour ne garder que l'ombre portée du téléphone (sinon un rectangle se devine sur le fond rouge).
+  for(let y=0;y<im.height;y++)for(let x=0;x<im.width;x++){const i=(y*im.width+x)*4+3,a=data[i];if(a===0||a>=254)continue;
+    const edge=Math.min(x-x0,x1-x,y-y0,y1-y);const fade=Math.max(0,Math.min(1,edge/(w*.07)));data[i]=Math.round(Math.max(0,a-24)*1.08*fade);}
+  const buf=await sharp(data,{raw:{width:im.width,height:im.height,channels:4}}).extract({left:x0,top:y0,width:w,height:h}).webp({quality:88,alphaQuality:95,effort:6}).toBuffer();fs.writeFileSync(`${out}/phone.webp`,buf);
   const f=v=>+(v*100).toFixed(3);
   manifest.phone={w,h,box:[f((a0-x0)/w),f((b0-y0)/h),f((a1-a0+1)/w),f((b1-b0+1)/h)],screen:[f((l-x0)/w),f((t-y0)/h),f((r-l+1)/w),f((b-t+1)/h)]};
   console.log('phone',w+'x'+h,Math.round(buf.length/1024)+' Ko','écran %',manifest.phone.screen.join(' ')); }

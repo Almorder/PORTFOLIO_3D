@@ -18,17 +18,15 @@ const media=(t,cls)=>t.image
   ? `<span class="${cls}"><img src="${esc(t.image)}" alt="" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
-/** Avis en liste : un clic ouvre la ligne en grand panneau (image du projet, phrase entière, lien). */
+/** Avis en cartes (forme d'origine) : un clic ouvre la carte en grand panneau (image du projet, phrase entière, lien). */
 export function morphTestimonials(items=[]){
-  return `<ul class="morph-list" data-morph-list>${items.map((t,i)=>`<li class="motion-reveal">
-      <button type="button" class="morph-row" data-morph-open="morph-panel-${i}" aria-haspopup="dialog">
-        ${media(t,'morph-row__thumb')}
-        <strong>${esc(t.name)}</strong>
-        <span class="morph-row__role">${esc(t.role||'')}</span>
-        <span class="morph-row__quote">« ${esc(t.quote)} »</span>
-        <i aria-hidden="true">Lire</i>
-      </button>
-      <dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
+  return `<div class="v16-testimonial-bento" data-morph-list>${items.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}">
+      <div class="v16-stars" aria-label="Retour client positif">★★★★★</div>
+      <blockquote>« ${esc(t.quote)} »</blockquote>
+      <footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
+      <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(t.name)}"></button>
+    </article>`).join('')}</div>
+    ${items.map((t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
         <div class="morph-panel__inner">
           ${media(t,'morph-panel__media')}
           <div class="morph-panel__body">
@@ -38,8 +36,7 @@ export function morphTestimonials(items=[]){
           </div>
           <button type="button" class="morph-panel__close" data-morph-close aria-label="Fermer">×</button>
         </div>
-      </dialog>
-    </li>`).join('')}</ul>`;
+      </dialog>`).join('')}`;
 }
 
 /** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand. */
