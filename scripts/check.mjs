@@ -75,16 +75,16 @@ for(const source of [pagesSource,siteSource,legalSource]){
 
 const home=await readFile(join(dist,'index.html'),'utf8');
 // Planche matériel : six objets rendus en 3D, servis par le site (aucune ressource externe).
-const gearHtml=home.slice(home.indexOf('data-gear-board'),home.indexOf('brand-ecosystem__head'));
-if((gearHtml.match(/class="gear-item /g)||[]).length!==6) fail('Home: gear board must show six items');
+const gearHtml=home.slice(home.indexOf('class="gear-photo"'),home.indexOf('brand-ecosystem__head'));
+if(!gearHtml.includes('/assets/gear/desk.webp')||!/alt="[^"]{20,}"/.test(gearHtml)) fail('Home: gear photo (with a real description) expected above the gear brands');
 if(/https?:\/\//.test(gearHtml)) fail('Home: gear board must not load any external resource');
 for(const m of gearHtml.matchAll(/<img src="([^"]+)"/g)){
   if(!m[1].startsWith('/assets/gear/')||!existing.has(m[1].slice(1))) fail(`Home: gear visual missing or outside /assets/gear/ (${m[1]})`);
 }
-for(const file of ['assets/gear/mat.webp','assets/gear/mat-mobile.webp','assets/gear/strip-1.webp','assets/gear/strip-2.webp','assets/gear/strip-3.webp']) if(!existing.has(file)) fail(`Home: gear board asset missing (${file})`);
+for(const file of ['assets/gear/desk.webp','assets/gear/desk-900.webp','assets/da/texture.webp','assets/da/texture-wide.webp']) if(!existing.has(file)) fail(`Home: visual asset missing (${file})`);
 // Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
 const {weddingPhotos}=await import('../content/wedding.mjs');
-if(!weddingPhotos.length && home.includes('class="wedding-wall')) fail('Home: wedding wall must stay hidden until real photos are provided');
+if(!home.includes('class="wedding-wall')||(home.match(/class="polaroid"/g)||[]).length!==3||(!weddingPhotos.length&&/<a class="polaroid"[^>]*><img/.test(home))) fail('Home: wedding wall shows three polaroids, and no stand-in photo while none is provided');
 for(const photo of weddingPhotos){
   if(!existing.has(String(photo.src).replace(/^\//,''))) fail(`Wedding: missing photo file ${photo.src}`);
   if(!photo.alt) fail(`Wedding: photo ${photo.src} needs an alt description`);
@@ -119,16 +119,16 @@ const contact=await readFile(join(dist,'contact/index.html'),'utf8');
 const privacy=await readFile(join(dist,'confidentialite/index.html'),'utf8');
 
 // V17 HOME — locked order / product logic.
-for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="dims"','class="plan"','data-hero-stack','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
+for(const token of ['class="v16-hero"','id="work-preview"','class="v16-proof"','class="dims"','class="ring-section"','data-hero-stack','class="brand-ecosystem v16-ecosystem','data-pricing-switcher','class="v16-testimonials"','id="faq-home"','id="quick-contact"']) if(!home.includes(token)) fail(`Home V17: missing ${token}`);
 if(home.includes('fab-clients')||/Collaborations documentées/i.test(home)) fail('Home V17: old collaborations strip must be removed');
 if((home.match(/data-stat-card/g)||[]).length!==4) fail('Home V17: exactly four stats expected');
 for(const token of ['50','2022','photo + vidéo','marques accompagnées']) if(!home.includes(token)) fail(`Home V17: proof stat/context missing ${token}`);
 if(/105\s?%/.test(home)) fail('Home: the +105 % claim must stay hidden until a proof is documented');
-if((home.match(/class="dims__row/g)||[]).length!==3) fail("Home: three dimensions expected");
+if((home.match(/<a class="folder /g)||[]).length!==3||(home.match(/class="folder__tab"/g)||[]).length!==3) fail('Home: three folder cards expected for the dimensions');
 for(const label of ['Réalisation','Direction artistique','Stratégie de marque']) if(!home.includes(label)) fail(`Home V17: professional dimension missing ${label}`);
 if(/images\.unsplash\.com/.test((home.split('id="dimensions"')[1]||'').split('class="brand-ecosystem')[0])) fail('Home: no stock image in dimensions / method sections (R1)');
-if((home.match(/data-dim(?=[ >])/g)||[]).length!==3||(home.match(/aria-controls="dim-panel-/g)||[]).length!==3||!css.includes('.no-js .dims__panel{grid-template-rows:1fr}')) fail('Home: three need-led dimensions, each with its panel, readable without JS');
-if((home.match(/class="plan__num"/g)||[]).length!==3||(home.match(/class="plan__get"/g)||[]).length!==3) fail('Home: method needs three steps, each saying what the client gets');
+if((home.match(/data-ring-arc=/g)||[]).length!==3||(home.match(/data-ring-step=/g)||[]).length!==3||(home.match(/data-ring-panel=/g)||[]).length!==3||!css.includes('.no-js .ring__panel{')) fail('Home: method ring needs three arcs, three buttons and three panels, readable without JS');
+if((home.match(/class="ring__get"/g)||[]).length!==3) fail('Home: each method step says what the client gets');
 if(!home.includes('class="v16-quick-contact final-cta"')||!home.includes('Envoyer le message')||!home.includes('class="hero-copy"')||!home.includes('class="is-primary" href="#work-preview"')) fail('Home: hero needs one primary action and the final CTA its form');
 for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V17: ecosystem missing ${brand}`);
 if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
@@ -145,7 +145,7 @@ if(!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__vi
 if(!app.includes('canUseShowcaseWebGL')||!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
 if(!app.includes("panel.showModal()")||!app.includes("panel.addEventListener('cancel'")) fail('Home: testimonial panel must open as a modal dialog and close with Escape');
 if(!home.includes('/assets/og-home.png')||!existing.has('assets/og-home.png')) fail('Home V20: local OG image missing');
-if(!home.includes('Une idée. Une direction.')||!home.includes('Un rendu qui tient jusqu’au bout.')) fail('Home V20: validated hero positioning line missing');
+if(!home.includes('class="hero-roles"')||home.includes('v20-hero__line')) fail('Home: hero keeps one sober line (the three roles), no slogan over the video');
 if(!home.includes('data-focus-text')||!/<p class="focus-text__line">(<span data-ft-word>[^<]+<\/span> ?){6,}<\/p>/.test(home)||!css.includes('.focus-text.is-live .focus-text__line span{')) fail('Home: focus text must stay readable without JS (blur only once live)');
 for(const id of ['pricing-tab-wedding','pricing-panel-wedding','pricing-tab-direction','pricing-panel-direction','pricing-tab-strategy','pricing-panel-strategy']) if(!home.includes(`id="${id}"`)) fail(`Home V20 a11y: pricing ARIA relation missing ${id}`);
 if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
