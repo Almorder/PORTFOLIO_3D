@@ -358,6 +358,23 @@ $$('[data-external-video]').forEach(gate=>{
   else button?.addEventListener('click',activate,{once:true});
 });
 
+// Instagram posts are embedded only after an explicit click on the card.
+$$('[data-instagram-post]').forEach(card=>{
+  const button=$('[data-load-instagram]',card);
+  button?.addEventListener('click',()=>{
+    const id=card.dataset.postId;
+    if(!/^[A-Za-z0-9_-]+$/.test(id||'')) return;
+    const iframe=document.createElement('iframe');
+    iframe.src=`https://www.instagram.com/p/${id}/embed/`;
+    iframe.title=`${card.dataset.postTitle||'Publication'} — Instagram`;
+    iframe.loading='lazy';
+    iframe.allowFullscreen=true;
+    iframe.referrerPolicy='strict-origin-when-cross-origin';
+    card.classList.add('is-playing');
+    $('.ig-card__cover',card).replaceChildren(iframe);
+  },{once:true});
+});
+
 // Reveal elements only when JS is present; no content is hidden without JS.
 const revealTargets=$$('.motion-reveal,.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');
 if('IntersectionObserver' in window && !reduced){
