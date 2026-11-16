@@ -133,8 +133,10 @@ export function animatedStats(stats=[], {theme='dark', layout='auto', replay=tru
   return `<section class="animated-stats animated-stats--${esc(theme)}" data-animated-stats data-layout="${esc(layout)}" data-replay="${replay?'true':'false'}" data-animation="${esc(selected)}" aria-label="Repères concrets"><div class="animated-stats__track" style="--stat-count:${stats.length}">${stats.map((stat,i)=>{
     const value=Number(stat.value)||0;
     const decimals=Number.isInteger(value)?0:String(value).split('.')[1]?.length||0;
+    // Une année s'affiche telle quelle : la faire défiler de 0 à 2022 afficherait de fausses dates.
+    const isYear=Number.isInteger(value)&&value>=1900&&value<=2100;
     const style=styles.includes(stat.animation)?stat.animation:selected;
-    return `<article class="stat-style--${esc(style)}" data-stat-card data-stat-order="${i}" data-stat-style="${esc(style)}"><strong><span>${esc(stat.prefix||'')}</span><b data-counter data-counter-target="${value}" data-counter-decimals="${decimals}">${value.toFixed(decimals)}</b><span>${esc(stat.suffix||'')}</span></strong><small>${esc(stat.label)}</small></article>`;
+    return `<article class="stat-style--${esc(style)}" data-stat-card data-stat-order="${i}" data-stat-style="${esc(style)}"><strong><span>${esc(stat.prefix||'')}</span><b data-counter${isYear?' data-counter-static':''} data-counter-target="${value}" data-counter-decimals="${decimals}">${value.toFixed(decimals)}</b><span>${esc(stat.suffix||'')}</span></strong><small>${esc(stat.label)}</small></article>`;
   }).join('')}</div></section>`;
 }
 

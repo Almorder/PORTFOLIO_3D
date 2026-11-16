@@ -1,10 +1,13 @@
 import { site } from '../content/site.mjs';
 import { projects } from '../content/projects.mjs';
 import { notes } from '../content/journal.mjs';
+import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
 
+// Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
+const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 const visuals = {
@@ -77,11 +80,11 @@ export function homePage(){
       <p class="v20-hero__line">Une idée. Une direction.<br><strong>Un rendu qui tient jusqu’au bout.</strong></p>
       <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
       <div class="v16-hero__actions"><a href="#work-preview">Voir le Work <span>↘</span></a><a href="#quick-contact">Parler d’un projet <span>↗</span></a></div>
-      <span class="v16-hero__copyright">© 2026 Nolan Arc</span>
+      <button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>
     </section>
 
     <section class="fab-projects v16-work-preview" id="work-preview">
-      <header class="fab-section-heading motion-reveal"><div><small>(01)</small><h2>Work.</h2><span>sélection</span></div><p>Le projet parle d’abord. Si vous voulez aller plus loin, la fiche donne simplement mon rôle, le contexte et les choix qui ont compté.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Work.</h2><span>sélection</span></div><p>Le projet parle d’abord. Si vous voulez aller plus loin, la fiche donne simplement mon rôle, le contexte et les choix qui ont compté.</p></header>
       <div class="fab-project-grid">
         <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
@@ -95,7 +98,7 @@ export function homePage(){
     </section>
 
     <section class="v16-dimensions" id="dimensions">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
       <div class="v16-dimensions__grid v19-dimensions__grid">
         ${expertiseTabs.map((x,i)=>`<article class="v16-dimension v19-dimension motion-reveal" data-dimension="${esc(x.key)}">
           <div class="v19-dimension__visual" aria-hidden="true"><span>${x.index}</span><b>${i===0?'R':i===1?'DA':'S'}</b><i></i></div>
@@ -139,7 +142,7 @@ export function homePage(){
     </section>
 
     <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><small>(03)</small><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
       <div class="v16-testimonial-bento">${site.testimonials.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}"><div class="v16-stars" aria-label="Retour client positif">★★★★★</div><blockquote>« ${esc(t.quote)} »</blockquote><footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer></article>`).join('')}</div>
     </section>
 
@@ -154,7 +157,7 @@ export function homePage(){
         <label><span>Message</span><textarea required name="message" rows="4" placeholder="Ce que vous préparez, même si c’est encore flou."></textarea></label>
         <button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
       </form>
-      <div class="v16-quick-contact__copy">${gradientMotionBackground({style:'radial',speed:22,blur:84,opacity:.28,size:126,colors:['#CC460C','#E97736','#2B1710','#080706']})}<span class="fab-dot-label">Contact direct</span><h2>Parlons.</h2><p>Vous pouvez arriver avec un brief précis ou simplement une idée. Les deux me vont.</p><div class="v16-contact-points"><div><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></div><div><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></div></div><div class="v16-nolan-card"><div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" loading="lazy"></div><div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a></div></div></div>
+      <div class="v16-quick-contact__copy">${gradientMotionBackground({style:'radial',speed:22,blur:84,opacity:.28,size:126,colors:['#CC460C','#E97736','#2B1710','#080706']})}<span class="fab-dot-label">Contact direct</span><h2>Parlons.</h2><p>Vous pouvez arriver avec un brief précis ou simplement une idée. Les deux me vont.</p><div class="v16-contact-points"><div><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></div><div><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></div></div><div class="v16-nolan-card${hasPortrait?'':' v16-nolan-card--text'}">${hasPortrait?'<div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" loading="lazy"></div>':''}<div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a></div></div></div>
     </section>
   </main>` + footer();
 }
@@ -298,11 +301,11 @@ export function privacyPage(){
 export function cookiesPage(){
   return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
   <h2>Principe</h2><p>Nolanarc.com n’utilise ni outil publicitaire ni profilage. Le site mesure uniquement son audience avec un outil sans cookie (voir ci-dessous) et n’enregistre pas votre parcours pour personnaliser la visite.</p>
-  <h2>Vidéo YouTube</h2><p>Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée depuis le footer. Sur les pages projet, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
+  <h2>Vidéo YouTube</h2><p>Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée depuis le bouton « Fond vidéo » de l’accueil ou depuis le footer. Sur les pages projet, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
   <h2>Mesure d’audience</h2><p>Le site utilise Cloudflare Web Analytics pour savoir combien de personnes le visitent et quelles pages sont consultées. Cet outil ne dépose aucun cookie, n’utilise pas d’identifiant publicitaire et ne vous suit pas d’un site à l’autre. Les statistiques sont agrégées et servent uniquement à améliorer le site. Vous pouvez vous y opposer à tout moment : le bouton ci-dessous désactive la mesure sur cet appareil en enregistrant un petit cookie fonctionnel d’opposition, conservé un an (le signal « Ne pas suivre » de votre navigateur est aussi respecté).</p><p><button type="button" class="legal-optout" data-audience-optout aria-pressed="false">Ne pas compter ma visite</button></p>
   <h2 id="instagram">Vidéos Instagram (Social media videos)</h2><p>Sur la page Work, des vidéos sont hébergées sur Instagram. Aucune connexion à Instagram n’est établie au chargement de la page. Le lecteur n’est créé qu’après votre clic sur le bouton de lecture de la vidéo ; votre navigateur communique alors avec Instagram (Meta), qui peut utiliser des cookies et traceurs selon ses propres règles. Sans clic, vous pouvez aussi ouvrir chaque publication directement sur Instagram.</p>
   <h2>Polices et liens externes</h2><p>Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts. Ce chargement crée une connexion vers les serveurs du fournisseur afin de récupérer les fichiers nécessaires. Les liens vers Instagram, YouTube et Calendly n’activent pas ces services tant que vous ne les ouvrez pas. Une fois le site tiers ouvert, ses propres règles en matière de cookies et de données personnelles s’appliquent.</p>
-  <h2>Votre choix</h2><p>Le refus est aussi simple que l’acceptation. Vous pouvez rouvrir le choix « Préférences vidéo » depuis le footer à tout moment. Si vous retirez votre autorisation, le lecteur externe du fond d’accueil est déchargé et n’est plus recréé lors des visites suivantes.</p><h2>Évolution du site</h2><p>Si un traceur non exempté (publicité, profilage, mesure avec cookie) devait être ajouté ultérieurement, le mécanisme de consentement serait adapté avant son activation.</p>
+  <h2>Votre choix</h2><p>Le refus est aussi simple que l’acceptation. Vous pouvez rouvrir le choix depuis le bouton « Fond vidéo » de l’accueil ou « Préférences vidéo » dans le footer, à tout moment. Si vous retirez votre autorisation, le lecteur externe du fond d’accueil est déchargé et n’est plus recréé lors des visites suivantes.</p><h2>Évolution du site</h2><p>Si un traceur non exempté (publicité, profilage, mesure avec cookie) devait être ajouté ultérieurement, le mécanisme de consentement serait adapté avant son activation.</p>
   <p class="legal-update">Dernière mise à jour : 16 novembre 2026.</p></article></main>` + footer();
 }
 
