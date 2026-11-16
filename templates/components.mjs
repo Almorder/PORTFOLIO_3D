@@ -26,6 +26,7 @@ export function head({ title, description, path='/', image=`${site.domain}/asset
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080706">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="nolanarc-audience-token" content="${esc(site.analyticsToken || '')}">
 <meta name="nolanarc-supabase-url" content="${esc(process.env.SUPABASE_URL || '')}">
 <meta name="nolanarc-supabase-key" content="${esc(process.env.SUPABASE_ANON_KEY || '')}">
 <title>${esc(title)}</title>

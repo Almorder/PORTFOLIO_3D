@@ -1315,3 +1315,5 @@ body.menu-open .site-header.fab-header{background:rgba(8,7,6,.86)!important;colo
     min-width:0;
   }
 }
+
+.legal-optout{font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:999px;padding:.7em 1.3em;cursor:pointer}.legal-optout:hover,.legal-optout:focus-visible{background:rgba(255,255,255,.08)}

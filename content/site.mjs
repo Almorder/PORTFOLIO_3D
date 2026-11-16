@@ -10,6 +10,7 @@ export const site = {
   location: 'France · disponible partout',
   responseTime: 'Réponse sous 48 h ouvrées',
   domain: 'https://nolanarc.com',
+  analyticsToken: '1c1cf63d191049d8acc58b62961377c6',
   clients: ['Ouilove Proposal', 'A One Permis', 'Carat Créations Paris', 'Reka Security'],
   testimonials: [
     { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal' },
