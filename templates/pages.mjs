@@ -15,6 +15,12 @@ import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassSh
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
+// Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
+const dimNeeds = {
+  realisation: { need: 'J’ai un film à faire.', price: 'Film de mariage à partir de 1 500 €. Autres films sur devis.' },
+  direction: { need: 'J’ai un univers à rendre cohérent.', price: 'Interventions ciblées dès 200 €.' },
+  strategie: { need: 'J’ai une marque à clarifier.', price: 'Session ciblée à 89 € de l’heure. Accompagnement sur devis.' },
+};
 const bentoTiles = [
   { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face — court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
   ...projects.filter(p=>p.slug!=='le-bol-den-face').map(p=>({ title: p.title, label: p.card?.label||p.type||'', text: p.summary, image: p.card?.image||'', alt: p.card?.alt||'', href: p.href, cta: 'Voir le contexte' })),
@@ -84,12 +90,15 @@ export function homePage(){
     path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc — halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:'page-home page-fabrica page-v16'
   }) + header('/') + `
   <main id="main-content" class="v16-home">
+    <div class="hero-stack" data-hero-stack>
     <section class="v16-hero" aria-labelledby="v16-hero-title">
       <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="${visuals.brand}" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
-      <p class="v20-hero__line">Une idée. Une direction.<br><strong>Un rendu qui tient jusqu’au bout.</strong></p>
-      <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
-      <div class="v16-hero__actions"><a href="#work-preview">Voir le Work <span>↘</span></a><a href="#quick-contact">Parler d’un projet <span>↗</span></a></div>
+      <div class="hero-copy">
+        <p class="v20-hero__line">Une idée. Une direction.<br><strong>Un rendu qui tient jusqu’au bout.</strong></p>
+        <div class="v16-hero__roles" aria-label="Expertises"><span>Réalisation</span><span>Direction artistique</span><span>Stratégie de marque</span></div>
+        <div class="v16-hero__actions"><a class="is-primary" href="#work-preview">Voir le Work <span aria-hidden="true">↓</span></a><a href="#quick-contact">Parler d’un projet <span aria-hidden="true">↗</span></a></div>
+      </div>
       <button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>
     </section>
 
@@ -101,6 +110,7 @@ export function homePage(){
       </div>
       <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
     </section>
+    </div>
 
     ${focusText(site.manifesto)}
 
@@ -110,32 +120,26 @@ export function homePage(){
       ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
     </section>
 
-    <section class="v16-dimensions" id="dimensions">
-      <header class="fab-section-heading motion-reveal"><div><h2>Trois dimensions.<br><em>Une seule vision.</em></h2></div><p>Vous pouvez me solliciter pour une seule expertise. Les deux autres continuent malgré tout d’influencer mes décisions.</p></header>
-      <div class="v16-dimensions__grid v19-dimensions__grid">
-        ${expertiseTabs.map((x,i)=>`<article class="v16-dimension v19-dimension motion-reveal" data-dimension="${esc(x.key)}">
-          <div class="v19-dimension__visual" aria-hidden="true"><span>${x.index}</span><b>${i===0?'R':i===1?'DA':'S'}</b><i></i></div>
-          <div class="v19-dimension__body">
-            <div class="v19-dimension__label"><span>${x.index}</span><small>${esc(x.label)}</small></div>
-            <h3>${esc(x.headline)}</h3>
-            <p>${esc(x.text)}</p>
-            <div class="v19-dimension__impact"><small>Ce que ça change</small><strong>${esc(x.value)}</strong></div>
-            <a href="${x.href}"><span>Voir l’expertise</span><b aria-hidden="true">↗</b></a>
-          </div>
+    <section class="dims" id="dimensions" aria-labelledby="dims-title">
+      <header class="dims__head motion-reveal"><h2 id="dims-title">Trois dimensions.<br><em>Une seule vision.</em></h2><p>Partez de votre besoin. Chaque entrée dit ce que je fais, ce que ça change pour vous et à partir de quel budget.</p></header>
+      <div class="dims__list" data-dims>
+        ${expertiseTabs.map((x,i)=>`<article class="dims__row motion-reveal${i===0?' is-open':''}" data-dim>
+          <h3><button type="button" id="dim-tab-${esc(x.key)}" aria-expanded="${i===0?'true':'false'}" aria-controls="dim-panel-${esc(x.key)}"><span class="dims__need">${esc(dimNeeds[x.key].need)}</span><span class="dims__label">${esc(x.label)}</span><i aria-hidden="true"></i></button></h3>
+          <div class="dims__panel" id="dim-panel-${esc(x.key)}" role="region" aria-labelledby="dim-tab-${esc(x.key)}"><div class="dims__inner">
+            <div class="dims__what"><p class="dims__lead">${esc(x.headline)}</p><p>${esc(x.text)}</p><a class="dims__cta" href="${x.href}">Voir l’expertise <span aria-hidden="true">↗</span></a></div>
+            <dl><div><dt>Ce que ça change</dt><dd>${esc(x.value)}</dd></div><div><dt>Repère de prix</dt><dd>${esc(dimNeeds[x.key].price)}</dd></div></dl>
+          </div></div>
         </article>`).join('')}
       </div>
     </section>
 
-    <section class="journey v17-journey scroll-scene" data-scene="journey" id="journey">
-      <div class="journey__sticky scene-sticky">
-        <div class="journey__counter"><span>Comment je travaille</span><b data-journey-count>01 / 03</b></div>
-        <div class="journey__stage">
-          <div class="journey__object"><div class="journey__halo"></div>${glassShowcase([visuals.brand, visuals.story, visuals.moment])}<div class="journey__ring"></div></div>
-          <article class="journey-copy is-active" data-journey-step="0"><small>COMPRENDRE</small><h2>Qu’est-ce que le projet doit<br><em>faire comprendre ou ressentir ?</em></h2><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p></article>
-          <article class="journey-copy" data-journey-step="1"><small>CHOISIR</small><h2>Le cadre vient<br><em>après.</em></h2><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p></article>
-          <article class="journey-copy" data-journey-step="2"><small>TENIR LE FIL</small><h2>La même idée,<br><em>jusqu’au rendu.</em></h2><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p></article>
-        </div>
-      </div>
+    <section class="plan" id="journey" aria-labelledby="plan-title">
+      <div class="plan__intro motion-reveal"><h2 id="plan-title">Comment<br>je travaille.</h2><p>Trois étapes, toujours dans cet ordre. À chacune, vous savez ce qui se passe et ce que vous avez entre les mains.</p><a class="plan__cta" href="#quick-contact">Commencer par un message <span aria-hidden="true">↓</span></a></div>
+      <ol class="plan__steps">
+        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">1</span><div><small>Comprendre</small><h3>Qu’est-ce que le projet doit faire comprendre ou ressentir ?</h3><p>Je pars de l’effet recherché avant de choisir le format, le cadre ou le rythme.</p><p class="plan__get"><b>Vous avez</b> mes premières questions utiles, généralement sous 48 h.</p></div></li>
+        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">2</span><div><small>Choisir</small><h3>Le cadre vient après.</h3><p>Lumière, mouvement, son, typographie ou montage servent cette direction.</p><p class="plan__get"><b>Vous avez</b> une direction claire, ce qu’il faut faire et dans quel ordre.</p></div></li>
+        <li class="motion-reveal"><span class="plan__num" aria-hidden="true">3</span><div><small>Tenir le fil</small><h3>La même idée, jusqu’au rendu.</h3><p>Je garde la direction entre réflexion, production et livraison pour éviter qu’elle se dilue.</p><p class="plan__get"><b>Vous avez</b> des fichiers pensés pour leur support final.</p></div></li>
+      </ol>
     </section>
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
@@ -162,16 +166,17 @@ export function homePage(){
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
 
-    <section class="v16-quick-contact motion-reveal" id="quick-contact">
+    <section class="v16-quick-contact final-cta" id="quick-contact">
+      ${gradientMotionBackground({style:'mesh',speed:24,blur:90,opacity:.62,size:126,colors:['#D8330F','#7A0D08','#F0A23A','#120403']})}
+      <div class="final-cta__copy motion-reveal"><h2>Parlons de<br>votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Vous préférez écrire directement ? <a href="mailto:${site.email}">${site.email}</a></p></div>
       <form class="v16-quick-contact__form" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
         <small>Nolan.Arc</small><h2>Un message suffit.</h2>
         <label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
         <label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label>
         <label><span>Message</span><textarea required name="message" rows="4" placeholder="Ce que vous préparez, même si c’est encore flou."></textarea></label>
-        <button type="submit" data-submit>Envoyer <span>↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
+        <button type="submit" data-submit>Envoyer le message <span aria-hidden="true">↗</span></button><p class="form-status" role="status" data-form-status></p><p class="v16-contact-privacy">Vos informations servent uniquement à répondre à votre message. <a href="/confidentialite/">Confidentialité</a>.</p>
       </form>
-      <div class="v16-quick-contact__copy">${gradientMotionBackground({style:'radial',speed:22,blur:84,opacity:.28,size:126,colors:['#CC460C','#E97736','#2B1710','#080706']})}<span class="fab-dot-label">Contact direct</span><h2>Parlons.</h2><p>Vous pouvez arriver avec un brief précis ou simplement une idée. Les deux me vont.</p><div class="v16-contact-points"><div><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></div><div><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></div></div><div class="v16-nolan-card${hasPortrait?'':' v16-nolan-card--text'}">${hasPortrait?'<div class="v16-nolan-card__photo"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" loading="lazy"></div>':''}<div><strong>Nolan Ribeiro</strong><span>Réalisation · DA · stratégie</span><a href="mailto:${site.email}">${site.email}</a></div></div></div>
     </section>
   </main>` + footer();
 }
@@ -196,7 +201,7 @@ export function projectPage(){
   return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
-    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-hold-confirm data-hold-ms="650" data-load-video><span>Maintenir pour lire sur YouTube</span><b aria-hidden="true">▶</b><i aria-hidden="true"></i></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
+    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
     <section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div><p>${bol.contextText}</p></header><div class="fab-project-story__statement motion-reveal"><span>Problème narratif</span><h3>${bol.intent}</h3></div><div class="fab-project-decisions">${bol.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${d.title}</h3><p>${d.text}</p></article>`).join('')}</div></section>
     <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
   </main>` + footer();
