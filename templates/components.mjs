@@ -129,7 +129,7 @@ export function animatedStats(stats=[], {theme='dark', layout='auto', replay=tru
   if(!stats.length) return '';
   const styles=['blur','slide','fade','scale'];
   const selected=styles.includes(animation)?animation:'blur';
-  return `<section class="animated-stats animated-stats--${esc(theme)}" data-animated-stats data-layout="${esc(layout)}" data-replay="${replay?'true':'false'}" data-animation="${esc(selected)}" aria-label="Repères concrets"><div class="animated-stats__track">${stats.map((stat,i)=>{
+  return `<section class="animated-stats animated-stats--${esc(theme)}" data-animated-stats data-layout="${esc(layout)}" data-replay="${replay?'true':'false'}" data-animation="${esc(selected)}" aria-label="Repères concrets"><div class="animated-stats__track" style="--stat-count:${stats.length}">${stats.map((stat,i)=>{
     const value=Number(stat.value)||0;
     const decimals=Number.isInteger(value)?0:String(value).split('.')[1]?.length||0;
     const style=styles.includes(stat.animation)?stat.animation:selected;

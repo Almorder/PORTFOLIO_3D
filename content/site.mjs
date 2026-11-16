@@ -12,7 +12,6 @@ export const site = {
   domain: 'https://nolanarc.com',
   clients: ['Ouilove Proposal', 'A One Permis', 'Carat Créations Paris', 'Reka Security'],
   testimonials: [
-    { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal' },
     { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment' },
     { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '' },
   ],
@@ -20,7 +19,6 @@ export const site = {
     { value: 50, suffix: '+', label: 'vidéos réalisées' },
     { value: 2022, suffix: '', label: 'je pratique la vidéo depuis' },
     { value: 2, suffix: '', label: 'pratiques terrain · photo + vidéo' },
-    { value: 105, prefix: '+', suffix: ' %', label: 'croissance de CA observée sur Ouilove' },
   ],
   faqs: {
     home: [
