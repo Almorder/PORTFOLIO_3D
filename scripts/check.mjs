@@ -104,6 +104,9 @@ if(!cookiesHtml.includes('Vidéos Instagram')) fail('Instagram: cookies page mus
 const work=await readFile(join(dist,'work/index.html'),'utf8');
 if(/<iframe[^>]+instagram\.com|<script[^>]+instagram\.com|<img[^>]+(instagram|cdninstagram|fbcdn)/i.test(work)) fail('Instagram: no Instagram request allowed in HTML before click');
 if(!work.includes('data-load-instagram')||!work.includes('DYriAZ_IKrU')||!work.includes('DewEcSOCFV2')) fail('Instagram: the 4 click-to-load cards must be on Work');
+// Work : le travail réel d'abord (film, puis vidéos sociales), les images d'ambiance ensuite.
+if(!(work.indexOf('fab-project-card--wide')<work.indexOf('class="ig-section')&&work.indexOf('class="ig-section')<work.indexOf('data-video-slide-show'))) fail('Work: real work (film, then social videos) must come before the mood slideshow');
+if((work.match(/class="ig-card ig-phone"/g)||[]).length!==4||!existing.has('assets/work/phone.webp')||!existing.has('assets/work/stage.webp')) fail('Work: four phone cards and their rendered assets expected');
 if(!app.includes('instagram.com/p/${id}/embed/')) fail('Instagram: embed must be created from app.js on click');
 const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
 const services=await readFile(join(dist,'services/index.html'),'utf8');

@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { gearBoard } from './gear.mjs';
+import { workAssets } from '../content/work-assets.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
@@ -170,16 +171,16 @@ export function homePage(){
 export function workPage(){
   const filmSlides=workMoodSlides;
   return head({title:'Work — Nolan Arc', description:'Films et projets sélectionnés de Nolan Ribeiro.', path:'/work/', bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
-    <section class="fab-page-title motion-reveal"><div><span>(04)</span><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
-    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'Références visuelles',heading:'Explorer une direction, pas répéter un seul projet.',intro:'Faites glisser les cartes. Ces images d’ambiance servent uniquement à illustrer le carrousel ; elles ne sont pas présentées comme mes réalisations.'})}
+    <section class="fab-page-title motion-reveal"><div><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
     <section class="fab-work-grid v16-project-gallery">
       <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
       ${projectCards}
     </section>
-    <section class="ig-section motion-reveal" aria-labelledby="ig-title">
-      <header><span class="fab-dot-label">Social media</span><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
-      <div class="ig-grid">${instagramPosts.map((p,i)=>`<article class="ig-card" data-instagram-post data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" style="--ig-ratio:${esc(p.ratio)}"><div class="ig-card__cover"><span class="ig-card__num">0${i+1}</span><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div><a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></article>`).join('')}</div>
+    <section class="ig-section ig-stage motion-reveal" aria-labelledby="ig-title">
+      <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
+      <div class="ig-grid" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--bw:${workAssets.phone.box[2]}%">${instagramPosts.map((p,i)=>`<article class="ig-card ig-phone" data-instagram-post data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" style="--i:${i};--r:${[-3,2,-1.5,3][i%4]}deg"><div class="ig-phone__device" style="aspect-ratio:${workAssets.phone.w}/${workAssets.phone.h}"><div class="ig-phone__screen"><div class="ig-card__cover"><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div><img class="ig-phone__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async"></div><a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></article>`).join('')}</div>
     </section>
+    ${videoSlideShow(filmSlides,{autoplay:true,interval:5600,muted:true,sectionId:'work-reels',eyebrow:'Références visuelles',heading:'Explorer une direction, pas répéter un seul projet.',intro:'Faites glisser les cartes. Ces images d’ambiance servent uniquement à illustrer le carrousel ; elles ne sont pas présentées comme mes réalisations.'})}
     <section class="v16-expertise-switcher motion-reveal" data-expertise-switcher>
       <header><span class="fab-dot-label">Trois casquettes</span><h2>Choisissez celle qui vous concerne.</h2></header>
       <div class="v16-expertise-tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="work-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="work-expertise-panel-${x.key}"><span>${x.index}</span>${x.label}</button>`).join('')}</div>
@@ -200,7 +201,7 @@ export function projectPage(){
 
 export function servicesPage(){
   return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique et stratégie de marque par Nolan Ribeiro.',path:'/services/',bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
-    <section class="fab-page-title motion-reveal"><div><span>(03)</span><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
+    <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
     <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
       <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
       <div class="v16-service-switcher__panels">
