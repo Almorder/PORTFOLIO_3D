@@ -1713,7 +1713,8 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .hero-stack .hero-copy{opacity:calc(1 - var(--hero-out,0)*1.6);transform:translate3d(0,calc(var(--hero-out,0)*-40px),0)}
 
 /* --- Héros : une seule ligne, sobre --- */
-.hero-roles{margin:0;font:400 clamp(26px,3vw,48px)/1.08 var(--serif);letter-spacing:-.025em;color:var(--paper);text-wrap:balance}
+.hero-roles{margin:0;font:600 12px/1.6 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(240,235,226,.72)}
+.hero-roles br{display:none}
 
 /* --- Trois dimensions : trois dossiers, l'essentiel d'un coup d'œil --- */
 .dims{padding:clamp(70px,8vw,130px) var(--page);background:var(--fab-bg,#f0ebe2);color:var(--ink)}
@@ -1725,9 +1726,10 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .folder{--front:#120403;--on:var(--paper);--tab-h:38px;--lift:0px;position:relative;display:block;aspect-ratio:4/4.5;border-radius:30px;overflow:hidden;background:#1a0504;color:var(--on);isolation:isolate;box-shadow:0 0 0 5px rgba(8,7,6,.06),0 24px 60px -24px rgba(60,10,4,.5);transition:transform .5s cubic-bezier(.23,1,.32,1),box-shadow .5s ease}
 .folder:nth-child(2){--front:#f6f1e9;--on:var(--ink)}
 .folder:nth-child(3){--front:#b3200c}
-.folder__art{position:absolute;inset:0;z-index:-1;background:url(/assets/da/texture.webp) 50% 20%/cover;transition:transform .9s cubic-bezier(.23,1,.32,1)}
-.folder:nth-child(2) .folder__art{background-position:80% 60%;background-size:170%}
-.folder:nth-child(3) .folder__art{background-position:10% 85%;background-size:210%}
+.folder__art{position:absolute;inset:0;z-index:-1;background:url(/assets/da/texture.webp) 50% 0/cover;transition:transform .9s cubic-bezier(.23,1,.32,1)}
+.folder:nth-child(2) .folder__art{background-image:url(/assets/da/texture-b.webp)}
+.folder:nth-child(3) .folder__art{background-image:url(/assets/da/texture-c.webp)}
+.folder__art::after,.polaroid__blank::after,.v16-quick-contact.final-cta::before{content:"";position:absolute;inset:0;background:url(/assets/da/grain.png) 0 0/220px;mix-blend-mode:overlay;opacity:.5;pointer-events:none}
 .folder__front{position:absolute;left:0;right:0;bottom:0;top:30%;display:flex;flex-direction:column;padding:clamp(18px,1.9vw,28px);background:var(--front);border-radius:0 26px 0 0;transform:translateY(var(--lift));transition:transform .55s cubic-bezier(.23,1,.32,1)}
 /* Onglet du dossier : un rectangle arrondi, et un quart de cercle creusé pour le raccord. */
 .folder__tab{position:absolute;left:0;bottom:100%;display:flex;align-items:center;height:var(--tab-h);padding:0 22px 0 clamp(18px,1.9vw,28px);border-radius:0 18px 0 0;background:var(--front);font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
@@ -1782,12 +1784,12 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .gear-photo img{display:block;width:100%;height:auto}
 
 /* --- Polaroids sans photo : un halo chaud à la place de l'image --- */
-.polaroid__blank{display:block;width:100%;aspect-ratio:1/1.06;background:url(/assets/da/texture.webp) 50% 30%/cover}
-.wedding-wall__photos li:nth-child(2) .polaroid__blank{background-position:80% 70%;background-size:180%}
-.wedding-wall__photos li:nth-child(3) .polaroid__blank{background-position:15% 90%;background-size:220%}
+.polaroid__blank{position:relative;display:block;width:100%;aspect-ratio:1/1.06;background:url(/assets/da/texture.webp) 50% 100%/cover}
+.wedding-wall__photos li:nth-child(2) .polaroid__blank{background-image:url(/assets/da/texture-c.webp);background-position:50% 0}
+.wedding-wall__photos li:nth-child(3) .polaroid__blank{background-image:url(/assets/da/texture-b.webp);background-position:50% 100%}
 
 /* --- CTA finale : le formulaire d'abord, le texte en appui --- */
-.v16-quick-contact.final-cta{grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);align-items:center;gap:clamp(30px,6vw,110px);padding:clamp(84px,10vw,160px) var(--page);background:#5a0d06 url(/assets/da/texture-wide.webp) center/cover;isolation:isolate}
+.v16-quick-contact.final-cta{grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);align-items:center;gap:clamp(30px,6vw,110px);padding:clamp(84px,10vw,160px) var(--page);background:linear-gradient(90deg,rgba(40,4,2,.1) 35%,rgba(40,4,2,.62)),#5a0d06 url(/assets/da/texture-wide.webp) center/cover;isolation:isolate}
 .final-cta .v16-quick-contact__form{padding:clamp(26px,3.4vw,54px);border-radius:34px;gap:18px;box-shadow:0 50px 120px -30px rgba(20,2,0,.7)}
 .final-cta .v16-quick-contact__form h2{margin:8px 0 22px;font-size:clamp(46px,5.6vw,96px);letter-spacing:-.04em}
 .final-cta .v16-quick-contact__form input,.final-cta .v16-quick-contact__form textarea{font-size:17px}
@@ -1825,10 +1827,32 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
   .page-home .v16-hero__video-toggle{top:22px;right:18px;bottom:auto;min-height:44px}
   .hero-stack .v16-work-preview{margin-top:-26px;border-radius:28px 28px 0 0}
   .dims,.ring-section{padding-inline:16px}
-  .hero-roles{font-size:clamp(28px,8.4vw,40px)}
+  .hero-roles{font-size:11px;max-width:30ch}
   .v16-quick-contact.final-cta{padding:72px 16px 110px}
 }
 @media(prefers-reduced-motion:reduce){
   .hero-stack .v16-hero,.hero-stack .hero-copy{transform:none;filter:none;opacity:1}
   .folder,.folder__front,.folder__art,.ring__arc,.ring__panel{transition:none}
 }
+
+/* ================= Accueil : enchaînement des sections (2026-11) =================
+   Chaque changement de couleur se fait par une « carte » aux coins arrondis posée sur le fond ivoire,
+   jamais par une coupe franche ; les titres et contenus arrivent avec le même fondu. */
+.page-home .focus-text,.page-home .ring-section,.page-home .v16-testimonials,.page-home .v16-quick-contact.final-cta{margin:8px;border-radius:28px;overflow:clip}
+.page-home .v16-quick-contact.final-cta{position:relative;margin-bottom:8px}
+.page-home .v16-quick-contact.final-cta>*{position:relative;z-index:1}
+.page-home .dims,.page-home .v16-proof,.page-home .faq-section{padding-block:clamp(64px,7vw,112px)}
+.page-home .wedding-wall{margin-block:8px}
+.reveal-enabled .page-home .motion-reveal{transition-duration:.7s;transition-timing-function:cubic-bezier(.23,1,.32,1)}
+@media(max-width:760px){.page-home .focus-text,.page-home .ring-section,.page-home .v16-testimonials,.page-home .v16-quick-contact.final-cta{margin:6px;border-radius:22px}}
+/* Lisibilité (audit de contraste et de taille, accueil) */
+.page-home .fab-section-heading p{color:rgba(8,7,6,.74)}
+.page-home .v16-testimonials .fab-section-heading p{color:rgba(240,235,226,.74)}
+.page-home .fab-project-card__meta i{color:rgba(8,7,6,.68)}
+.page-home .v16-proof small,.page-home .v16-proof .animated-stats small{color:rgba(8,7,6,.7)}
+.page-home .home-pricing .fab-dot-label{color:var(--paper)}
+.page-home .v16-quick-contact__form label>span{font-size:11px}
+.page-home .v16-quick-contact__form .v16-contact-privacy,.page-home .v16-quick-contact__form .v16-contact-privacy a{font-size:12px;color:rgba(8,7,6,.72)}
+.folder__more{opacity:.92}
+.page-home .gear-section .brand-ecosystem__head p{opacity:1;color:rgba(8,7,6,.74)}
+.page-home .brand-ecosystem__grid small{font-size:11px;color:rgba(8,7,6,.7)}

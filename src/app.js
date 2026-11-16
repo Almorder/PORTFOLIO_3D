@@ -673,6 +673,15 @@ $$('[data-ring]').forEach(ring=>{
   select(0);
 });
 
+// Image d'attente du héros : si la grande vignette n'existe pas, on prend la vignette standard.
+$$('img[data-fallback]').forEach(img=>{
+  const swap=()=>{if(img.dataset.fallback){img.src=img.dataset.fallback;delete img.dataset.fallback;}};
+  img.addEventListener('error',swap,{once:true});
+  // YouTube renvoie parfois une vignette grise de 120 px au lieu d'une erreur.
+  const check=()=>{if(img.naturalWidth&&img.naturalWidth<=120) swap();};
+  if(img.complete) check(); else img.addEventListener('load',check,{once:true});
+});
+
 // Reveal elements only when JS is present; no content is hidden without JS.
 const revealTargets=$$('.motion-reveal,.work-entry,.satellite-link,.note-card,.client-proof,.decision-cascade article');
 if('IntersectionObserver' in window && !reduced){
