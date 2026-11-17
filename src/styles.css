@@ -2262,3 +2262,36 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
   @page{size:A4;margin:16mm}
 }
 .admin-main:has(.ck-board){max-width:none}
+
+/* Admin : documents classés (client, projet) et messages */
+.nd-create{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.nd-tools{display:grid;gap:10px;margin-bottom:16px}
+.nd-tree{display:grid;gap:10px}
+.nd-client{border-radius:18px;background:rgba(255,255,255,.66);padding:4px 18px}
+.nd-client[open]{padding-bottom:14px}
+.nd-client>summary{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:12px 0;cursor:pointer;list-style:none}
+.nd-client>summary::-webkit-details-marker{display:none}
+.nd-client>summary strong{font:500 22px/1.15 var(--serif,serif)}
+.nd-client>summary span{font-size:13px;opacity:.6;white-space:nowrap}
+.nd-project{margin-top:6px;padding:10px 0 4px 14px;border-left:2px solid rgba(204,70,12,.45)}
+.nd-project h4{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 6px;font-size:14px}
+.nd-rows{list-style:none;margin:0;padding:0;display:grid}
+.nd-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(8,7,6,.08);font-size:14px}
+.nd-item>time{margin-left:auto;opacity:.6;white-space:nowrap}
+.nd-item.is-late{color:#b23a08}
+.nd-amount{font-variant-numeric:tabular-nums;font-weight:600}
+.nd-file{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid rgba(8,7,6,.25)}
+.ck-pill--kind-devis{background:#f0ebe2;border:1px solid rgba(8,7,6,.2)}.ck-pill--kind-facture{background:#080706;color:#f0ebe2}.ck-pill--kind-contrat{background:#e6ddcf}.ck-pill--kind-droit_image{background:#fde7d6;color:#7a2d06}.ck-pill--kind-retractation{background:#eee}
+.ck-pill--signe{background:#dcefdc;color:#1d5a1d}
+.ck-line--cat{grid-template-columns:minmax(0,1fr) 170px 80px 120px 40px}
+.ck-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.nd-file-input{font:inherit;font-size:13px;max-width:100%}
+.nd-sheet{overflow-x:auto;padding:8px 0 40px}
+.nd-messages{display:grid;gap:10px}
+.nd-message{border-radius:16px;background:rgba(255,255,255,.66);padding:6px 16px}
+.nd-message[open]{display:grid;gap:10px;padding-bottom:16px}
+.nd-message summary{display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:pointer;padding:8px 0}
+.nd-message.is-suggested{box-shadow:inset 3px 0 0 #cc460c}
+@media(max-width:860px){.ck-line--cat{grid-template-columns:1fr 1fr}.ck-checks{grid-template-columns:1fr}}
+@media print{.page-admin .nd-sheet{padding:0;overflow:visible}}
+@media(max-width:860px){.admin-app{grid-template-columns:minmax(0,1fr)}.admin-main{min-width:0}.nd-item .ck-link,.nd-client>summary strong{overflow-wrap:anywhere;min-width:0}.nd-client>summary{flex-wrap:wrap}}

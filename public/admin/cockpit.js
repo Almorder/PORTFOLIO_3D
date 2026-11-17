@@ -16,7 +16,9 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go 
     ['production', 'En production', 1], ['livre', 'Livré', 1], ['paye', 'Payé', 1], ['perdu', 'Perdu', 0]
   ];
   const STAGE = Object.fromEntries(STAGES.map(([id, label, p]) => [id, { label, p }]));
-  const DOC_STATUS = { brouillon: 'Brouillon', envoye: 'Envoyé', accepte: 'Accepté', refuse: 'Refusé', paye: 'Payé', annule: 'Annulé' };
+  const DOC_STATUS = { brouillon: 'Brouillon', envoye: 'Envoyé', accepte: 'Accepté', refuse: 'Refusé', signe: 'Signé', paye: 'Payé', annule: 'Annulé' };
+  const DOC_KINDS = { devis: 'Devis', contrat: 'Contrats', facture: 'Factures pro forma', droit_image: 'Droits à l’image', retractation: 'Rétractations' };
+  const DOC_ONE = { devis: 'Devis', contrat: 'Contrat', facture: 'Facture pro forma', droit_image: 'Droit à l’image', retractation: 'Rétractation' };
   const EVENT_KINDS = { tournage: 'Tournage', livraison: 'Livraison', 'rendez-vous': 'Rendez-vous', autre: 'Autre' };
   const SOURCES = ['Site (formulaire)', 'Instagram', 'Bouche-à-oreille', 'Recommandation client', 'Salon ou événement', 'Autre'];
   const PAY_METHODS = ['Virement', 'Espèces', 'Chèque', 'Carte', 'Autre'];
@@ -116,9 +118,12 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go 
       client.from('crm_deals').select('*').order('created_at', { ascending: false }),
       client.from('crm_documents').select('*').order('issue_date', { ascending: false }),
       client.from('crm_events').select('*').order('starts_at'),
-      client.from('crm_settings').select('data').eq('key', 'cockpit').maybeSingle()
+      client.from('crm_settings').select('data').eq('key', 'cockpit').maybeSingle(),
+      client.from('crm_documents').select('template').limit(1)
     ]);
-    const error = res.find(r => r.error)?.error;
+    // La 6e requête vérifie seulement que documents_schema.sql a été exécuté (colonne « template »).
+    S.needsDocs = Boolean(res[5].error);
+    const error = res.slice(0, 5).find(r => r.error)?.error;
     if (error) {
       S.missing = /does not exist|schema cache|PGRST20|42P01/i.test(`${error.code} ${error.message}`);
       S.error = error.message; return;
@@ -364,13 +369,16 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go 
         deal ? null : card('Coller l’email reçu', [paste, fill], 'admin-card--wide'),
         card('Projet', [dealForm.node], 'admin-card--wide'),
         card('Contact', [contactPick.node, contact ? el('p', { className: 'ck-hint' }, [button(`Ouvrir la fiche de ${contact.name}`, 'ck-link', () => open('contact', contact.id))]) : null, el('details', { className: 'ck-details', open: !deal && !S.contacts.length }, [el('summary', { textContent: 'Ou créer un nouveau contact' }), newContact.node])], 'admin-card--wide'),
-        deal ? card('Devis, factures et agenda', [
-          el('ul', { className: 'ck-list' }, [...linkedDocs.map(d => el('li', {}, [button(`${d.kind === 'devis' ? 'Devis' : 'Facture'} ${d.number} : ${money(d.total)}`, 'ck-link', () => open('doc', d.id)), pill(DOC_STATUS[d.status], d.status)])),
+        deal ? card('Documents et agenda', [
+          el('ul', { className: 'ck-list' }, [...linkedDocs.map(d => el('li', {}, [button(`${docName(d)}${['devis', 'facture'].includes(d.kind) ? ` : ${money(d.total)}` : ''}`, 'ck-link', () => open('doc', d.id)), pill(DOC_STATUS[d.status], d.status)])),
             ...linkedEvents.map(e => el('li', {}, [button(`${EVENT_KINDS[e.kind]} : ${e.title}`, 'ck-link', () => open('event', e.id)), el('time', { textContent: shortDate(e.starts_at) })]))]),
           el('div', { className: 'admin-row' }, [
             button('+ Devis', 'admin-mini', () => open('doc', { kind: 'devis', deal: deal.id })),
             button('+ Facture', 'admin-mini', () => open('doc', { kind: 'facture', deal: deal.id })),
-            button('+ Agenda', 'admin-mini', () => open('event', { deal: deal.id }))
+            button('+ Contrat', 'admin-mini', () => open('doc', { kind: 'contrat', deal: deal.id })),
+            button('+ Droit à l’image', 'admin-mini', () => open('doc', { kind: 'droit_image', deal: deal.id })),
+            button('+ Agenda', 'admin-mini', () => open('event', { deal: deal.id })),
+            button('Messages', 'admin-mini', () => open('messages', deal.id))
           ])
         ], 'admin-card--wide') : null,
         deal ? card('Supprimer', [el('p', { className: 'ck-hint', textContent: 'Les devis et factures liés restent enregistrés.' }), armed('Supprimer la demande', 'Confirmer la suppression', async () => { if (await remove('crm_deals', deal.id)) { say('Demande supprimée.', 'ok'); go('demandes'); } })]) : null
@@ -429,153 +437,290 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go 
         card('Coordonnées', [f.node], 'admin-card--wide'),
         c ? card('Historique', [el('ul', { className: 'ck-list' }, [
           ...deals.map(d => el('li', {}, [button(d.title, 'ck-link', () => open('deal', d.id)), pill(STAGE[d.stage].label)])),
-          ...docs.map(d => el('li', {}, [button(`${d.kind === 'devis' ? 'Devis' : 'Facture'} ${d.number} : ${money(d.total)}`, 'ck-link', () => open('doc', d.id)), pill(DOC_STATUS[d.status], d.status)]))
+          ...docs.map(d => el('li', {}, [button(`${docName(d)}${['devis', 'facture'].includes(d.kind) ? ` : ${money(d.total)}` : ''}`, 'ck-link', () => open('doc', d.id)), pill(DOC_STATUS[d.status], d.status)]))
         ]), el('div', { className: 'admin-row' }, [button('+ Demande', 'admin-mini', () => open('deal', null)), c.email ? link('Écrire ↗', `mailto:${c.email}`, 'admin-mini') : null])], 'admin-card--wide') : null,
         c ? card('Supprimer', [el('p', { className: 'ck-hint', textContent: 'Les projets et factures restent enregistrés, sans contact associé. À faire si la personne demande l’effacement de ses données.' }), armed('Supprimer le contact', 'Confirmer la suppression', async () => { if (await remove('crm_contacts', c.id)) { say('Contact supprimé.', 'ok'); go('clients'); } })]) : null
       ])
     ]);
   });
 
-  // Devis et factures
+  // Documents : devis, contrats, factures pro forma, droits à l'image, rétractations.
+  // Gabarits fidèles aux modèles PDF de Nolan (public/admin/doc-templates.js) ; fichiers signés dans un stockage privé.
+  const TPL = () => window.NolanDocTemplates || { templates: [], messages: [] };
+  const DEFAULT_TEMPLATE = { devis: 'devis_datee', facture: 'facture', contrat: 'contrat_datee', droit_image: 'droit_image', retractation: 'retractation' };
+  const templateOf = d => TPL().templates.find(t => t.id === (d.template || DEFAULT_TEMPLATE[d.kind]));
+  const kindLabel = (kind, one) => one ? DOC_ONE[kind] || kind : DOC_KINDS[kind] || kind;
+  const docName = d => `${kindLabel(d.kind, true)} ${d.number}`;
+  const docTotal = lines => Math.round(sum(lines, l => (Number(l.qty) || 0) * (Number(l.unit) || 0)) * 100) / 100;
+  const businessInfo = () => { try { return JSON.parse(root.dataset.business || '{}'); } catch { return {}; } };
+  const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const prefillValue = (key, contact, deal) => {
+    const ev = deal ? S.events.find(e => e.deal_id === deal.id) : null;
+    return ({ offerLabel: offerLabel(deal?.offer), eventDate: deal?.event_date ? longDate(deal.event_date) : '', dealTitle: deal?.title || '', eventLocation: ev?.location || '', personName: contact?.name || '', personEmail: contact?.email || '', personAddress: contact?.address || '' })[key] || '';
+  };
+
   V.documents = guard(() => {
-    const t = today();
-    const tabs = [['tous', 'Tous'], ['devis', 'Devis'], ['facture', 'Factures'], ['attente', 'À encaisser'], ['retard', 'En retard']];
-    const list = S.docs.filter(d => S.docTab === 'tous' || d.kind === S.docTab
-      || (S.docTab === 'attente' && d.kind === 'facture' && d.status === 'envoye')
-      || (S.docTab === 'retard' && d.kind === 'facture' && d.status === 'envoye' && d.due_date && d.due_date < t));
+    const t = today(), q = (S.filter || '').toLowerCase();
+    const counts = Object.fromEntries(Object.keys(DOC_KINDS).map(k => [k, S.docs.filter(d => d.kind === k).length]));
+    const tabs = [['tous', `Tous (${S.docs.length})`], ...Object.entries(DOC_KINDS).map(([k, l]) => [k, `${l} (${counts[k]})`]), ['attente', 'À encaisser'], ['retard', 'En retard']];
+    const isLate = d => d.kind === 'facture' && d.status === 'envoye' && d.due_date && d.due_date < t;
+    const list = S.docs.filter(d => (S.docTab === 'tous' || d.kind === S.docTab
+      || (S.docTab === 'attente' && d.kind === 'facture' && d.status === 'envoye') || (S.docTab === 'retard' && isLate(d)))
+      && (!q || [d.number, d.title, contactOf(d.contact_id)?.name, contactOf(d.contact_id)?.company, dealOf(d.deal_id)?.title, d.data?.NomPersonne].some(v => String(v || '').toLowerCase().includes(q))));
     const tabBar = el('div', { className: 'ck-tabs' }, tabs.map(([id, l]) => { const b = button(l, 'ck-tab', () => { S.docTab = id; go('documents'); }); b.setAttribute('aria-pressed', String(S.docTab === id)); return b; }));
-    return el('div', {}, [
-      el('div', { className: 'admin-bar' }, [heading('Devis et factures', 'Numérotation continue automatique. Une facture émise ne se supprime pas : elle s’annule.'), el('div', { className: 'admin-row' }, [button('+ Devis', 'admin-mini', () => open('doc', { kind: 'devis' })), button('+ Facture', 'admin-button', () => open('doc', { kind: 'facture' }))])]),
-      tabBar,
-      el('div', { className: 'ck-table-wrap' }, [el('table', { className: 'ck-table' }, [
-        el('thead', {}, [el('tr', {}, ['Numéro', 'Client', 'Objet', 'Date', 'Montant', 'Statut'].map(h => el('th', { scope: 'col', textContent: h })))]),
-        el('tbody', {}, list.length ? list.map(d => {
-          const late = d.kind === 'facture' && d.status === 'envoye' && d.due_date && d.due_date < t;
-          return el('tr', { className: late ? 'is-late' : '' }, [
-            el('th', { scope: 'row' }, [button(d.number, 'ck-link', () => open('doc', d.id))]),
-            el('td', { textContent: contactOf(d.contact_id)?.name || '' }), el('td', { textContent: d.title || '' }),
-            el('td', { textContent: shortDate(d.issue_date) }), el('td', { textContent: money(d.total) }),
-            el('td', {}, [pill(late ? 'En retard' : DOC_STATUS[d.status], late ? 'late' : d.status)])
+    const search = el('input', { type: 'search', className: 'admin-input', placeholder: 'Rechercher : numéro, client, projet, personne photographiée', value: S.filter || '' });
+    search.setAttribute('aria-label', 'Rechercher un document');
+    search.addEventListener('change', () => { S.filter = search.value; go('documents'); });
+    // Hiérarchie : client, puis projet, puis documents (le plus récent en premier).
+    const groups = new Map();
+    list.forEach(d => {
+      const ck = d.contact_id || 'none', dk = d.deal_id || 'none';
+      if (!groups.has(ck)) groups.set(ck, new Map());
+      const g = groups.get(ck); if (!g.has(dk)) g.set(dk, []); g.get(dk).push(d);
+    });
+    const latest = docs => docs.reduce((m, d) => (d.issue_date > m ? d.issue_date : m), '');
+    const ordered = [...groups.entries()].sort((a, b) => latest([...b[1].values()].flat()).localeCompare(latest([...a[1].values()].flat())));
+    const row = d => el('li', { className: `nd-item${isLate(d) ? ' is-late' : ''}` }, [
+      pill(kindLabel(d.kind, true), `kind-${d.kind}`),
+      button(`${d.number}${d.title ? ` : ${d.title}` : d.data?.NomPersonne ? ` : ${d.data.NomPersonne}` : ''}`, 'ck-link', () => open('doc', d.id)),
+      d.file_path ? el('span', { className: 'nd-file', textContent: 'PDF joint' }) : null,
+      ['devis', 'facture'].includes(d.kind) ? el('span', { className: 'nd-amount', textContent: money(d.total) }) : null,
+      pill(isLate(d) ? 'En retard' : DOC_STATUS[d.status], isLate(d) ? 'late' : d.status),
+      el('time', { textContent: shortDate(d.issue_date) })
+    ]);
+    const tree = ordered.map(([ck, deals], i) => {
+      const c = contactOf(ck), all = [...deals.values()].flat();
+      return el('details', { className: 'nd-client', open: i < 6 }, [
+        el('summary', {}, [el('strong', { textContent: c ? (c.company ? `${c.company} (${c.name})` : c.name) : 'Sans client' }), el('span', { textContent: `${all.length} document(s)` })]),
+        ...[...deals.entries()].map(([dk, docs]) => {
+          const deal = dealOf(dk);
+          return el('section', { className: 'nd-project' }, [
+            el('h4', {}, [deal ? button(deal.title, 'ck-link', () => open('deal', deal.id)) : el('span', { textContent: 'Hors projet' }), deal ? pill(STAGE[deal.stage].label) : null]),
+            el('ul', { className: 'nd-rows' }, docs.sort((a, b) => b.issue_date.localeCompare(a.issue_date) || b.number.localeCompare(a.number)).map(row))
           ]);
-        }) : [el('tr', {}, [el('td', { colSpan: 6, textContent: 'Aucun document ici.' })])])
-      ])])
+        })
+      ]);
+    });
+    const create = el('div', { className: 'nd-create' }, TPL().templates.map(tp => button(`+ ${tp.label}`, tp.kind === 'facture' ? 'admin-button' : 'admin-mini', () => open('doc', { template: tp.id }))));
+    return el('div', {}, [
+      el('div', { className: 'admin-bar' }, [heading('Documents', 'Classés par client puis par projet. Les factures sont des pro forma informatives : la facture officielle part sur Indy.')]),
+      S.needsDocs ? card('Une étape avant de créer des documents', [el('ol', { className: 'ck-steps' }, [
+        el('li', {}, [el('span', { textContent: 'Ouvre ' }), link('documents_schema.sql sur GitHub ↗', 'https://github.com/Almorder/PORTFOLIO_3D/blob/main/supabase/documents_schema.sql'), el('span', { textContent: ' et clique sur l’icône « Copy raw file ».' })]),
+        el('li', { textContent: 'Supabase > ton projet > SQL Editor > New query : colle, puis Run.' }),
+        el('li', { textContent: 'Recharge cette page.' })
+      ])], 'admin-card--wide ck-mb') : null,
+      create.childNodes.length ? create : el('p', { className: 'admin-alert', textContent: 'Les gabarits de documents ne sont pas chargés : recharge la page.' }),
+      el('div', { className: 'nd-tools' }, [search, tabBar]),
+      tree.length ? el('div', { className: 'nd-tree' }, tree) : el('p', { className: 'admin-ok', textContent: 'Aucun document ici.' })
     ]);
   });
 
-  const docTotal = lines => Math.round(sum(lines, l => (Number(l.qty) || 0) * (Number(l.unit) || 0)) * 100) / 100;
   V.doc = guard(() => {
     const existing = typeof S.focus === 'string' ? S.docs.find(d => d.id === S.focus) : null;
-    const preset = existing ? null : (S.focus || {});
-    const kind = existing?.kind || preset.kind || 'facture';
+    const preset = existing ? {} : (S.focus || {});
+    const tp = existing ? templateOf(existing) : TPL().templates.find(x => x.id === (preset.template || DEFAULT_TEMPLATE[preset.kind || 'facture']));
+    if (!tp) return el('p', { className: 'admin-alert', textContent: 'Gabarit introuvable : recharge la page.' });
+    const kind = existing?.kind || tp.kind;
     const deal = existing ? dealOf(existing.deal_id) : dealOf(preset.deal);
+    const contact = existing ? contactOf(existing.contact_id) : contactOf(preset.contact || deal?.contact_id);
     const s = S.settings, t = today();
-    const lines = structuredClone(existing?.lines?.length ? existing.lines : preset.lines || [{ label: deal ? `${offerLabel(deal.offer) || 'Prestation'} : ${deal.title}` : '', qty: 1, unit: deal ? Number(deal.amount) || 0 : 0 }]);
-    const f = form([
-      { name: 'title', label: 'Objet', full: true, placeholder: 'Ex. Film de mariage, 14 juin 2027' },
+    const data = structuredClone(existing?.data || preset.data || {});
+    data.checks = data.checks || {};
+    if (!existing) (tp.fields || []).forEach(f => { if (f.prefill && !data[f.name]) data[f.name] = prefillValue(f.prefill, contact, deal); });
+    const lastQuote = deal ? S.docs.filter(x => x.deal_id === deal.id && x.kind === 'devis').sort((a, b) => b.number.localeCompare(a.number))[0] : null;
+    if (!existing && lastQuote && (tp.fields || []).some(f => f.name === 'NumeroDevis') && !data.NumeroDevis) data.NumeroDevis = lastQuote.number;
+    const lines = structuredClone(existing?.lines?.length ? existing.lines : preset.lines || (tp.lines ? [{ label: deal ? `${offerLabel(deal.offer) || 'Prestation'} : ${deal.title}` : '', qty: 1, unit: deal ? Number(deal.amount) || 0 : 0, category: 'main' }] : []));
+    const statusOptions = Object.entries(DOC_STATUS).filter(([id]) => ({ devis: ['brouillon', 'envoye', 'accepte', 'refuse', 'annule'], facture: ['brouillon', 'envoye', 'paye', 'annule'] }[kind] || ['brouillon', 'envoye', 'signe', 'annule']).includes(id));
+    const head = form([
+      { name: 'title', label: 'Objet (pour toi, et imprimé sur les devis et factures)', full: true, placeholder: 'Ex. Film de mariage, 14 juin 2027' },
       { name: 'contact_id', label: 'Client', type: 'select', options: contactOptions() },
       { name: 'deal_id', label: 'Projet', type: 'select', options: dealOptions() },
-      { name: 'issue_date', label: 'Date d’émission', type: 'date' },
-      { name: 'due_date', label: kind === 'devis' ? 'Valable jusqu’au' : 'Échéance de paiement', type: 'date' },
-      { name: 'status', label: 'Statut', type: 'select', options: Object.entries(DOC_STATUS).filter(([id]) => kind === 'devis' ? id !== 'paye' : !['accepte', 'refuse'].includes(id)) },
+      { name: 'issue_date', label: 'Date', type: 'date' },
+      ...(['devis', 'facture'].includes(kind) ? [{ name: 'due_date', label: kind === 'devis' ? 'Valable jusqu’au' : 'Échéance de paiement', type: 'date' }] : []),
+      { name: 'status', label: 'Statut', type: 'select', options: statusOptions },
       ...(kind === 'facture' ? [
         { name: 'paid_amount', label: 'Montant encaissé (€)', type: 'number' },
         { name: 'paid_at', label: 'Date d’encaissement', type: 'date' },
-        { name: 'payment_method', label: 'Mode de règlement', type: 'select', options: [['', 'Non précisé'], ...PAY_METHODS.map(m => [m, m])] }
+        { name: 'payment_method', label: 'Mode de règlement', type: 'select', options: [['', 'Non précisé'], ...PAY_METHODS.map(m => [m, m])] },
+        { name: 'indy_number', label: 'Numéro de la facture officielle sur Indy', placeholder: 'Ex. F-2026-0012' }
       ] : []),
-      { name: 'notes', label: kind === 'devis' ? 'Conditions particulières (imprimées)' : 'Mention particulière (imprimée)', type: 'textarea', full: true, rows: 3 }
-    ], existing || { title: preset.title || deal?.title || '', contact_id: deal?.contact_id || preset.contact || '', deal_id: deal?.id || '', issue_date: t, due_date: addDays(t, kind === 'devis' ? s.validiteDevis : s.delaiPaiement), status: 'brouillon' });
+      ...(['contrat', 'droit_image', 'devis'].includes(kind) ? [{ name: 'signed_at', label: 'Signé le', type: 'date' }] : [])
+    ], existing || { title: preset.title || deal?.title || '', contact_id: contact?.id || '', deal_id: deal?.id || '', issue_date: t, due_date: kind === 'devis' ? addDays(t, s.validiteDevis) : kind === 'facture' ? addDays(t, s.delaiPaiement) : '', status: 'brouillon' });
+    // Champs propres au gabarit, regroupés par section du modèle.
+    const sections = new Map();
+    (tp.fields || []).forEach(f => { const k = f.section || 'Détails'; if (!sections.has(k)) sections.set(k, []); sections.get(k).push(f); });
+    const fieldForms = [...sections.entries()].map(([name, defs]) => [name, form(defs.map(f => ({ ...f, full: f.type === 'textarea' })), data)]);
+    const checkGroups = new Map();
+    (tp.checks || []).forEach(c => { const k = c.group || 'Cases à cocher'; if (!checkGroups.has(k)) checkGroups.set(k, []); checkGroups.get(k).push(c); });
+    const checkInputs = {};
+    const checkCards = [...checkGroups.entries()].map(([name, defs]) => card(name, [el('div', { className: 'ck-checks' }, defs.map(c => {
+      const input = el('input', { type: 'checkbox', checked: Boolean(data.checks[c.name]) }); checkInputs[c.name] = input;
+      return el('label', { className: 'admin-field admin-field--check' }, [el('span', { textContent: c.label }), input]);
+    }))], 'admin-card--wide'));
+    // Lignes de prix
     const totalOut = el('strong', { className: 'ck-total' });
     const linesBox = el('div', { className: 'ck-lines' });
+    const withCategory = kind === 'devis';
     const drawLines = () => {
-      linesBox.replaceChildren(...lines.map((line, i) => {
+      const headRow = el('div', { className: `ck-line ck-line--head${withCategory ? ' ck-line--cat' : ''}`, ariaHidden: 'true' }, [el('span', { textContent: 'Désignation' }), withCategory ? el('span', { textContent: 'Rangée' }) : null, el('span', { textContent: 'Quantité' }), el('span', { textContent: 'Prix unitaire (€)' }), el('span')]);
+      linesBox.replaceChildren(headRow, ...lines.map((line, i) => {
         const label = el('input', { className: 'admin-input', value: line.label || '', placeholder: 'Désignation' });
         const qty = el('input', { className: 'admin-input ck-num', type: 'number', min: '0', step: 'any', value: String(line.qty ?? 1) });
         const unit = el('input', { className: 'admin-input ck-num', type: 'number', min: '0', step: 'any', value: String(line.unit ?? 0) });
-        label.setAttribute('aria-label', `Ligne ${i + 1} : désignation`); qty.setAttribute('aria-label', `Ligne ${i + 1} : quantité`); unit.setAttribute('aria-label', `Ligne ${i + 1} : prix unitaire`);
-        const sync = () => { line.label = label.value; line.qty = Number(qty.value) || 0; line.unit = Number(unit.value) || 0; totalOut.textContent = `Total : ${money(docTotal(lines))}`; };
-        [label, qty, unit].forEach(x => x.addEventListener('input', sync));
-        return el('div', { className: 'ck-line' }, [label, qty, unit, button('×', 'admin-mini', () => { lines.splice(i, 1); drawLines(); }, `Supprimer la ligne ${i + 1}`)]);
-      }), el('div', { className: 'ck-line ck-line--head', ariaHidden: 'true' }, [el('span', { textContent: 'Désignation' }), el('span', { textContent: 'Quantité' }), el('span', { textContent: 'Prix unitaire (€)' }), el('span')]));
-      linesBox.prepend(linesBox.lastChild);
+        const cat = withCategory ? el('select', { className: 'admin-input' }, [['main', 'Prestation principale'], ['option', 'Option']].map(([v, l]) => el('option', { value: v, textContent: l, selected: (line.category || 'main') === v }))) : null;
+        [label, qty, unit, cat].filter(Boolean).forEach((x, k) => x.setAttribute('aria-label', `Ligne ${i + 1} : ${['désignation', 'quantité', 'prix unitaire', 'rangée'][k]}`));
+        const sync = () => { line.label = label.value; line.qty = Number(qty.value) || 0; line.unit = Number(unit.value) || 0; if (cat) line.category = cat.value; totalOut.textContent = `Total : ${money(docTotal(lines))}`; };
+        [label, qty, unit, cat].filter(Boolean).forEach(x => x.addEventListener('input', sync));
+        return el('div', { className: `ck-line${withCategory ? ' ck-line--cat' : ''}` }, [label, cat, qty, unit, button('×', 'admin-mini', () => { lines.splice(i, 1); drawLines(); }, `Supprimer la ligne ${i + 1}`)]);
+      }));
       totalOut.textContent = `Total : ${money(docTotal(lines))}`;
     };
-    drawLines();
-    const submit = button(existing ? 'Enregistrer' : `Créer le ${kind}`, 'admin-button', async () => {
-      const row = { ...f.read(), lines: lines.filter(l => l.label || l.unit), total: docTotal(lines) };
+    if (tp.lines) drawLines();
+    const collect = () => {
+      const row = head.read();
+      fieldForms.forEach(([, f]) => Object.assign(data, f.read()));
+      Object.entries(checkInputs).forEach(([k, input]) => { data.checks[k] = input.checked; });
+      row.data = data; row.template = tp.id;
+      if (tp.lines) { row.lines = lines.filter(l => l.label || l.unit); row.total = docTotal(lines); }
       row.contact_id = row.contact_id || null; row.deal_id = row.deal_id || null;
       if (kind === 'facture') { row.paid_amount = row.paid_amount || 0; if (row.status === 'paye' && !row.paid_amount) row.paid_amount = row.total; if (row.status === 'paye' && !row.paid_at) row.paid_at = t; }
+      if (['signe', 'accepte'].includes(row.status) && 'signed_at' in row && !row.signed_at) row.signed_at = t;
+      return row;
+    };
+    const submit = button(existing ? 'Enregistrer' : `Créer : ${tp.label}`, 'admin-button', async () => {
+      const row = collect();
       submit.disabled = true;
       if (!existing) {
         const { data: number, error } = await client.rpc('crm_next_number', { p_kind: kind });
-        if (error) { submit.disabled = false; return say(`Numérotation impossible : ${error.message}`, 'error'); }
+        if (error) { submit.disabled = false; return say(`Numérotation impossible : ${error.message}. As-tu exécuté documents_schema.sql ?`, 'error'); }
         Object.assign(row, { kind, number });
       }
       const saved = await save('crm_documents', row, existing?.id);
       submit.disabled = false;
       if (!saved) return;
-      // Le projet avance avec ses documents : devis envoyé, devis accepté, facture du solde payée.
+      // Le projet avance avec ses documents.
       const linked = saved.deal_id ? dealOf(saved.deal_id) : null;
       if (linked && kind === 'devis' && saved.status === 'envoye' && ['nouveau', 'qualifie'].includes(linked.stage)) await save('crm_deals', { stage: 'devis', amount: saved.total, next_action: `Relancer le devis ${saved.number}`, next_action_date: addDays(saved.issue_date || t, s.delaiRelanceDevis) }, linked.id);
       if (linked && kind === 'devis' && saved.status === 'accepte' && ['nouveau', 'qualifie', 'devis'].includes(linked.stage)) await save('crm_deals', { stage: 'signe', amount: saved.total, next_action: 'Facturer l’acompte', next_action_date: t }, linked.id);
       if (linked && kind === 'facture' && saved.status !== 'brouillon' && linked.next_action === 'Facturer l’acompte') await save('crm_deals', { next_action: null, next_action_date: null }, linked.id);
-      if (linked && kind === 'facture' && saved.status === 'paye' && ['livre'].includes(linked.stage) && sum(invoices().filter(i => i.deal_id === linked.id), cashed) >= Number(linked.amount)) await save('crm_deals', { stage: 'paye' }, linked.id);
-      say(`${kind === 'devis' ? 'Devis' : 'Facture'} ${saved.number} enregistré${kind === 'facture' ? 'e' : ''}.`, 'ok'); open('doc', saved.id);
+      if (linked && kind === 'facture' && saved.status === 'paye' && linked.stage === 'livre' && sum(invoices().filter(i => i.deal_id === linked.id), cashed) >= Number(linked.amount)) await save('crm_deals', { stage: 'paye' }, linked.id);
+      say(`${docName(saved)} enregistré.`, 'ok'); open('doc', saved.id);
     });
+    // Fichier joint : PDF signé, facture Indy, scan.
+    const fileCard = existing ? (() => {
+      const input = el('input', { type: 'file', accept: 'application/pdf,image/jpeg,image/png', className: 'nd-file-input' });
+      input.setAttribute('aria-label', 'Choisir le fichier à joindre');
+      const upload = button(existing.file_path ? 'Remplacer le fichier' : 'Joindre le fichier', 'admin-mini', async () => {
+        const file = input.files?.[0];
+        if (!file) return say('Choisis d’abord un fichier PDF, JPG ou PNG.', 'warn');
+        if (file.size > 20 * 1024 * 1024) return say('Fichier trop lourd : 20 Mo maximum.', 'warn');
+        upload.disabled = true; say('Envoi du fichier…');
+        const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w.-]+/g, '-').slice(-80);
+        const path = `${existing.kind}/${existing.number}/${Date.now()}-${safe}`;
+        const { error } = await client.storage.from('documents').upload(path, file, { contentType: file.type, upsert: false });
+        upload.disabled = false;
+        if (error) return say(`Envoi impossible : ${error.message}. As-tu exécuté documents_schema.sql ?`, 'error');
+        if (existing.file_path) await client.storage.from('documents').remove([existing.file_path]);
+        if (await save('crm_documents', { file_path: path }, existing.id)) { say('Fichier joint.', 'ok'); open('doc', existing.id); }
+      });
+      const view = existing.file_path ? button('Ouvrir le fichier', 'admin-mini', async () => {
+        const { data: signed, error } = await client.storage.from('documents').createSignedUrl(existing.file_path, 300);
+        if (error) return say(error.message, 'error');
+        window.open(signed.signedUrl, '_blank', 'noopener');
+      }) : null;
+      return card('Fichier signé ou facture Indy', [
+        el('p', { className: 'ck-hint', textContent: existing.file_path ? `Joint : ${existing.file_path.split('/').pop().replace(/^\d+-/, '')}` : 'Joins ici le PDF signé par le client ou la facture officielle téléchargée depuis Indy. Stockage privé, visible par toi seul.' }),
+        el('div', { className: 'admin-row' }, [input, upload, view])
+      ], 'admin-card--wide');
+    })() : null;
     const actions = [];
-    if (existing) actions.push(button('Aperçu et PDF', 'admin-mini', () => open('paper', existing.id)));
-    if (existing && kind === 'devis') {
-      const already = sum(S.docs.filter(d => d.kind === 'facture' && d.status !== 'annule' && d.deal_id && d.deal_id === existing.deal_id), d => d.total);
-      const rateA = Number(s.acompte) || 40;
-      actions.push(button(`Facture d’acompte (${rateA} %)`, 'admin-mini', () => open('doc', { kind: 'facture', deal: existing.deal_id, contact: existing.contact_id, title: `Acompte : ${existing.title || existing.number}`, lines: [{ label: `Acompte de ${rateA} % sur le devis ${existing.number}`, qty: 1, unit: Math.round(existing.total * rateA) / 100 }] })));
-      actions.push(button('Facture du solde', 'admin-mini', () => open('doc', { kind: 'facture', deal: existing.deal_id, contact: existing.contact_id, title: `Solde : ${existing.title || existing.number}`, lines: [{ label: `Solde du devis ${existing.number}${already ? `, après ${money(already)} déjà facturés` : ''}`, qty: 1, unit: Math.max(0, Math.round((existing.total - already) * 100) / 100) }] })));
+    if (existing) {
+      actions.push(button('Aperçu et PDF', 'admin-button', () => open('paper', existing.id)));
+      actions.push(button('Dupliquer', 'admin-mini', () => open('doc', { template: tp.id, deal: existing.deal_id, contact: existing.contact_id, title: existing.title, lines: structuredClone(existing.lines || []), data: structuredClone(existing.data || {}) })));
+      if (kind === 'devis') {
+        const already = sum(S.docs.filter(d => d.kind === 'facture' && d.status !== 'annule' && d.deal_id && d.deal_id === existing.deal_id), d => d.total);
+        const rateA = Number(s.acompte) || 40;
+        actions.push(button(`Facture d’acompte (${rateA} %)`, 'admin-mini', () => open('doc', { template: 'facture', deal: existing.deal_id, contact: existing.contact_id, title: `Acompte : ${existing.title || existing.number}`, lines: [{ label: `Acompte de ${rateA} % sur le devis ${existing.number}`, qty: 1, unit: Math.round(existing.total * rateA) / 100 }] })));
+        actions.push(button('Facture du solde', 'admin-mini', () => open('doc', { template: 'facture', deal: existing.deal_id, contact: existing.contact_id, title: `Solde : ${existing.title || existing.number}`, lines: [{ label: `Solde du devis ${existing.number}${already ? `, après ${money(already)} déjà facturés` : ''}`, qty: 1, unit: Math.max(0, Math.round((existing.total - already) * 100) / 100) }] })));
+        actions.push(button('Contrat correspondant', 'admin-mini', () => open('doc', { template: existing.template === 'devis_mission' ? 'contrat_mission' : 'contrat_datee', deal: existing.deal_id, contact: existing.contact_id, title: existing.title, data: structuredClone(existing.data || {}) })));
+      }
+      if (existing.kind !== 'facture' || existing.status === 'brouillon') actions.push(armed('Supprimer', 'Confirmer la suppression', async () => {
+        if (existing.file_path) await client.storage.from('documents').remove([existing.file_path]);
+        if (await remove('crm_documents', existing.id)) { say('Document supprimé.', 'ok'); go('documents'); }
+      }));
     }
-    if (existing && (existing.kind === 'devis' || existing.status === 'brouillon')) actions.push(armed('Supprimer', 'Confirmer la suppression', async () => { if (await remove('crm_documents', existing.id)) { say('Document supprimé.', 'ok'); go('documents'); } }));
     return el('div', {}, [
-      el('div', { className: 'admin-bar' }, [heading(existing ? `${kind === 'devis' ? 'Devis' : 'Facture'} ${existing.number}` : kind === 'devis' ? 'Nouveau devis' : 'Nouvelle facture', existing ? `${DOC_STATUS[existing.status]} · ${money(existing.total)}` : 'Le numéro est attribué à l’enregistrement.'), el('div', { className: 'admin-row' }, [button('← Devis et factures', 'admin-mini', () => go('documents')), submit])]),
+      el('div', { className: 'admin-bar' }, [heading(existing ? docName(existing) : tp.label, existing ? `${tp.label} · ${DOC_STATUS[existing.status]}${existing.total ? ` · ${money(existing.total)}` : ''}` : 'Le numéro est attribué à l’enregistrement.'), el('div', { className: 'admin-row' }, [button('← Documents', 'admin-mini', () => go('documents')), submit])]),
       el('div', { className: 'admin-grid' }, [
-        card('Informations', [f.node], 'admin-card--wide'),
-        card('Lignes', [linesBox, el('div', { className: 'admin-row ck-between' }, [button('+ Ligne', 'admin-mini', () => { lines.push({ label: '', qty: 1, unit: 0 }); drawLines(); }), totalOut]), el('p', { className: 'ck-hint', textContent: 'Montants nets : TVA non applicable, art. 293 B du CGI (mention imprimée automatiquement).' })], 'admin-card--wide'),
-        actions.length ? card('Actions', [el('div', { className: 'admin-row' }, actions)], 'admin-card--wide') : null
+        actions.length ? card('Actions', [el('div', { className: 'admin-row' }, actions)], 'admin-card--wide') : null,
+        kind === 'facture' ? card('Facture pro forma', [el('p', { className: 'ck-hint', textContent: 'Document informatif pour ton suivi et ton client. La facture officielle (facturation électronique) est émise sur Indy : reporte ici son numéro et joins son PDF une fois émise.' })], 'admin-card--wide') : null,
+        card('Informations', [head.node], 'admin-card--wide'),
+        tp.lines ? card('Lignes de prix', [linesBox, el('div', { className: 'admin-row ck-between' }, [button('+ Ligne', 'admin-mini', () => { lines.push({ label: '', qty: 1, unit: 0, category: 'main' }); drawLines(); }), totalOut]), el('p', { className: 'ck-hint', textContent: 'Montants nets : TVA non applicable, art. 293 B du CGI (mention imprimée automatiquement).' })], 'admin-card--wide') : null,
+        ...fieldForms.map(([name, f]) => card(name, [f.node], 'admin-card--wide')),
+        ...checkCards,
+        fileCard
       ])
     ]);
   });
 
-  // Aperçu imprimable (mentions obligatoires d'une facture ou d'un devis d'entrepreneur individuel en franchise de TVA)
+  // Aperçu imprimable : rendu du gabarit de Nolan (chaque valeur est échappée par le gabarit, puis le HTML est analysé sans exécuter de script).
   V.paper = guard(() => {
     const d = S.docs.find(x => x.id === S.focus);
     if (!d) return el('p', { textContent: 'Document introuvable.' });
-    const c = contactOf(d.contact_id) || {}, s = S.settings, info = JSON.parse(root.dataset.business || '{}');
-    const isInvoice = d.kind === 'facture', pro = Boolean(c.company);
-    const missing = [!s.adresseFacturation && 'ton adresse (Réglages)', !c.name && 'le client', isInvoice && !c.address && 'l’adresse du client'].filter(Boolean);
-    const p = (text, className = '') => el('p', { className, textContent: text });
-    const paper = el('article', { className: 'ck-paper' }, [
-      el('header', { className: 'ck-paper__head' }, [
-        el('div', {}, [el('strong', { className: 'ck-paper__brand', textContent: info.name || 'Nolan Arc' }), p(`${info.legalName || 'Nolan Ribeiro'}, EI`), s.adresseFacturation ? p(s.adresseFacturation) : null, p(`SIRET ${info.siret || ''}`), p(info.email || ''), s.telephoneFacturation ? p(s.telephoneFacturation) : null]),
-        el('div', { className: 'ck-paper__id' }, [el('h2', { textContent: `${isInvoice ? 'Facture' : 'Devis'} n° ${d.number}` }), p(`Date : ${longDate(d.issue_date)}`), d.due_date ? p(isInvoice ? `Échéance : ${longDate(d.due_date)}` : `Valable jusqu’au ${longDate(d.due_date)}`) : null])
-      ]),
-      el('section', { className: 'ck-paper__client' }, [el('small', { textContent: 'Client' }), el('strong', { textContent: c.company || c.name || '' }), c.company && c.name ? p(c.name) : null, c.address ? p(c.address) : null, c.email ? p(c.email) : null]),
-      d.title ? p(`Objet : ${d.title}`, 'ck-paper__object') : null,
-      el('table', { className: 'ck-paper__table' }, [
-        el('thead', {}, [el('tr', {}, ['Désignation', 'Qté', 'Prix unitaire', 'Montant'].map(h => el('th', { scope: 'col', textContent: h })))]),
-        el('tbody', {}, (d.lines || []).map(l => el('tr', {}, [el('td', { textContent: l.label }), el('td', { textContent: String(l.qty) }), el('td', { textContent: money(l.unit) }), el('td', { textContent: money((Number(l.qty) || 0) * (Number(l.unit) || 0)) })]))),
-        el('tfoot', {}, [el('tr', {}, [el('th', { scope: 'row', colSpan: 3, textContent: 'Total net à payer' }), el('td', { textContent: money(d.total) })])])
-      ]),
-      p(info.vat || 'TVA non applicable, art. 293 B du CGI', 'ck-paper__vat'),
-      d.notes ? p(d.notes) : null,
-      isInvoice
-        ? el('section', { className: 'ck-paper__terms' }, [
-          p(`Paiement ${d.due_date ? `au plus tard le ${longDate(d.due_date)}` : 'à réception'}${s.iban ? `, par virement : ${s.iban}` : ''}.`),
-          Number(d.paid_amount) > 0 ? p(`Déjà réglé : ${money(d.paid_amount)}${d.paid_at ? ` le ${longDate(d.paid_at)}` : ''}${d.payment_method ? ` (${d.payment_method.toLowerCase()})` : ''}. Reste dû : ${money(Math.max(0, d.total - d.paid_amount))}.`) : null,
-          pro ? p(`En cas de retard, pénalités ${info.latePenalty || 'au taux de la BCE majoré de 10 points'}, et indemnité forfaitaire pour frais de recouvrement de 40 €. ${info.discount || 'Aucun escompte pour paiement anticipé.'}`) : p(info.discount || 'Aucun escompte pour paiement anticipé.')
-        ])
-        : el('section', { className: 'ck-paper__terms' }, [
-          p(`Conditions : acompte de ${Number(s.acompte) || 40} % à la signature, solde avant le début de la prestation. Conditions générales : nolanarc.com/cgv/`),
-          el('div', { className: 'ck-paper__sign' }, [p('Date, signature et mention « Bon pour accord »'), el('span')])
-        ])
-    ]);
+    const tp = templateOf(d);
+    const contact = contactOf(d.contact_id) || {}, deal = dealOf(d.deal_id) || {};
+    const ctx = { contact, deal, settings: S.settings, business: businessInfo(), esc: escHtml, money, longDate };
+    const missing = [!S.settings.adresseFacturation && ['devis', 'facture', 'contrat'].includes(d.kind) && 'ton adresse (Réglages)', d.kind === 'facture' && !S.settings.iban && 'ton IBAN (Réglages)', !contact.name && d.kind !== 'droit_image' && 'le client'].filter(Boolean);
+    const sheet = el('div', { className: 'nd-sheet' });
+    if (tp) {
+      const parsed = new DOMParser().parseFromString(`<div>${tp.render({ ...d, data: { checks: {}, ...(d.data || {}) } }, ctx)}</div>`, 'text/html');
+      parsed.querySelectorAll('script,iframe,object,embed,link,meta,style').forEach(n => n.remove());
+      parsed.querySelectorAll('*').forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name) || /^\s*javascript:/i.test(a.value)) n.removeAttribute(a.name); }));
+      sheet.append(...[...parsed.body.firstChild.childNodes].map(n => document.importNode(n, true)));
+    } else sheet.append(el('p', { className: 'admin-alert', textContent: 'Gabarit introuvable pour ce document.' }));
     return el('div', {}, [
-      el('div', { className: 'admin-bar ck-noprint' }, [heading(`Aperçu ${d.number}`, missing.length ? `À compléter avant envoi : ${missing.join(', ')}.` : 'Prêt à imprimer ou enregistrer en PDF.'), el('div', { className: 'admin-row' }, [button('← Modifier', 'admin-mini', () => open('doc', d.id)), button('Imprimer ou PDF', 'admin-button', () => window.print())])]),
-      paper
+      el('div', { className: 'admin-bar ck-noprint' }, [heading(`Aperçu ${d.number}`, missing.length ? `À compléter avant envoi : ${missing.join(', ')}.` : 'Prêt : Imprimer, puis « Enregistrer au format PDF ».'), el('div', { className: 'admin-row' }, [button('← Modifier', 'admin-mini', () => open('doc', d.id)), button('Imprimer ou PDF', 'admin-button', () => { const before = document.title; document.title = `${d.number} ${contact.company || contact.name || ''}`.trim(); window.print(); document.title = before; })])]),
+      sheet
+    ]);
+  });
+
+  // Messages clients : modèles de Nolan, variables remplies depuis le projet, prêts à copier ou envoyer.
+  const fillMessage = (text, deal, contact) => {
+    const devis = deal ? S.docs.filter(x => x.deal_id === deal.id && x.kind === 'devis').sort((a, b) => b.number.localeCompare(a.number))[0] : null;
+    const ev = deal ? S.events.find(e => e.deal_id === deal.id) : null;
+    const amount = Number(devis?.total || deal?.amount) || 0, rateA = Number(S.settings.acompte) || 40;
+    const vars = { prenom: (contact?.name || '').split(/\s+/)[0], nom: contact?.name || '', projet: deal?.title || '', date: deal?.event_date ? longDate(deal.event_date) : '', lieu: ev?.location || '', montant: amount ? money(amount) : '', acompte: amount ? money(amount * rateA / 100) : '', solde: amount ? money(amount - amount * rateA / 100) : '', numero: devis?.number || '', lien: 'https://nolanarc.com' };
+    return String(text || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => vars[k] || `[${k} à compléter]`);
+  };
+  V.messages = guard(() => {
+    const msgs = TPL().messages || [];
+    const deal = S.focus && typeof S.focus === 'string' ? dealOf(S.focus) : null;
+    const pick = form([{ name: 'deal', label: 'Projet', type: 'select', options: dealOptions() }], { deal: deal?.id || '' });
+    pick.inputs.deal.addEventListener('change', () => open('messages', pick.inputs.deal.value || null));
+    const contact = deal ? contactOf(deal.contact_id) : null;
+    const order = STAGES.map(([id]) => id);
+    const sorted = [...msgs].sort((a, b) => order.indexOf(a.stage) - order.indexOf(b.stage) || a.id.localeCompare(b.id));
+    const items = sorted.map(m => {
+      const subject = fillMessage(m.subject, deal, contact), body = fillMessage(m.body, deal, contact);
+      const area = el('textarea', { className: 'admin-input admin-input--area', rows: Math.min(14, body.split('\n').length + 2), value: body });
+      area.setAttribute('aria-label', `Texte : ${m.label}`);
+      const copy = button('Copier', 'admin-mini', async () => { try { await navigator.clipboard.writeText(m.channel === 'email' && subject ? `${subject}\n\n${area.value}` : area.value); say('Message copié.', 'ok'); } catch { say('Copie impossible : sélectionne le texte.', 'warn'); } });
+      const phone = (contact?.phone || '').replace(/[^\d+]/g, '').replace(/^0/, '+33').replace(/^\+/, '');
+      const send = m.channel === 'email'
+        ? (contact?.email ? link('Ouvrir dans ma messagerie ↗', `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(area.value)}`, 'admin-mini') : null)
+        : (phone ? link('Ouvrir dans WhatsApp ↗', `https://wa.me/${phone}?text=${encodeURIComponent(area.value)}`, 'admin-mini') : null);
+      if (send) area.addEventListener('input', () => { send.href = m.channel === 'email' ? `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(area.value)}` : `https://wa.me/${phone}?text=${encodeURIComponent(area.value)}`; });
+      const isSuggested = deal && m.stage === deal.stage;
+      return el('details', { className: `nd-message${isSuggested ? ' is-suggested' : ''}`, open: isSuggested }, [
+        el('summary', {}, [el('strong', { textContent: m.label }), pill(m.channel === 'email' ? 'Email' : 'WhatsApp'), pill(STAGE[m.stage]?.label || m.stage), isSuggested ? pill('Suggéré', 'envoye') : null]),
+        m.channel === 'email' && subject ? el('p', { className: 'ck-hint', textContent: `Objet : ${subject}` }) : null,
+        area, el('div', { className: 'admin-row' }, [copy, send])
+      ]);
+    });
+    return el('div', {}, [
+      el('div', { className: 'admin-bar' }, [heading('Messages', 'Tes modèles de messages, remplis avec le projet choisi : prénom, date, montants, numéro de devis.')]),
+      card('Pour quel projet ?', [pick.node, deal ? el('p', { className: 'ck-hint', textContent: `${STAGE[deal.stage].label}${contact ? ` · ${contact.name}` : ''} : les messages de cette étape sont ouverts.` }) : el('p', { className: 'ck-hint', textContent: 'Sans projet, les variables restent à compléter.' })], 'admin-card--wide ck-mb'),
+      items.length ? el('div', { className: 'nd-messages' }, items) : el('p', { className: 'admin-alert', textContent: 'Les modèles de messages ne sont pas chargés : recharge la page.' })
     ]);
   });
 
@@ -718,7 +863,8 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go 
       { id: 'pilotage', label: 'Pilotage', group: 'Activité' },
       { id: 'demandes', label: 'Demandes', group: 'Activité' },
       { id: 'clients', label: 'Clients', group: 'Activité' },
-      { id: 'documents', label: 'Devis et factures', group: 'Activité' },
+      { id: 'documents', label: 'Documents', group: 'Activité' },
+      { id: 'messages', label: 'Messages', group: 'Activité' },
       { id: 'agenda', label: 'Agenda', group: 'Activité' },
       { id: 'finances', label: 'Finances', group: 'Activité' },
       { id: 'reglages', label: 'Réglages', group: 'Activité' }

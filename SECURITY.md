@@ -10,6 +10,7 @@ Signaler une faille : nolanribcontact@gmail.com (voir aussi `/.well-known/securi
 | Aucun script tiers chargé à la volée | `src/app.js` | La vitrine WebGL (Three.js depuis un CDN) est retirée. Seul le script de mesure Cloudflare est autorisé, et seulement s'il n'y a pas d'opposition. |
 | Formulaire | `src/app.js`, page Contact | Champ piège anti-robots, validation, un envoi toutes les 30 secondes au plus. |
 | Admin | `public/admin/`, `supabase/admin_schema.sql` | Connexion Google uniquement, liste blanche d'adresses, règles RLS : le navigateur n'a que la clé publique et ne peut rien écrire sans être admin. Aucune clé secrète dans le dépôt. Page exclue des moteurs. |
+| Documents clients | `supabase/documents_schema.sql`, `public/admin/doc-templates.js` | Devis, contrats, droits à l'image et factures pro forma réservés à l'admin ; PDF signés dans un stockage Supabase privé (lien temporaire de 5 minutes pour les ouvrir). Aucune coordonnée bancaire ni téléphone dans le code public : ils sont saisis dans les Réglages. |
 | Déploiement | `.github/workflows/pages.yml` | Actions figées par empreinte (une action compromise ne peut pas changer de code en silence), identifiants Git non conservés, droits minimum, durée limitée à 10 minutes. |
 | Mises à jour | `.github/dependabot.yml` | Une demande de fusion par mois si une action a une nouvelle version. |
 | Garde-fous | `scripts/check.mjs` | Le build échoue si la CSP manque ou s'assouplit, si un import CDN revient, si une action n'est plus figée, si `security.txt` expire. |

@@ -117,6 +117,12 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   for(const t of ['crm_contacts','crm_deals','crm_documents','crm_events','crm_settings']) if(!sql.includes(`'${t}'`)) fail(`Cockpit: ${t} missing from the RLS loop`);
   if(!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(sql)||!/revoke all on public\.%I from anon, authenticated/.test(sql)) fail('Cockpit: admin-only policy missing');
   if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
+// Documents : gabarits chargés, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
+{ const tpl=await readFile(join(root,'public/admin/doc-templates.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
+  if(!adminHtml.includes('/admin/doc-templates.js?v=')||!adminHtml.includes('/admin/documents.css?v=')||adminHtml.indexOf('doc-templates.js')>adminHtml.indexOf('cockpit.js?v=')) fail('Documents: templates must load before the cockpit');
+  if(/FR\d{2}[\s\d]{20,}|CEPAFRPP|\+33\s?\(0\)\s?7|07[\s.]?82[\s.]?04/i.test(tpl)) fail('Documents: bank details or phone must never be hard-coded (public repo)');
+  if(/<script|\son[a-z]+\s*=|javascript:/i.test(tpl)) fail('Documents: templates must not contain scripts or event handlers');
+  if(!/insert into storage\.buckets[\s\S]+false/.test(dsql)||(dsql.match(/bucket_id = 'documents' and \(select public\.is_admin\(\)\)/g)||[]).length<5) fail('Documents: storage bucket must stay private and admin-only'); }
 // Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
 for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
   const h=await readFile(join(dist,f),'utf8');
