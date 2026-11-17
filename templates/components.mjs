@@ -1,4 +1,5 @@
 import { site } from '../content/site.mjs';
+import { offerCatalog, officialProfiles, jobTitle } from './seo.mjs';
 
 export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
@@ -25,27 +26,22 @@ export const contentSecurityPolicy = [
   "upgrade-insecure-requests",
 ].join('; ');
 
-export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[] }) {
+export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[], robots='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const personId = `${site.domain}/#nolan`;
   const businessId = `${site.domain}/#business`;
-  const sameAs = [site.instagram, site.youtube];
+  const sameAs = officialProfiles;
   // Données structurées : ce que Google, Bing (ChatGPT, Copilot), Gemini, Claude ou Perplexity lisent
   // sans exécuter la page. Tout est tiré des contenus publiés (offres, FAQ, projets) : rien d'inventé.
-  const offers = [
-    { name:'Film de mariage', price:'1500', description:'Film de mariage : couverture de la journée et film final, options sur devis.', url:`${site.domain}/services/#mariage` },
-    { name:'Direction artistique', price:'200', description:'Interventions ciblées de direction artistique, à partir de 200 €.', url:`${site.domain}/services/` },
-    { name:'Stratégie de marque', price:'89', unit:'HUR', description:'Session de stratégie de marque à l’heure. Accompagnement complet sur devis.', url:`${site.domain}/services/` },
-  ];
   const graph = [
-    { '@type':'WebSite', '@id':`${site.domain}/#website`, url:`${site.domain}/`, name:site.name, alternateName:['Nolan.Arc','Nolan Ribeiro'], inLanguage:'fr-FR', publisher:{ '@id':businessId } },
-    { '@type':'Person', '@id':personId, name:site.legalName, givenName:'Nolan', familyName:'Ribeiro', alternateName:site.name, url:site.domain, jobTitle:'Réalisateur, directeur artistique et stratège de marque', knowsAbout:['Réalisation vidéo','Film de mariage','Court métrage','Direction artistique','Stratégie de marque','Montage vidéo'], knowsLanguage:['fr'], sameAs, worksFor:{ '@id':businessId } },
-    { '@type':'ProfessionalService', '@id':businessId, name:site.name, alternateName:`${site.name}, ${site.legalName}`, url:site.domain, description:'Réalisation photo et vidéo (films de marque, films de mariage, courts métrages), direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, logo:{ '@type':'ImageObject', url:`${site.domain}/assets/icons/icon-512.png`, width:512, height:512 }, founder:{ '@id':personId }, sameAs,
+    { '@type':'WebSite', '@id':`${site.domain}/#website`, url:`${site.domain}/`, name:site.name, alternateName:['Nolan.Arc','Nolan Ribeiro'], inLanguage:'fr-FR', publisher:{ '@id':businessId }, about:{ '@id':personId } },
+    { '@type':'Person', '@id':personId, name:site.legalName, givenName:'Nolan', familyName:'Ribeiro', alternateName:[site.name,'Nolan.Arc'], url:`${site.domain}/`, mainEntityOfPage:`${site.domain}/a-propos/`, jobTitle, description:`${site.legalName}, vidéaste et réalisateur, travaille sous le nom ${site.name} : films de mariage, films de marque, courts métrages, direction artistique et stratégie de marque.`, knowsAbout:['Réalisation vidéo','Film de mariage','Court métrage','Direction artistique','Stratégie de marque','Montage vidéo'], knowsLanguage:['fr'], sameAs, worksFor:{ '@id':businessId } },
+    { '@type':'ProfessionalService', '@id':businessId, name:site.name, alternateName:[`${site.name}, ${site.legalName}`,'Nolan.Arc'], url:`${site.domain}/`, description:'Réalisation photo et vidéo (films de mariage, films de marque, courts métrages, contenus pour les réseaux sociaux), direction artistique et stratégie de marque.', slogan:site.principle, image:`${site.domain}/assets/og-home.png`, logo:{ '@type':'ImageObject', url:`${site.domain}/assets/icons/icon-512.png`, width:512, height:512 }, founder:{ '@id':personId }, sameAs,
       areaServed:[{ '@type':'City', name:'Paris' },{ '@type':'AdministrativeArea', name:'Île-de-France' },{ '@type':'Country', name:'France' }],
       priceRange:'À partir de 89 €', currenciesAccepted:'EUR', availableLanguage:['fr'],
       contactPoint:{ '@type':'ContactPoint', contactType:'Demande de projet', url:`${site.domain}/contact/`, availableLanguage:['fr'] },
-      knowsAbout:['Réalisation vidéo','Film de mariage','Direction artistique','Stratégie de marque'],
-      hasOfferCatalog:{ '@type':'OfferCatalog', name:'Prestations', itemListElement:offers.map(o=>({ '@type':'Offer', name:o.name, description:o.description, url:o.url, priceCurrency:'EUR', priceSpecification:{ '@type':'PriceSpecification', minPrice:o.price, priceCurrency:'EUR', ...(o.unit?{ unitCode:o.unit }:{}) }, itemOffered:{ '@type':'Service', name:o.name, provider:{ '@id':businessId } } })) } },
+      knowsAbout:['Vidéo de mariage','Film de marque','Réalisation vidéo','Direction artistique','Stratégie de marque'],
+      hasOfferCatalog:offerCatalog(businessId) },
     { '@type':'WebPage', '@id':`${canonical}#page`, url:canonical, name:title, description, inLanguage:'fr-FR', isPartOf:{ '@id':`${site.domain}/#website` }, about:{ '@id':businessId } },
     ...extraSchema,
   ];
@@ -64,7 +60,7 @@ export function head({ title, description, path='/', image=`${site.domain}/asset
 <meta name="nolanarc-supabase-key" content="${esc(process.env.SUPABASE_ANON_KEY || '')}">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${canonical}">
+${robots ? `<meta name="robots" content="${esc(robots)}">` : `<link rel="canonical" href="${canonical}">`}
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="96x96" href="/assets/icons/icon-96.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
