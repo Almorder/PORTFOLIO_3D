@@ -38,8 +38,19 @@ const cssAsset=`assets/site.${cssHash}.css`;
 const jsAsset=`assets/app.${jsHash}.js`;
 
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
+// Typographie française : un montant ou une durée ne se coupe jamais en fin de ligne (« 1 500 € », « 48 h »).
+// Appliqué au seul texte visible, entre les balises ; les scripts et styles ne sont pas touchés.
+function keepUnitsTogether(html){
+  return html.replace(/(<(script|style)\b[\s\S]*?<\/\2>)|>([^<]+)</g,(match,block,_tag,text)=>{
+    if(block) return block;
+    return '>'+text
+      .replace(/(\d) (\d{3})(?!\d)/g,'$1\u202f$2')
+      .replace(/(\d) (€|h|min|%)(?=[\s.,;:!?)\/]|$)/g,'$1\u00a0$2')
+      .replace(/€ \/ h/g,'€\u00a0/\u00a0h')+'<';
+  });
+}
 for(const [file,rawHtml] of pages){
-  const html=rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion);
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');

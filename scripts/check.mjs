@@ -1,4 +1,4 @@
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile as readFileRaw, readdir, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { legalRequiredFields } from '../content/legal.mjs';
@@ -9,6 +9,8 @@ const root=new URL('../',import.meta.url).pathname;
 const dist=join(root,'dist');
 const errors=[];
 const fail=(message)=>errors.push(message);
+// Les espaces insécables posés au build (« 1 500 € ») se comparent comme des espaces simples.
+const readFile=async(file,enc)=>{const text=await readFileRaw(file,enc);return file.toString().endsWith('.html')?text.replace(/[\u00a0\u202f]/g,' '):text;};
 
 try{execFileSync(process.execPath,[join(root,'scripts/build.mjs')],{stdio:'inherit'});}catch{process.exit(1)}
 execFileSync(process.execPath,['--check',join(root,'src/app.js')],{stdio:'inherit'});
@@ -74,6 +76,7 @@ for(const source of [pagesSource,siteSource,legalSource]){
 }
 
 const home=await readFile(join(dist,'index.html'),'utf8');
+if(!/1\u202f500\u00a0€/.test(await readFileRaw(join(dist,'index.html'),'utf8'))) fail('Build: prices must keep non-breaking spaces (no « 1 / 500 € » line break)');
 // Planche matériel : six objets rendus en 3D, servis par le site (aucune ressource externe).
 const gearHtml=home.slice(home.indexOf('class="gear-photo"'),home.indexOf('brand-ecosystem__head'));
 if(!gearHtml.includes('/assets/gear/desk.webp')||!/alt="[^"]{20,}"/.test(gearHtml)) fail('Home: gear photo (with a real description) expected above the gear brands');
@@ -141,7 +144,8 @@ if(!app.includes("bento.addEventListener('dblclick'")) fail('Work: double click 
 if(!home.includes('/assets/pgytech-logo.png')||!existing.has('assets/pgytech-logo.png')) fail('Home V19: local PGYTECH logo asset missing');
 if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-width:50%')) fail('Home V19: Sony optical size correction missing');
 if(!home.includes('Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha')||!home.includes('>Lola<')) fail('Home V19: Lola testimonial missing');
-if(!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"')) fail('Home V19: hero must use deferred video facade rather than preloaded iframe');
+const heroFile=home.includes('data-hero-file');
+if(heroFile ? !/<video class="v16-hero__file" data-hero-file autoplay muted loop playsinline/.test(home) : (!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"'))) fail('Home: hero video must be a muted self-hosted loop, or the consent-gated YouTube facade');
 if(!app.includes('canUseShowcaseWebGL')||!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
 if(!app.includes("panel.showModal()")||!app.includes("panel.addEventListener('cancel'")) fail('Home: testimonial panel must open as a modal dialog and close with Escape');
 if(!home.includes('/assets/og-home.png')||!existing.has('assets/og-home.png')) fail('Home V20: local OG image missing');
@@ -150,7 +154,8 @@ if(!home.includes('data-focus-text')||!/<p class="focus-text__line">(<span data-
 for(const id of ['pricing-tab-wedding','pricing-panel-wedding','pricing-tab-direction','pricing-panel-direction','pricing-tab-strategy','pricing-panel-strategy']) if(!home.includes(`id="${id}"`)) fail(`Home V20 a11y: pricing ARIA relation missing ${id}`);
 if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
 if(/if\(!readConsent\(\)\)\s*showConsent\(\)/.test(app)) fail('Home: the video consent must not open by itself (it covered the hero buttons and the mobile dock)');
-if(!home.includes('data-hero-video-toggle')) fail('Home: hero video toggle missing');
+if(!heroFile&&!home.includes('data-hero-video-toggle')) fail('Home: hero video toggle missing (YouTube background needs consent)');
+if(heroFile&&/youtube/i.test(home.slice(home.indexOf('class="v16-hero"'),home.indexOf('class="hero-copy"')))) fail('Home: self-hosted hero must not call YouTube');
 if(!(app.includes("classList.toggle('is-docked'") && app.includes('is-measuring-dock') && css.includes('.is-docked .fnb-bg{') && css.includes('.no-js .fnb-bg{'))) fail('Floating navbar: dock logic, pill style or no-JS fallback missing');
 if(/\bgsap\b|ScrollTrigger/.test(app)) fail('app.js: no animation library dependency (constitution)');
 if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Header: no light variant per page (it made the navigation unreadable)');
@@ -217,7 +222,7 @@ if(!app.includes('easeOutExpo')||!app.includes('IntersectionObserver')) fail('An
 for(const style of ['blur','slide','fade','scale']) if(!css.includes(`stat-style--${style}`)) fail(`Animated Stats Pro: ${style} mode missing`);
 if(!app.includes('MeshPhysicalMaterial')) fail('Glass Showcase: WebGL material engine missing');
 if(!components.includes('data-custom-cursor')||!css.includes('.custom-cursor.is-interactive')) fail('Custom cursor missing');
-if(!components.includes('class="mobile-tabs"')) fail('Mobile glass dock missing');
+if(components.includes('mobile-tabs')||css.includes('.mobile-tabs')) fail('Mobile bottom dock was removed on purpose (it repeated the menu)');
 if(!css.includes('.line-toc{position:fixed')||!css.includes('left:14px')||!app.includes('scheduleClose(1900)')) fail('Line TOC: left hover/reclose behavior missing');
 for(const token of ['--ink:#080706','--paper:#f0ebe2','--ember:#cc460c',"--serif:'Yrsa'", "--ui:'Syne'", "--body:'DM Sans'"]) if(!css.includes(token)) fail(`Nolan Arc DA token missing: ${token}`);
 if(!css.includes('V17 —')) fail('V17 integration CSS block missing');

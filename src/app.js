@@ -287,6 +287,18 @@ $$('[data-audience-optout]').forEach(button=>{
   });
 });
 
+// Fond vidéo hébergé sur le site : démarre seul (muet), se met en pause hors écran ou onglet caché,
+// et reste sur son image fixe si le visiteur a demandé moins d'animations.
+$$('[data-hero-file]').forEach(video=>{
+  if(reduced){video.removeAttribute('autoplay');video.pause();return;}
+  let visible=true;
+  const sync=()=>{if(visible&&!document.hidden) video.play().catch(()=>{}); else video.pause();};
+  if('IntersectionObserver' in window) new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();}).observe(video);
+  document.addEventListener('visibilitychange',sync);
+  video.addEventListener('playing',()=>video.closest('.v16-hero__media')?.classList.add('is-video-ready'),{once:true});
+  sync();
+});
+
 // Hero video facade — cinematic when authorised, zero YouTube request before consent.
 const heroVideo=$('[data-hero-video]');
 const consentBox=$('[data-cookie-consent]');
