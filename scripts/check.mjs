@@ -77,6 +77,11 @@ for(const source of [pagesSource,siteSource,legalSource]){
 
 const home=await readFile(join(dist,'index.html'),'utf8');
 if(!/1\u202f500\u00a0€/.test(await readFileRaw(join(dist,'index.html'),'utf8'))) fail('Build: prices must keep non-breaking spaces (no « 1 / 500 € » line break)');
+// Lisibilité par les moteurs et assistants IA
+for(const file of ['llms.txt','robots.txt','sitemap.xml']) if(!existing.has(file)) fail(`SEO/IA: ${file} missing`);
+{ const ld=JSON.parse((home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1]||'{}'); const types=(ld['@graph']||[]).map(x=>x['@type']);
+  for(const t of ['Person','ProfessionalService','FAQPage']) if(!types.includes(t)) fail(`SEO/IA: home JSON-LD lacks ${t}`);
+  const biz=(ld['@graph']||[]).find(x=>x['@type']==='ProfessionalService')||{}; if(!biz.hasOfferCatalog||!biz.areaServed||!biz.contactPoint) fail('SEO/IA: business needs offers, area served and contact point'); }
 // Planche matériel : six objets rendus en 3D, servis par le site (aucune ressource externe).
 const gearHtml=home.slice(home.indexOf('class="gear-photo"'),home.indexOf('brand-ecosystem__head'));
 if(!gearHtml.includes('/assets/gear/desk.webp')||!/alt="[^"]{20,}"/.test(gearHtml)) fail('Home: gear photo (with a real description) expected above the gear brands');

@@ -4,20 +4,31 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc — halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='' }) {
+export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc — halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[] }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const personId = `${site.domain}/#nolan`;
   const businessId = `${site.domain}/#business`;
   const sameAs = [site.instagram, site.youtube];
-  const schema = {
-    '@context':'https://schema.org',
-    '@graph':[
-      { '@type':'WebSite', '@id':`${site.domain}/#website`, url:site.domain, name:site.name, inLanguage:'fr-FR', publisher:{ '@id':businessId } },
-      { '@type':'Person', '@id':personId, name:site.legalName, alternateName:site.name, url:site.domain, jobTitle:site.role, sameAs, worksFor:{ '@id':businessId } },
-      { '@type':'ProfessionalService', '@id':businessId, name:site.name, url:site.domain, description:'Réalisation photo et vidéo, direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, founder:{ '@id':personId }, sameAs, knowsAbout:['Réalisation vidéo','Direction artistique','Stratégie de marque'] }
-    ]
-  };
-  // L'email n'est volontairement pas publié ici : il reste protégé dans le HTML visible (anti-spam).
+  // Données structurées : ce que Google, Bing (ChatGPT, Copilot), Gemini, Claude ou Perplexity lisent
+  // sans exécuter la page. Tout est tiré des contenus publiés (offres, FAQ, projets) : rien d'inventé.
+  const offers = [
+    { name:'Film de mariage', price:'1500', description:'Film de mariage : couverture de la journée et film final, options sur devis.', url:`${site.domain}/services/#mariage` },
+    { name:'Direction artistique', price:'200', description:'Interventions ciblées de direction artistique, à partir de 200 €.', url:`${site.domain}/services/` },
+    { name:'Stratégie de marque', price:'89', unit:'HUR', description:'Session de stratégie de marque à l’heure. Accompagnement complet sur devis.', url:`${site.domain}/services/` },
+  ];
+  const graph = [
+    { '@type':'WebSite', '@id':`${site.domain}/#website`, url:site.domain, name:site.name, inLanguage:'fr-FR', publisher:{ '@id':businessId } },
+    { '@type':'Person', '@id':personId, name:site.legalName, givenName:'Nolan', familyName:'Ribeiro', alternateName:site.name, url:site.domain, jobTitle:'Réalisateur, directeur artistique et stratège de marque', knowsAbout:['Réalisation vidéo','Film de mariage','Court métrage','Direction artistique','Stratégie de marque','Montage vidéo'], knowsLanguage:['fr'], sameAs, worksFor:{ '@id':businessId } },
+    { '@type':'ProfessionalService', '@id':businessId, name:site.name, alternateName:`${site.name} — ${site.legalName}`, url:site.domain, description:'Réalisation photo et vidéo (films de marque, films de mariage, courts métrages), direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, logo:`${site.domain}/assets/og-home.png`, founder:{ '@id':personId }, sameAs,
+      areaServed:[{ '@type':'City', name:'Paris' },{ '@type':'AdministrativeArea', name:'Île-de-France' },{ '@type':'Country', name:'France' }],
+      priceRange:'89 € – sur devis', currenciesAccepted:'EUR', availableLanguage:['fr'],
+      contactPoint:{ '@type':'ContactPoint', contactType:'Demande de projet', url:`${site.domain}/contact/`, availableLanguage:['fr'] },
+      knowsAbout:['Réalisation vidéo','Film de mariage','Direction artistique','Stratégie de marque'],
+      hasOfferCatalog:{ '@type':'OfferCatalog', name:'Prestations', itemListElement:offers.map(o=>({ '@type':'Offer', name:o.name, description:o.description, url:o.url, priceCurrency:'EUR', priceSpecification:{ '@type':'PriceSpecification', minPrice:o.price, priceCurrency:'EUR', ...(o.unit?{ unitCode:o.unit }:{}) }, itemOffered:{ '@type':'Service', name:o.name, provider:{ '@id':businessId } } })) } },
+    { '@type':'WebPage', '@id':`${canonical}#page`, url:canonical, name:title, description, inLanguage:'fr-FR', isPartOf:{ '@id':`${site.domain}/#website` }, about:{ '@id':businessId } },
+    ...extraSchema,
+  ];
+  const schema = { '@context':'https://schema.org', '@graph':graph };
   const schemaJson = JSON.stringify(schema).replaceAll('<','\\u003c');
   return `<!doctype html>
 <html lang="fr" class="no-js">
@@ -88,7 +99,7 @@ export function header(active='') {
 
 export function footer() {
   return `<footer class="site-footer fab-footer">
-    <div class="fab-footer__brand"><a href="/">Nolan<span>.</span>Arc</a><p>Réalisation · direction artistique · stratégie de marque.</p></div>
+    <div class="fab-footer__brand"><a href="/">Nolan<span>.</span>Arc</a><p>Nolan Ribeiro. Réalisation, direction artistique et stratégie de marque.</p></div>
     <div class="fab-footer__grid">
       <div><small>Navigation</small><a href="/work/">Work</a><a href="/services/">Services</a><a href="/a-propos/">À propos</a><a href="/journal/">Journal</a></div>
       <div><small>Contact</small><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a><a href="${site.youtube}" target="_blank" rel="noreferrer">YouTube ↗</a></div>
@@ -169,3 +180,6 @@ export function videoSlideShow(slides=[], {autoplay=true, interval=5200, orienta
 export function pageViewCounter(){
   return `<span class="page-view-counter" data-page-view-counter hidden aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg><b data-page-view-value>0</b><span>vues</span></span>`;
 }
+
+/** FAQ en données structurées : les réponses restent lisibles par les robots même repliées à l'écran. */
+export const faqSchema = (items=[], path='/') => items.length ? [{ '@type':'FAQPage', '@id':`${site.domain}${path}#faq`, mainEntity:items.map(item=>({ '@type':'Question', name:item.question, acceptedAnswer:{ '@type':'Answer', text:item.answer } })) }] : [];

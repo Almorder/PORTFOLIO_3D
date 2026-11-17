@@ -88,7 +88,42 @@ for(const [file,target] of Object.entries(redirects)){
 }
 
 const routes=['/','/work/','/projet/le-bol-den-face/','/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
-await writeFile(join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(r=>`  <url><loc>${site.domain}${r}</loc></url>`).join('\n')}\n</urlset>\n`);
-await writeFile(join(out,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${site.domain}/sitemap.xml\n`);
+const today=new Date().toISOString().slice(0,10);
+await writeFile(join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(r=>`  <url><loc>${site.domain}${r}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+// Robots : tout est ouvert (moteurs et assistants IA), sauf l'espace d'administration.
+await writeFile(join(out,'robots.txt'),`User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: ${site.domain}/sitemap.xml\n`);
+// llms.txt : la fiche courte que les assistants IA (ChatGPT, Claude, Perplexity…) peuvent lire en une fois.
+await writeFile(join(out,'llms.txt'),`# Nolan Arc — Nolan Ribeiro
+
+> Nolan Ribeiro (marque Nolan Arc) est réalisateur, directeur artistique et stratège de marque. Il réalise des films de marque, des films de mariage et des courts métrages, et accompagne des marques en direction artistique et en stratégie. Basé en Île-de-France, il intervient à Paris et en France. Langue de travail : français.
+
+## Prestations et tarifs
+- Film de mariage : à partir de 1 500 €. Options sur devis. ${site.domain}/services/#mariage
+- Demande en mariage filmée : sur devis.
+- Direction artistique : interventions ciblées à partir de 200 €.
+- Stratégie de marque : session à 89 € de l’heure ; accompagnement complet sur devis.
+- Projets plus larges (films de marque, contenus réseaux sociaux) : sur devis.
+
+## Repères
+- Pratique de la vidéo depuis 2022, plus de 50 vidéos réalisées.
+- Matériel : Sony Alpha 7 IV, optiques Sony et Sigma, stabilisateur DJI RS 3 Pro, micro Sennheiser MKE 600, post-production Adobe.
+
+## Projets
+- Le bol d’en face (2026) : court métrage sur le deuil, réalisation et scénario, festival 1minute2court. ${site.domain}/projet/le-bol-den-face/
+- Ouilove Proposal : direction artistique.
+- A One Permis : contenus pour les réseaux sociaux.
+- Vidéos verticales : Box, Taliri (marque de vêtements), Polestar 3, une demande en mariage. ${site.domain}/work/
+
+## Pages
+- Accueil : ${site.domain}/
+- Réalisations : ${site.domain}/work/
+- Services et tarifs : ${site.domain}/services/
+- À propos : ${site.domain}/a-propos/
+- Contact (formulaire, réponse généralement sous 48 h) : ${site.domain}/contact/
+
+## Réseaux
+- Instagram : ${site.instagram}
+- YouTube : ${site.youtube}
+`);
 
 console.log(`Built ${pages.size} pages + ${Object.keys(redirects).length} legacy redirects. Assets: ${cssAsset}, ${jsAsset}`);

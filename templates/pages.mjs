@@ -9,7 +9,7 @@ import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, bentoFocus } from './showcase.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
-import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion } from './components.mjs';
+import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema } from './components.mjs';
 
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
@@ -90,7 +90,8 @@ export function homePage(){
   const stats = site.proofStats;
   return head({
     title:'Nolan Arc — Réalisation, direction artistique & stratégie',
-    description:'Portfolio de Nolan Ribeiro : réalisation photo/vidéo, direction artistique et stratégie de marque.',
+    description:'Nolan Ribeiro, réalisateur et directeur artistique : films de marque, films de mariage dès 1 500 €, direction artistique et stratégie de marque. Paris et Île-de-France.',
+    extraSchema:faqSchema(site.faqs.home,'/'),
     path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc — halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:'page-home page-fabrica page-v16'
   }) + header('/') + `
   <main id="main-content" class="v16-home">
@@ -140,7 +141,7 @@ export function homePage(){
       <div class="ring-section__head motion-reveal"><h2 id="ring-title">Comment je travaille.</h2></div>
       <div class="ring motion-reveal">
         <div class="ring__figure">
-          <svg viewBox="0 0 120 120" role="img" aria-label="Trois façons de travailler : comprendre, choisir, tenir le fil"><defs><linearGradient id="ring-g0" gradientUnits="userSpaceOnUse" x1="105.9" y1="62.9" x2="39.5" y2="101.2"><stop offset="0" stop-color="#ff8a4c"/><stop offset="1" stop-color="#b3200c"/></linearGradient><linearGradient id="ring-g1" gradientUnits="userSpaceOnUse" x1="34.5" y1="98.3" x2="34.5" y2="21.7"><stop offset="0" stop-color="#ffd48f"/><stop offset="1" stop-color="#d9700f"/></linearGradient><linearGradient id="ring-g2" gradientUnits="userSpaceOnUse" x1="39.5" y1="18.8" x2="105.9" y2="57.1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9bba8"/></linearGradient></defs><circle class="ring__track" cx="60" cy="60" r="46"/><circle class="ring__ticks" cx="60" cy="60" r="56.5" pathLength="360"/><circle class="ring__arc" data-ring-arc="0" cx="60" cy="60" r="46" pathLength="300" style="--o:-3" stroke="url(#ring-g0)"/><circle class="ring__arc" data-ring-arc="1" cx="60" cy="60" r="46" pathLength="300" style="--o:-103" stroke="url(#ring-g1)"/><circle class="ring__arc" data-ring-arc="2" cx="60" cy="60" r="46" pathLength="300" style="--o:-203" stroke="url(#ring-g2)"/><circle class="ring__shine" data-ring-shine="0" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-3" aria-hidden="true"/><circle class="ring__shine" data-ring-shine="1" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-103" aria-hidden="true"/><circle class="ring__shine" data-ring-shine="2" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-203" aria-hidden="true"/></svg>
+          <div class="orb" role="img" aria-label="Trois façons de travailler : comprendre, choisir, tenir le fil"><div class="orb__spin" data-orb-spin><span class="orb__glow"></span><span class="orb__body"></span><span class="orb__rim"></span></div><span class="ring__arc orb__dot" data-ring-arc="0" style="left:85.36%;top:14.64%"></span><span class="ring__arc orb__dot" data-ring-arc="1" style="left:62.94%;top:98.30%"></span><span class="ring__arc orb__dot" data-ring-arc="2" style="left:1.70%;top:37.06%"></span></div>
           <div class="ring__center" aria-hidden="true"><span data-ring-count>1</span><small data-ring-name>Comprendre</small></div>
         </div>
         <div class="ring__side">
@@ -195,7 +196,7 @@ export function homePage(){
 }
 
 export function workPage(){
-  return head({title:'Work — Nolan Arc', description:'Films et projets sélectionnés de Nolan Ribeiro.', path:'/work/', bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
+  return head({title:'Work — Nolan Arc', description:'Réalisations de Nolan Ribeiro : court métrage « Le bol d’en face », films de mariage, direction artistique et vidéos pour les réseaux sociaux.', path:'/work/', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Projets', itemListElement:bentoTiles.filter(t=>t.href.startsWith('/')).map((t,i)=>({ '@type':'ListItem', position:i+1, name:t.title, url:`${site.domain}${t.href}` })) }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
     <section class="fab-page-title motion-reveal"><div><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
     <section class="bento-section motion-reveal" aria-label="Projets">${bentoFocus(bentoTiles)}</section>
     <section class="ig-section ig-stage motion-reveal" id="social" aria-labelledby="ig-title">
@@ -211,7 +212,7 @@ export function workPage(){
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} — Nolan Arc`, description:bol.summary, path:'/projet/le-bol-den-face/', image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
+  return head({title:`${bol.title} — court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bol.poster, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }], image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
     <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
@@ -221,7 +222,7 @@ export function projectPage(){
 }
 
 export function servicesPage(){
-  return head({title:'Services — Nolan Arc',description:'Réalisation, direction artistique et stratégie de marque par Nolan Ribeiro.',path:'/services/',bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
+  return head({title:'Services et tarifs — Nolan Arc',description:'Films de mariage dès 1 500 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure : prestations et tarifs de Nolan Ribeiro.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
     <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
     <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
       <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
@@ -239,7 +240,7 @@ export function servicesPage(){
 }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Arc',description:'Nolan Ribeiro : parcours, curiosité et manière de travailler.',path:'/a-propos/',bodyClass:'page-about page-fabrica page-v17'}) + header('/a-propos/') + `<main id="main-content" class="v17-about-page">
+  return head({title:'À propos — Nolan Ribeiro, Nolan Arc',description:'Nolan Ribeiro, réalisateur et directeur artistique : parcours, pratique de la vidéo depuis 2022 et manière de travailler.',path:'/a-propos/',extraSchema:[{ '@type':'AboutPage', '@id':`${site.domain}/a-propos/#about`, url:`${site.domain}/a-propos/`, mainEntity:{ '@id':`${site.domain}/#nolan` } }],bodyClass:'page-about page-fabrica page-v17'}) + header('/a-propos/') + `<main id="main-content" class="v17-about-page">
     <section class="v17-about-hero" id="nolan">
       <figure class="v17-about-portrait"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure>
       <div class="v17-about-hero__copy"><span class="fab-dot-label">Nolan Ribeiro · Nolan Arc</span><h1>Je ne suis pas arrivé à ces trois disciplines <em>par plan de carrière.</em></h1><p>J’ai surtout continué à suivre les problèmes que j’avais envie de résoudre : raconter mieux, rendre un univers cohérent, puis comprendre pourquoi certaines idées fonctionnent réellement.</p><div class="v17-about-hero__links"><a href="/work/">Voir le Work ↗</a><a href="/contact/">Parler d’un projet ↗</a></div></div>
@@ -273,7 +274,7 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Parler d’un film, d’une direction artistique ou d’un projet de marque à Nolan Arc.',path:'/contact/',bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
+  return head({title:'Contact — Nolan Arc',description:'Écrire à Nolan Ribeiro pour un film, une direction artistique ou un projet de marque. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
     <section class="contact-composer motion-gradient" data-gradient-host>
       ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
       <div class="contact-composer__intro motion-reveal">
