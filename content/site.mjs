@@ -42,7 +42,7 @@ export const site = {
       { question: 'Une direction artistique peut-elle être commandée sans réalisation vidéo ?', answer: 'Oui. Je peux intervenir uniquement sur la direction visuelle, la cohérence de marque ou un système créatif à appliquer ensuite par votre équipe.' },
       { question: 'Que contient une session ciblée de stratégie à 89 € / h ?', answer: 'Une heure de travail ciblée pour auditer une situation, prioriser les actions et vous laisser avec des décisions concrètes à appliquer. Un accompagnement plus large est chiffré sur devis.' },
       { question: 'Les fichiers bruts sont-ils livrés ?', answer: 'Non par défaut. Les livrables, formats et éventuels fichiers supplémentaires sont définis au devis.' },
-      { question: 'Combien de temps conservez-vous les fichiers ?', answer: 'Je conserve une copie de sécurité des fichiers finaux pendant un an. Le client reste responsable de sa propre sauvegarde dès la livraison.' },
+      { question: 'Combien de temps conservez-vous les fichiers ?', answer: 'Je conserve une copie de sécurité des fichiers finaux pendant six mois après la livraison. Le client reste responsable de sa propre sauvegarde dès la livraison.' },
     ],
     contact: [
       { question: 'Il faut un brief complet pour écrire ?', answer: 'Non. Une idée, une date, un besoin ou un problème suffit. On précise le reste ensemble si le projet est pertinent.' },

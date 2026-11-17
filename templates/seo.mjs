@@ -11,7 +11,7 @@ import { legal } from '../content/legal.mjs';
 // Comptes officiels : uniquement ceux publiés dans content/site.mjs.
 export const officialProfiles = [site.instagram, site.youtube].filter(Boolean);
 // Métiers, dans les mots que les gens tapent (« vidéaste », « réalisateur »).
-export const jobTitle = 'Vidéaste, réalisateur, directeur artistique et stratège de marque';
+export const jobTitle = 'Vidéaste, photographe, réalisateur, directeur artistique et stratège de marque';
 
 // Page où chaque offre est décrite sur le site.
 const offerPage = { mariage: '/services/#mariage', demande: '/services/#demande-en-mariage', direction: '/services/', strategie: '/services/', contenu: '/#pricing', film: '/#pricing' };
@@ -49,7 +49,7 @@ const otherProjects = projects.filter(p => !visibleProjects.includes(p));
 const bol = projects.find(p => p.slug === 'le-bol-den-face');
 const url = path => `${site.domain}${path}`;
 
-const intro = `Nolan Ribeiro est vidéaste, réalisateur, directeur artistique et stratège de marque. Il travaille sous le nom Nolan Arc (entrepreneur individuel, micro-entreprise). Il réalise des films de mariage, des demandes en mariage filmées, des films de marque, des contenus pour les réseaux sociaux et des courts métrages, et accompagne des marques en direction artistique et en stratégie. Il intervient à Paris, en Île-de-France et en France. Langue de travail : français.`;
+const intro = `Nolan Ribeiro est vidéaste, photographe, réalisateur, directeur artistique et stratège de marque. Il travaille sous le nom Nolan Arc (entrepreneur individuel, micro-entreprise). Il réalise des films de mariage, des demandes en mariage filmées, des films de marque, des contenus pour les réseaux sociaux et des courts métrages, et accompagne des marques en direction artistique et en stratégie. Il intervient à Paris, en Île-de-France et en France. Langue de travail : français.`;
 
 const offerLines = () => offers.map(o => `- ${offerName(o)} : ${priceLabel(o)}. ${o.url}`).join('\n');
 const profileLines = () => [`- Site officiel : ${site.domain}/`, ...officialProfiles.map(p => `- ${/instagram/.test(p) ? 'Instagram' : /youtube/.test(p) ? 'YouTube' : 'Profil'} : ${p}`)].join('\n');
