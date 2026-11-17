@@ -1858,3 +1858,17 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
   .v16-pricing__tabs,.v16-expertise-tabs{border-radius:22px}
   .v16-pricing__tabs button,.v16-expertise-tabs button,.v16-service-switcher__tabs button{flex:0 1 auto}
 }
+
+/* Accueil : titre du Work et son sous-titre, alignés ensemble à gauche */
+.page-home .work-heading{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.page-home .work-heading h2{margin:0}
+.page-home .work-heading p{margin:0;max-width:none;font:600 12px/1.3 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:rgba(8,7,6,.66)}
+
+/* Mariage : bouton en relief (lumière par le haut, ombre chaude, pastille flèche) */
+.wedding-wall__cta{gap:14px;padding:0 8px 0 26px;min-height:56px;background:linear-gradient(180deg,#fffaf3 0%,#efe4d6 100%);color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(120,60,30,.14),0 0 0 1px rgba(255,235,215,.35),0 14px 34px -10px rgba(216,51,15,.75),0 4px 10px rgba(0,0,0,.35)}
+.wedding-wall__cta span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a4c,#d8330f 60%,#9e1d07);color:#fff;font-size:15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 8px rgba(158,29,7,.45);transition:transform .45s cubic-bezier(.23,1,.32,1)}
+.wedding-wall__cta:hover{background:linear-gradient(180deg,#fff 0%,#f3e8da 100%);color:var(--ink);transform:translateY(-3px);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(120,60,30,.14),0 0 0 1px rgba(255,235,215,.5),0 22px 44px -12px rgba(216,51,15,.9),0 6px 14px rgba(0,0,0,.35)}
+.wedding-wall__cta:hover span{transform:rotate(45deg)}
+.wedding-wall__cta:active{transform:translateY(0);box-shadow:inset 0 2px 4px rgba(120,60,30,.18),0 8px 18px -8px rgba(216,51,15,.7)}
+@media(prefers-reduced-motion:reduce){.wedding-wall__cta,.wedding-wall__cta span{transition:none}}

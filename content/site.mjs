@@ -15,7 +15,7 @@ export const site = {
   analyticsToken: '1c1cf63d191049d8acc58b62961377c6',
   clients: ['Ouilove Proposal', 'A One Permis', 'Carat Créations Paris', 'Reka Security'],
   // Phrase lue mot à mot à l'accueil (section Focus Text).
-  manifesto: 'J’arrive tôt, je parle peu, je regarde longtemps. À la fin, il reste un film.',
+  manifesto: 'Avoir une vision, c’est être prêt à faire ce qu’il faut pour la réaliser.',
   testimonials: [
     // image : visuel du projet (adresse) ; link + linkLabel : lien facultatif affiché dans le panneau de l'avis.
     { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal', image: '', link: '', linkLabel: '' },
