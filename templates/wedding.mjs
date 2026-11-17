@@ -4,7 +4,7 @@ const esc = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<':
 const tilts = [-7, 3, 8, -4, 6, -2];
 const offerHref = photo => `/services/#${(weddingOffers[photo.offer] || weddingOffers.mariage).id}`;
 
-const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}<span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
+const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}"><span class="polaroid__photo">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}</span><span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
 
 // Accueil : un grand titre cliquable et trois polaroids. Rien n'est rendu tant qu'aucune photo n'est fournie.
 export function weddingWall() {
