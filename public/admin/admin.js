@@ -1,4 +1,4 @@
-// Tableau de bord Nolan Arc — connexion Google, vue d'ensemble, édition des contenus, publication.
+// Tableau de bord Nolan Arc: connexion Google, vue d'ensemble, édition des contenus, publication.
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const root = document.querySelector('[data-admin-app]');
@@ -24,7 +24,7 @@
   const say = (text, kind = '') => { status.textContent = text; status.dataset.kind = kind; };
 
   const SECTIONS = [
-    { id: 'overview', label: 'Vue d’ensemble' },
+    { id: 'overview', label: 'État du site', group: 'Site' },
     { id: 'projects', label: 'Projets', group: 'Contenu', hint: 'Fiches projet et visibilité sur le site.' },
     { id: 'testimonials', label: 'Témoignages', group: 'Contenu', hint: 'Avis clients affichés sur le site.' },
     { id: 'instagram', label: 'Social media videos', group: 'Contenu', hint: 'Vidéos Instagram de la page Work.' },
@@ -47,6 +47,7 @@
     state.drafts = Object.fromEntries((drafts.data || []).map(row => [row.key, row]));
     state.snapshots = snapshots.data || [];
     state.audit = audit.data || [];
+    if (cockpit) await cockpit.load();
   };
   const pending = () => {
     const last = state.snapshots[0] ? new Date(state.snapshots[0].created_at) : null;
@@ -78,7 +79,9 @@
     SECTIONS.forEach(section => {
       if (section.group && section.group !== group) { group = section.group; nav.append(el('small', { textContent: group })); }
       const item = button(section.label, 'admin-nav__item', () => go(section.id));
-      if (section.id === state.view) item.setAttribute('aria-current', 'page');
+      if (section.id === state.view || cockpit?.parent[state.view] === section.id) item.setAttribute('aria-current', 'page');
+      const count = cockpit?.badge(section.id) || 0;
+      if (count) item.append(el('span', { className: 'admin-badge', textContent: String(count) }));
       if (section.id === 'publish' && pending().length) item.append(el('span', { className: 'admin-badge', textContent: String(pending().length) }));
       nav.append(item);
     });
@@ -96,9 +99,13 @@
   };
   const heading = (title, intro) => el('header', { className: 'admin-head' }, [el('h2', { textContent: title }), intro && el('p', { textContent: intro })]);
   const card = (title, children, className = '') => el('article', { className: `admin-card ${className}` }, [el('h3', { textContent: title }), ...children]);
+  // Cockpit d'activité (public/admin/cockpit.js) : ses rubriques passent avant celles du contenu du site.
+  const cockpit = window.NolanCockpit ? window.NolanCockpit({ client, root, el, button, link, say, heading, card, go: view => go(view) }) : null;
+  if (cockpit) SECTIONS.unshift(...cockpit.sections);
 
   // ---------------------------------------------------------------- Vue d'ensemble
   const VIEWS = {};
+  if (cockpit) Object.assign(VIEWS, cockpit.views);
   VIEWS.overview = () => {
     const d = key => state.drafts[key]?.data;
     if (!Object.keys(state.drafts).length) {
@@ -266,7 +273,7 @@
           el('div', { className: 'admin-row' }, [note, publish])
         ], 'admin-card--wide'),
         card('Historique', [el('ul', { className: 'admin-log' }, state.snapshots.length
-          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.note ? ` — ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
+          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.note ? ` | ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
           : [el('li', { textContent: 'Aucune version enregistrée.' })])]),
         card('Repartir du site actuel', [el('p', { textContent: 'Remplace tous les brouillons par le contenu actuellement en ligne.' }), reset])
       ])
@@ -295,7 +302,7 @@
     const { data, error } = await client.rpc('is_admin');
     if (error) { gate(out); return say(`Vérification impossible : ${error.message}`, 'error'); }
     if (data !== true) return gate(el('p', { textContent: `Le compte ${session.user.email} n’a pas les droits d’administration.` }), out);
-    state.email = session.user.email; state.view = 'overview';
+    state.email = session.user.email; state.view = cockpit ? 'pilotage' : 'overview';
     try { await load(); draw(); } catch (err) { gate(out); say(`Lecture impossible : ${err.message}`, 'error'); }
   };
   addEventListener('beforeunload', event => { if (state.dirty) event.preventDefault(); });

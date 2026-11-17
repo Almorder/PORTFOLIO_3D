@@ -78,6 +78,9 @@ for(const source of [pagesSource,siteSource,legalSource]){
 const home=await readFile(join(dist,'index.html'),'utf8');
 if(!/1\u202f500\u00a0€/.test(await readFileRaw(join(dist,'index.html'),'utf8'))) fail('Build: prices must keep non-breaking spaces (no « 1 / 500 € » line break)');
 // Lisibilité par les moteurs et assistants IA
+if(!existing.has('favicon.ico')||!existing.has('assets/icons/icon-512.png')||!home.includes('rel="icon" href="/favicon.ico"')||!home.includes('rel="apple-touch-icon"')) fail('SEO: site icon (favicon) missing, Google would show a blank globe');
+// Aucun tiret long ni demi-cadratin dans ce qui est publié (signal « texte généré » pour certains lecteurs et outils).
+for(const file of [...existing].filter(f=>/\.(html|txt|js|css|webmanifest)$/.test(f)&&!/supabase\.js$/.test(f))){ const raw=await readFileRaw(join(dist,file),'utf8'); if(/[\u2014\u2013]/.test(raw)) fail(`${file}: contains an em/en dash (— or –)`); }
 for(const file of ['llms.txt','robots.txt','sitemap.xml']) if(!existing.has(file)) fail(`SEO/IA: ${file} missing`);
 { const ld=JSON.parse((home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1]||'{}'); const types=(ld['@graph']||[]).map(x=>x['@type']);
   for(const t of ['Person','ProfessionalService','FAQPage']) if(!types.includes(t)) fail(`SEO/IA: home JSON-LD lacks ${t}`);
@@ -107,9 +110,35 @@ if(!/admin\.js\?v=[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.js must car
 if(/<script[^>]+src="https?:/i.test(adminHtml)) fail('Admin: no third-party script');
 if(/service_role|sb_secret_/i.test(adminHtml+await readFile(join(root,'public/admin/admin.js'),'utf8')+JSON.stringify(siteData))) fail('Admin: a secret key must never be shipped');
 if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('Admin: must not be in sitemap');
+// Cockpit d'activité : chargé avant admin.js, aucune injection HTML, tables réservées à l'administrateur.
+{ const ck=await readFile(join(root,'public/admin/cockpit.js'),'utf8'), sql=await readFile(join(root,'supabase/cockpit_schema.sql'),'utf8');
+  if(!adminHtml.includes('/admin/cockpit.js?v=')||adminHtml.indexOf('cockpit.js')>adminHtml.indexOf('admin.js?v=')||!adminHtml.includes('data-offers=')||!adminHtml.includes('data-business=')) fail('Cockpit: script or data attributes missing on /admin/');
+  if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(ck)) fail('Cockpit: HTML injection is forbidden, use textContent');
+  for(const t of ['crm_contacts','crm_deals','crm_documents','crm_events','crm_settings']) if(!sql.includes(`'${t}'`)) fail(`Cockpit: ${t} missing from the RLS loop`);
+  if(!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(sql)||!/revoke all on public\.%I from anon, authenticated/.test(sql)) fail('Cockpit: admin-only policy missing');
+  if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
+// Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
+for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
+  const h=await readFile(join(dist,f),'utf8');
+  const csp=h.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/);
+  if(!csp) fail(`Security: CSP missing on ${f}`);
+  else { if(/'unsafe-eval'/.test(csp[1])||/script-src[^;]*'unsafe-inline'/.test(csp[1])) fail(`Security: CSP too permissive on ${f}`);
+    if(!/object-src 'none'/.test(csp[1])||!/base-uri 'self'/.test(csp[1])||!/form-action 'self' https:\/\/formsubmit\.co/.test(csp[1])) fail(`Security: CSP directives missing on ${f}`); }
+  if(h.indexOf('Content-Security-Policy')>h.indexOf('<script')&&h.includes('<script')) fail(`Security: CSP must come before any script on ${f}`);
+}
+{ const js=await readFile(join(root,'src/app.js'),'utf8');
+  if(/import\(\s*['"]https?:/.test(js)) fail('Security: no third-party module import from a CDN');
+  const wf=await readFile(join(root,'.github/workflows/pages.yml'),'utf8');
+  for(const m of wf.matchAll(/uses:\s*([^\s#]+)/g)) if(!/@[0-9a-f]{40}$/.test(m[1])) fail(`Security: action not pinned by SHA: ${m[1]}`);
+  if(!/persist-credentials:\s*false/.test(wf)) fail('Security: checkout must not persist credentials');
+  const sec=await readFile(join(dist,'.well-known/security.txt'),'utf8').catch(()=>'');
+  const exp=sec.match(/^Expires: (.+)$/m); if(!/^Contact: /m.test(sec)||!exp||new Date(exp[1])<new Date()) fail('Security: security.txt missing or expired'); }
 const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
+// Pages légales : fiche en bref, sommaire, date à jour, vérification publique de l'entreprise.
+for(const f of ['mentions-legales','confidentialite','cgv','cookies','retractation']){ const h=await readFile(join(dist,f,'index.html'),'utf8'); if(!h.includes('class="lg-brief"')||!h.includes('data-legal-toc')||!h.includes('aria-current="page"')||!/Mise à jour le \d/.test(h)) fail(`Legal: ${f} must keep its summary, table of contents and update date`); }
+if(!(await readFile(join(dist,'mentions-legales/index.html'),'utf8')).includes('annuaire-entreprises.data.gouv.fr/entreprise/')) fail('Legal: public registry link missing on mentions');
 if(!home.includes('nolanarc-audience-token" content="1c1cf63d191049d8acc58b62961377c6"')) fail('Audience: token meta missing on home');
-if(/static\.cloudflareinsights\.com/.test(home)) fail('Audience: beacon must not be hard-coded in HTML (opt-out must run first)');
+if(/<script[^>]+static\.cloudflareinsights\.com/.test(home)) fail('Audience: beacon must not be hard-coded in HTML (opt-out must run first)');
 if(!cookiesHtml.includes('data-audience-optout')||!cookiesHtml.includes('Cloudflare Web Analytics')) fail('Audience: cookies page must document Cloudflare and offer opt-out');
 if(!cookiesHtml.includes('Vidéos Instagram')) fail('Instagram: cookies page must document the Instagram embeds');
 const work=await readFile(join(dist,'work/index.html'),'utf8');
@@ -153,7 +182,7 @@ if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-widt
 if(!home.includes('Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha')||!home.includes('>Lola<')) fail('Home V19: Lola testimonial missing');
 const heroFile=home.includes('data-hero-file');
 if(heroFile ? !/<video class="v16-hero__file" data-hero-file autoplay muted loop playsinline/.test(home) : (!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"'))) fail('Home: hero video must be a muted self-hosted loop, or the consent-gated YouTube facade');
-if(!app.includes('canUseShowcaseWebGL')||!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
+if(!app.includes("requestIdleCallback")||!app.includes("heroVideo.dataset.videoMounted")) fail('Home V19: stability/lazy-media guards missing');
 if(!app.includes("panel.showModal()")||!app.includes("panel.addEventListener('cancel'")) fail('Home: testimonial panel must open as a modal dialog and close with Escape');
 if(!home.includes('/assets/og-home.png')||!existing.has('assets/og-home.png')) fail('Home V20: local OG image missing');
 if(!home.includes('class="hero-roles"')||home.includes('v20-hero__line')) fail('Home: hero keeps one sober line (the three roles), no slogan over the video');
@@ -169,7 +198,7 @@ if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFi
 if(/<b data-counter data-counter-target="(19|20)\d\d"/.test(home)) fail('Home: a year must not be animated as a counter');
 if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');
 if(!components.includes('role="region"')||!components.includes('aria-labelledby="${esc(id)}-question-${i}"')) fail('V20 a11y: FAQ region relationships missing');
-if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
+if(!home.includes('data-contact-form')||!home.includes('Message rapide | nolanarc.com')) fail('Home V17: quick contact form missing');
 
 // Navigation hierarchy: Journal footer-only.
 const headerChunk=home.slice(home.indexOf('<header'),home.indexOf('</header>')+9);
@@ -227,12 +256,12 @@ for(const html of [home,work,project,services,about,journal,contact,privacy]){
 // Component engines and design system.
 if(!app.includes('easeOutExpo')||!app.includes('IntersectionObserver')) fail('Animated Stats Pro: scroll/count engine missing');
 for(const style of ['blur','slide','fade','scale']) if(!css.includes(`stat-style--${style}`)) fail(`Animated Stats Pro: ${style} mode missing`);
-if(!app.includes('MeshPhysicalMaterial')) fail('Glass Showcase: WebGL material engine missing');
+if(app.includes('MeshPhysicalMaterial')) fail('Glass Showcase: WebGL engine must stay removed (no CDN library)');
 if(!components.includes('data-custom-cursor')||!css.includes('.custom-cursor.is-interactive')) fail('Custom cursor missing');
 if(components.includes('mobile-tabs')||css.includes('.mobile-tabs')) fail('Mobile bottom dock was removed on purpose (it repeated the menu)');
 if(!css.includes('.line-toc{position:fixed')||!css.includes('left:14px')||!app.includes('scheduleClose(1900)')) fail('Line TOC: left hover/reclose behavior missing');
 for(const token of ['--ink:#080706','--paper:#f0ebe2','--ember:#cc460c',"--serif:'Yrsa'", "--ui:'Syne'", "--body:'DM Sans'"]) if(!css.includes(token)) fail(`Nolan Arc DA token missing: ${token}`);
-if(!css.includes('V17 —')) fail('V17 integration CSS block missing');
+if(!css.includes('V17: ')) fail('V17 integration CSS block missing');
 if(!css.includes('content-visibility:auto')) fail('V16 performance: offscreen rendering guard missing');
 if(!app.includes("link.rel='prefetch'")) fail('V16 performance: internal route prefetch missing');
 
