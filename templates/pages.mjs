@@ -15,6 +15,15 @@ import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassSh
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
+// Accueil, « Tarifs » : une carte par offre, sur le modèle d'un mur de témoignages vidéo.
+const priceCards = [
+  { tag:'Mariage', title:weddingOffers.mariage.title, price:weddingOffers.mariage.price, text:'Votre journée filmée, puis montée en un vrai film.', facts:weddingOffers.mariage.facts.slice(0,2), cta:weddingOffers.mariage.cta, href:weddingOffers.mariage.href, texture:'/assets/da/texture.webp' },
+  { tag:'Demande', title:weddingOffers.demande.title, price:weddingOffers.demande.price, text:'Une demande préparée avec vous en amont, puis filmée le jour J. Devis selon le projet.', cta:weddingOffers.demande.cta, href:weddingOffers.demande.href, texture:'/assets/da/texture-c.webp' },
+  { tag:'Réalisation', title:'Film de marque', price:'Sur devis', text:'Film de marque, contenus pour les réseaux sociaux ou projet plus large : un devis après un premier échange.', cta:'Présenter le projet', href:'/contact/?intent=brand', texture:'/assets/da/texture-wide.webp' },
+  { tag:'Direction artistique', title:'Interventions ciblées dès 200 €', price:'Dès 200 €', text:'Un point d’entrée pour un besoin précis. Le périmètre évolue selon ce qu’il faut créer, corriger ou harmoniser.', cta:'Présenter le projet', href:'/contact/?intent=brand', texture:'/assets/da/texture-b.webp' },
+  { tag:'Stratégie de marque', title:'Session ciblée — 89 € / h', price:'89 € / h', text:'Audit, priorisation ou session de travail. Accompagnement — sur devis.', cta:'Réserver une session', href:'/contact/?intent=brand', texture:'/assets/da/texture.webp' },
+];
+
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
 const dimNeeds = {
   realisation: { need: 'J’ai un film à faire.', text: 'Pas besoin d’avoir tout prévu. On part de ce que le film doit faire ressentir ; je m’occupe du tournage jusqu’au montage, et vous gardez la main sur les choix qui comptent.', price: '1 500 €' },
@@ -103,9 +112,7 @@ export function homePage(){
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
         <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
-        <div class="v16-hero__actions"><a class="is-primary" href="#work-preview">Voir le Work <span aria-hidden="true">↓</span></a><a href="#quick-contact">Parler d’un projet <span aria-hidden="true">↗</span></a></div>
       </div>
-      ${heroSelfHosted ? '' : `<button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>`}
     </section>
 
     <section class="fab-projects v16-work-preview" id="work-preview">
@@ -152,7 +159,7 @@ export function homePage(){
     </section>
 
     <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Leurs mots, pas les miens.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
       ${morphTestimonials(site.testimonials)}
     </section>
 
@@ -168,14 +175,27 @@ export function homePage(){
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
-    <section class="home-pricing v16-pricing motion-reveal" id="pricing" data-pricing-switcher>
-      <div class="home-pricing__backdrop" aria-hidden="true"><img src="${visuals.moment}" alt=""><i></i></div>
-      <div class="v16-pricing__intro"><span class="fab-dot-label">Tarifs</span><h2>Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Mon temps et mon travail ont un prix. Les projets plus larges restent sur devis, mais vous devez pouvoir savoir rapidement si l’on joue dans la même zone.</p></div>
-      <div class="v16-pricing__tabs" role="tablist" aria-label="Choisir une offre"><button id="pricing-tab-wedding" type="button" role="tab" aria-selected="true" aria-controls="pricing-panel-wedding" data-pricing-tab="wedding">Mariage</button><button id="pricing-tab-direction" type="button" role="tab" aria-selected="false" aria-controls="pricing-panel-direction" data-pricing-tab="direction">Direction artistique</button><button id="pricing-tab-strategy" type="button" role="tab" aria-selected="false" aria-controls="pricing-panel-strategy" data-pricing-tab="strategy">Stratégie de marque</button></div>
-      <div class="v16-pricing__panels">
-        <article id="pricing-panel-wedding" role="tabpanel" aria-labelledby="pricing-tab-wedding" data-pricing-panel="wedding" class="is-active"><small>${weddingOffers.mariage.title}</small><strong>${weddingOffers.mariage.price}</strong><ul>${weddingOffers.mariage.facts.map(([value,label])=>`<li><b>${value}</b><span>${label}</span></li>`).join('')}</ul><a href="${weddingOffers.mariage.href}">${weddingOffers.mariage.cta} ↗</a></article>
-        <article id="pricing-panel-direction" role="tabpanel" aria-labelledby="pricing-tab-direction" data-pricing-panel="direction" hidden><small>Direction artistique</small><strong>Interventions ciblées dès 200 €</strong><p>Un point d’entrée pour un besoin précis. Le périmètre et les livrables évoluent ensuite selon ce qu’il faut créer, corriger ou harmoniser.</p><a href="/contact/?intent=brand">Présenter le projet ↗</a></article>
-        <article id="pricing-panel-strategy" role="tabpanel" aria-labelledby="pricing-tab-strategy" data-pricing-panel="strategy" hidden><small>Conseil en stratégie de marque</small><strong>Session ciblée — 89 € / h</strong><p>Audit, priorisation ou session de travail ciblée.</p><p><b>Accompagnement — sur devis.</b></p><a href="/contact/?intent=brand">Réserver une session ↗</a></article>
+    <section class="price-proof" id="pricing" aria-labelledby="pricing-title" data-price-proof>
+      <div class="price-proof__grid" aria-hidden="true" data-price-grid></div>
+      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Des points de départ clairs. Le reste se décide ensemble, sur devis.</p></header>
+      <div class="price-proof__rail">
+        <button type="button" class="price-proof__nav is-prev" data-price-prev aria-label="Offre précédente">←</button>
+        <ul class="price-proof__track" data-price-track>
+          ${priceCards.map((c,i)=>`<li class="price-card motion-reveal" style="--i:${i}">
+            <div class="price-card__media" style="--tex:url(${c.texture})">
+              <span class="price-card__tag">${esc(c.tag)}</span>
+              <a class="price-card__go" href="${c.href}" aria-label="${esc(c.cta)} : ${esc(c.title)}">↗</a>
+              <span class="price-card__price"><i aria-hidden="true"></i>${esc(c.price)}</span>
+            </div>
+            <div class="price-card__body">
+              <h3>${esc(c.title)}</h3>
+              <p>${esc(c.text)}</p>
+              ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
+              <a class="price-card__cta" href="${c.href}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>`).join('')}
+        </ul>
+        <button type="button" class="price-proof__nav is-next" data-price-next aria-label="Offre suivante">→</button>
       </div>
     </section>
 
@@ -201,7 +221,16 @@ export function workPage(){
     <section class="bento-section motion-reveal" aria-label="Projets">${bentoFocus(bentoTiles)}</section>
     <section class="ig-section ig-stage motion-reveal" id="social" aria-labelledby="ig-title">
       <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
-      <div class="ig-grid" style="--bx:${workAssets.phone.box[0]}%;--by:${workAssets.phone.box[1]}%;--bh:${workAssets.phone.box[3]}%;--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--bw:${workAssets.phone.box[2]}%">${instagramPosts.map((p,i)=>`<article class="ig-card ig-phone" data-instagram-post data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" style="--i:${i};--r:${[-3,2,-1.5,3][i%4]}deg"><div class="ig-phone__device" data-tilt style="aspect-ratio:${workAssets.phone.w}/${workAssets.phone.h}"><div class="ig-phone__screen"><div class="ig-card__cover"><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div><img class="ig-phone__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async"><i class="ig-phone__glare" aria-hidden="true"></i></div><a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></article>`).join('')}</div>
+      <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
+        <div class="phone-stack__stage" data-stack-stage>
+          <ul class="phone-stack__cards">${instagramPosts.map((p,i)=>`<li class="ig-card ps-card" data-instagram-post data-stack-card="${i}" data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" aria-label="${i+1} sur ${instagramPosts.length} : ${esc(p.title)}">
+            <div class="ps-card__screen"><div class="ig-card__cover"><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div>
+            <a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+          </li>`).join('')}</ul>
+          <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
+        </div>
+        <div class="phone-stack__nav"><button type="button" data-stack-prev aria-label="Vidéo précédente">←</button><span class="phone-stack__dots">${instagramPosts.map((p,i)=>`<button type="button" data-stack-dot="${i}" aria-label="Voir ${esc(p.title)}"></button>`).join('')}</span><button type="button" data-stack-next aria-label="Vidéo suivante">→</button></div>
+      </div>
     </section>
     <section class="v16-expertise-switcher motion-reveal" data-expertise-switcher>
       <header><span class="fab-dot-label">Trois casquettes</span><h2>Choisissez celle qui vous concerne.</h2></header>
@@ -330,11 +359,11 @@ export function privacyPage(){
 export function cookiesPage(){
   return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
   <h2>Principe</h2><p>Nolanarc.com n’utilise ni outil publicitaire ni profilage. Le site mesure uniquement son audience avec un outil sans cookie (voir ci-dessous) et n’enregistre pas votre parcours pour personnaliser la visite.</p>
-  <h2>Vidéo YouTube</h2><p>${heroSelfHosted ? 'Aucun lecteur YouTube n’est chargé avant votre choix. Le fond vidéo de l’accueil est un fichier hébergé sur ce site : il ne dépose aucun cookie et ne contacte aucun service tiers. Sur les pages projet' : 'Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée depuis le bouton « Fond vidéo » de l’accueil ou depuis le footer. Sur les pages projet'}, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
+  <h2>Vidéo YouTube</h2><p>${heroSelfHosted ? 'Aucun lecteur YouTube n’est chargé avant votre choix. Le fond vidéo de l’accueil est un fichier hébergé sur ce site : il ne dépose aucun cookie et ne contacte aucun service tiers. Sur les pages projet' : 'Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée à tout moment depuis « Préférences vidéo » dans le footer. Sur les pages projet'}, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
   <h2>Mesure d’audience</h2><p>Le site utilise Cloudflare Web Analytics pour savoir combien de personnes le visitent et quelles pages sont consultées. Cet outil ne dépose aucun cookie, n’utilise pas d’identifiant publicitaire et ne vous suit pas d’un site à l’autre. Les statistiques sont agrégées et servent uniquement à améliorer le site. Vous pouvez vous y opposer à tout moment : le bouton ci-dessous désactive la mesure sur cet appareil en enregistrant un petit cookie fonctionnel d’opposition, conservé un an (le signal « Ne pas suivre » de votre navigateur est aussi respecté).</p><p><button type="button" class="legal-optout" data-audience-optout aria-pressed="false">Ne pas compter ma visite</button></p>
   <h2 id="instagram">Vidéos Instagram (Social media videos)</h2><p>Sur les pages Work et Services, des vidéos sont hébergées sur Instagram. Aucune connexion à Instagram n’est établie au chargement de la page. Le lecteur n’est créé qu’après votre clic sur le bouton de lecture de la vidéo ; votre navigateur communique alors avec Instagram (Meta), qui peut utiliser des cookies et traceurs selon ses propres règles. Sans clic, vous pouvez aussi ouvrir chaque publication directement sur Instagram.</p>
   <h2>Polices et liens externes</h2><p>Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts. Ce chargement crée une connexion vers les serveurs du fournisseur afin de récupérer les fichiers nécessaires. Les liens vers Instagram, YouTube et Calendly n’activent pas ces services tant que vous ne les ouvrez pas. Une fois le site tiers ouvert, ses propres règles en matière de cookies et de données personnelles s’appliquent.</p>
-  <h2>Votre choix</h2><p>Le refus est aussi simple que l’acceptation. Vous pouvez rouvrir le choix depuis le bouton « Fond vidéo » de l’accueil ou « Préférences vidéo » dans le footer, à tout moment. Si vous retirez votre autorisation, le lecteur externe du fond d’accueil est déchargé et n’est plus recréé lors des visites suivantes.</p><h2>Évolution du site</h2><p>Si un traceur non exempté (publicité, profilage, mesure avec cookie) devait être ajouté ultérieurement, le mécanisme de consentement serait adapté avant son activation.</p>
+  <h2>Votre choix</h2><p>Le refus est aussi simple que l’acceptation. Vous pouvez rouvrir le choix depuis « Préférences vidéo » dans le footer, à tout moment. Si vous retirez votre autorisation, le lecteur externe du fond d’accueil est déchargé et n’est plus recréé lors des visites suivantes.</p><h2>Évolution du site</h2><p>Si un traceur non exempté (publicité, profilage, mesure avec cookie) devait être ajouté ultérieurement, le mécanisme de consentement serait adapté avant son activation.</p>
   <p class="legal-update">Dernière mise à jour : 16 novembre 2026.</p></article></main>` + footer();
 }
 
@@ -373,5 +402,13 @@ export function adminPage(){
 }
 
 export function notFoundPage(){
-  return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="not-found"><span>404</span><h1>Ce plan<br><em>n’existe pas.</em></h1><a class="button" href="/work/">Retour au Work <span>↗</span></a></main>` + footer();
+  return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="black-hole" data-black-hole>
+    <canvas class="black-hole__canvas" aria-hidden="true"></canvas>
+    <div class="black-hole__copy">
+      <span class="black-hole__code">Erreur 404</span>
+      <h1 class="black-hole__line" data-bh-line aria-live="polite">Mince, il semblerait que vous vous êtes fait aspirer jusqu’ici.</h1>
+      <p class="black-hole__hint">Cette page n’existe pas, ou plus. Bougez la souris, ou maintenez le doigt pour accélérer la chute.</p>
+      <div class="black-hole__actions"><a class="is-primary" href="/">Revenir à l’accueil</a><a href="/work/">Voir le Work ↗</a></div>
+    </div>
+  </main>` + footer();
 }

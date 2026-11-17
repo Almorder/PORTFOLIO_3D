@@ -439,6 +439,7 @@ addEventListener('message',event=>{
 $$('[data-instagram-post]').forEach(card=>{
   const button=$('[data-load-instagram]',card);
   button?.addEventListener('click',()=>{
+    if(card.classList.contains('is-playing')) return;
     const id=card.dataset.postId;
     if(!/^[A-Za-z0-9_-]+$/.test(id||'')) return;
     const iframe=document.createElement('iframe');
@@ -449,13 +450,14 @@ $$('[data-instagram-post]').forEach(card=>{
     iframe.referrerPolicy='strict-origin-when-cross-origin';
     card.classList.add('is-playing');
     const cover=$('.ig-card__cover',card);
+    card.savedCover=[...cover.childNodes];
     cover.replaceChildren(iframe);
-    if(card.classList.contains('ig-phone')){
+    if(card.classList.contains('ig-phone')||card.classList.contains('ps-card')){
       // Dans un téléphone, le lecteur garde sa largeur native (326 px) et se met à l'échelle de l'écran.
       const fit=()=>cover.style.setProperty('--ig-s',(cover.clientWidth/326).toFixed(4));
       fit(); if('ResizeObserver' in window) new ResizeObserver(fit).observe(cover);
     } else igFrames.set(iframe.contentWindow,iframe);
-  },{once:true});
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -497,10 +499,13 @@ $$('[data-focus-text]').forEach(section=>{
   addEventListener('scroll',queue,{passive:true});
   addEventListener('resize',()=>{place();queue();},{passive:true});
   document.fonts?.ready.then(place);
+  // Le survol d'un mot peut prendre la main, mais seulement quand la souris bouge vraiment :
+  // un curseur immobile sur la phrase pendant le défilement ne doit jamais bloquer le cadre.
   if(finePointer) words.forEach((w,i)=>{
-    w.addEventListener('pointerenter',()=>{hovered=i;show(i);});
+    w.addEventListener('pointermove',()=>{if(hovered!==i){hovered=i;show(i);}});
     w.addEventListener('pointerleave',()=>{hovered=-1;queue();});
   });
+  addEventListener('scroll',()=>{hovered=-1;},{passive:true,capture:true});
   fromScroll();
 });
 
@@ -694,6 +699,116 @@ $$('img[data-fallback]').forEach(img=>{
   // YouTube renvoie parfois une vignette grise de 120 px au lieu d'une erreur.
   const check=()=>{if(img.naturalWidth&&img.naturalWidth<=120) swap();};
   if(img.complete) check(); else img.addEventListener('load',check,{once:true});
+});
+
+// Accueil, « Tarifs » : rail de cartes défilant avec les flèches (ou au doigt), grille de fond qui réagit au curseur.
+$$('[data-price-proof]').forEach(section=>{
+  const track=$('[data-price-track]',section), prev=$('[data-price-prev]',section), next=$('[data-price-next]',section);
+  if(!track) return;
+  const step=()=>{const card=track.firstElementChild;return card?card.getBoundingClientRect().width+parseFloat(getComputedStyle(track).columnGap||'16'):300;};
+  const sync=()=>{const max=track.scrollWidth-track.clientWidth-2;prev.disabled=track.scrollLeft<=2;next.disabled=track.scrollLeft>=max;section.classList.toggle('is-static',max<=0);};
+  prev?.addEventListener('click',()=>track.scrollBy({left:-step(),behavior:reduced?'auto':'smooth'}));
+  next?.addEventListener('click',()=>track.scrollBy({left:step(),behavior:reduced?'auto':'smooth'}));
+  track.addEventListener('scroll',()=>requestAnimationFrame(sync),{passive:true});
+  addEventListener('resize',sync,{passive:true});
+  sync();
+  const grid=$('[data-price-grid]',section);
+  if(grid&&finePointer&&!reduced) section.addEventListener('pointermove',event=>{
+    const r=section.getBoundingClientRect();
+    grid.style.setProperty('--mx',`${event.clientX-r.left}px`);grid.style.setProperty('--my',`${event.clientY-r.top}px`);
+  },{passive:true});
+});
+
+// Work, « Social media videos » : un seul téléphone, les vidéos glissent dedans (glisser, flèches, clavier, miniatures).
+$$('[data-phone-stack]').forEach(stack=>{
+  const cards=$$('[data-stack-card]',stack), dots=$$('[data-stack-dot]',stack), stage=$('[data-stack-stage]',stack);
+  if(!cards.length) return;
+  let active=0;
+  const stop=card=>{ // une vidéo qui quitte le téléphone redevient une miniature
+    if(!card.classList.contains('is-playing')||!card.savedCover) return;
+    const cover=$('.ig-card__cover',card);cover.replaceChildren(...card.savedCover);cover.style.removeProperty('--ig-s');card.classList.remove('is-playing');
+  };
+  const layout=()=>{
+    const n=cards.length;
+    cards.forEach((card,i)=>{
+      let d=i-active; if(d>n/2) d-=n; if(d<-n/2) d+=n; // boucle : les voisins restent de part et d'autre
+      const a=Math.abs(d);
+      card.style.setProperty('--d',d);card.style.setProperty('--a',a);
+      card.classList.toggle('is-active',d===0);
+      card.toggleAttribute('inert',a>2);
+      $('[data-load-instagram]',card)?.setAttribute('tabindex',d===0?'0':'-1');
+      if(d!==0) stop(card);
+    });
+    dots.forEach((dot,i)=>dot.setAttribute('aria-current',String(i===active)));
+  };
+  const go=i=>{active=(i+cards.length)%cards.length;layout();};
+  $('[data-stack-prev]',stack)?.addEventListener('click',()=>go(active-1));
+  $('[data-stack-next]',stack)?.addEventListener('click',()=>go(active+1));
+  dots.forEach((dot,i)=>dot.addEventListener('click',()=>go(i)));
+  cards.forEach((card,i)=>card.addEventListener('click',event=>{if(i!==active&&!event.target.closest('a')){event.preventDefault();go(i);}}));
+  stack.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();go(active-1);}else if(event.key==='ArrowRight'){event.preventDefault();go(active+1);}});
+  // Glisser au doigt ou à la souris : au-delà de 40 px, on passe à la vidéo voisine.
+  let x0=null, moved=false;
+  stage.addEventListener('pointerdown',event=>{if(event.target.closest('iframe,a,button'))return;x0=event.clientX;moved=false;});
+  stage.addEventListener('pointermove',event=>{if(x0===null)return;const dx=event.clientX-x0;stack.style.setProperty('--drag',`${Math.max(-80,Math.min(80,dx))}px`);if(Math.abs(dx)>6)moved=true;});
+  const end=event=>{if(x0===null)return;const dx=(event.clientX??x0)-x0;x0=null;stack.style.setProperty('--drag','0px');if(Math.abs(dx)>40) go(active+(dx<0?1:-1));};
+  stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);stage.addEventListener('pointerleave',end);
+  stage.addEventListener('click',event=>{if(moved){event.stopPropagation();event.preventDefault();moved=false;}},true);
+  layout();
+});
+
+// Page 404 : une galaxie orange qui tourne autour d'un trou noir. La souris incline et décale le disque,
+// un appui maintenu accélère l'aspiration. Après 30 secondes sur la page, la phrase change.
+$$('[data-black-hole]').forEach(root=>{
+  const line=$('[data-bh-line]',root);
+  setTimeout(()=>{if(!line) return;line.classList.add('is-swapping');setTimeout(()=>{line.textContent='Hmm, vous semblez apprécier. On va bien s’entendre, vous et moi.';line.classList.remove('is-swapping');},450);},30000);
+  const canvas=$('canvas',root); const ctx=canvas?.getContext('2d'); if(!ctx) return;
+  const DPR=Math.min(2,devicePixelRatio||1);
+  let W=0,H=0,R=0,parts=[],tilt=.42,tiltTo=.42,shiftX=0,shiftTo=0,boost=0,boostTo=0,raf=0,last=performance.now();
+  // Couleur selon la distance au centre : cœur blanc-ambre, puis orange, puis rouge profond.
+  const color=t=>t<.08?'255,236,205':t<.22?'255,178,96':t<.45?'244,110,38':t<.7?'206,58,18':'130,22,8';
+  const spawn=(p,edge)=>{
+    const arm=Math.floor(Math.random()*3), r=edge?R*(.85+Math.random()*.25):R*Math.pow(Math.random(),1.6)*1.05+R*.06;
+    const twist=Math.log(1+r/R*6)*2.6, spread=(Math.random()-.5)*(.55+r/R*.6);
+    p.r=r; p.a=arm*2.094+twist+spread; p.z=(Math.random()-.5)*R*.035*(1-r/R*.5); p.s=.6+Math.random()*1.3; p.o=.35+Math.random()*.65; return p;
+  };
+  const resize=()=>{
+    const b=root.getBoundingClientRect(); W=b.width; H=b.height; R=Math.min(W,H*1.6)*.46;
+    canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+    const n=Math.round(Math.min(11000,Math.max(3500,W*H/95)));
+    parts=Array.from({length:n},()=>spawn({},false));
+  };
+  const frame=now=>{
+    raf=0; const dt=Math.min(.05,(now-last)/1000); last=now;
+    tilt+=(tiltTo-tilt)*.06; shiftX+=(shiftTo-shiftX)*.06; boost+=(boostTo-boost)*.05;
+    ctx.globalCompositeOperation='source-over'; ctx.fillStyle='rgba(6,3,2,.34)'; ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter';
+    const cx=W*.5+shiftX, cy=H*.42, rc=R*.085;
+    for(const p of parts){
+      const w=(.55+boost*2.2)*Math.pow(R/(p.r+R*.04),1.15)*.32; // les étoiles proches du centre tournent plus vite
+      p.a+=w*dt; p.r-=(R*.004+boost*R*.06)*dt*(R/(p.r+R*.2));
+      if(p.r<rc*1.05) spawn(p,true);
+      const x=Math.cos(p.a)*p.r, y=Math.sin(p.a)*p.r*tilt+p.z;
+      const t=p.r/R, c=color(t);
+      ctx.fillStyle=`rgba(${c},${(p.o*(1-t*.55)).toFixed(3)})`;
+      ctx.fillRect(cx+x,cy+y,p.s,p.s);
+    }
+    // Horizon : disque noir, anneau de lumière orange, halo
+    ctx.globalCompositeOperation='source-over';
+    const glow=ctx.createRadialGradient(cx,cy,rc*.6,cx,cy,rc*3.2);
+    glow.addColorStop(0,'rgba(255,140,60,.0)');glow.addColorStop(.32,'rgba(255,120,40,.35)');glow.addColorStop(1,'rgba(255,90,20,0)');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(cx,cy,rc*3.2,rc*3.2*Math.max(.35,tilt),0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#030101';ctx.beginPath();ctx.arc(cx,cy,rc,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,196,130,.85)';ctx.lineWidth=1.6;ctx.shadowColor='rgba(255,120,40,.9)';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(cx,cy,rc*1.04,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+    if(!reduced) raf=requestAnimationFrame(frame);
+  };
+  resize(); addEventListener('resize',()=>{resize();},{passive:true});
+  root.addEventListener('pointermove',event=>{const b=root.getBoundingClientRect();const u=(event.clientX-b.left)/b.width-.5,v=(event.clientY-b.top)/b.height-.5;tiltTo=Math.max(.18,Math.min(.85,.42+v*.7));shiftTo=u*W*.08;},{passive:true});
+  root.addEventListener('pointerdown',()=>{boostTo=1;});
+  addEventListener('pointerup',()=>{boostTo=0;});root.addEventListener('pointerleave',()=>{boostTo=0;tiltTo=.42;shiftTo=0;});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!raf&&!reduced){last=performance.now();raf=requestAnimationFrame(frame);}});
+  // Mouvement réduit : une seule image fixe, après quelques pas de calcul pour former les bras.
+  if(reduced){for(let i=0;i<40;i++) frame(performance.now()+i*16);} else raf=requestAnimationFrame(frame);
 });
 
 // Reveal elements only when JS is present; no content is hidden without JS.
