@@ -50,7 +50,7 @@ ${imageHeight?`<meta property="og:image:height" content="${esc(imageHeight)}">`:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' : ''}
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-<style id="critical-shell">.mobile-tabs{display:none}.mobile-menu[hidden]{display:none!important}</style>
+<style id="critical-shell">.mobile-menu[hidden]{display:none!important}</style>
 <link rel="stylesheet" href="/__SITE_CSS__">
 <script>document.documentElement.classList.remove('no-js');</script>
 <script type="application/ld+json">${schemaJson}</script>
@@ -83,13 +83,7 @@ export function header(active='') {
       <a href="/contact/"><small>0${site.nav.length+2}</small>Contact</a>
       <div class="mobile-menu__meta"><a href="mailto:${site.email}">${site.email}</a><a href="${site.instagram}" target="_blank" rel="noreferrer">Instagram ↗</a></div>
     </div>
-  </div>
-  <nav class="mobile-tabs" aria-label="Navigation mobile rapide">
-    <a class="${activeFor(active,'/')}" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5v8.25A1.25 1.25 0 0 1 18.75 20h-13.5A1.25 1.25 0 0 1 4 18.75Z"/><path d="M9 20v-6h6v6"/></svg><small>Accueil</small></a>
-    <a class="${activeFor(active,'/work/')}" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><small>Work</small></a>
-    <a class="${activeFor(active,'/services/')}" href="/services/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m6.5 6.5 11 11m0-11-11 11"/></svg><small>Services</small></a>
-    <a class="${activeFor(active,'/contact/')}" href="/contact/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M9 5h10v10"/></svg><small>Contact</small></a>
-  </nav>`;
+  </div>`;
 }
 
 export function footer() {

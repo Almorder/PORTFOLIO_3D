@@ -13,7 +13,7 @@ export function weddingWall() {
   return `<section class="wedding-wall motion-reveal" aria-labelledby="wedding-wall-title">
       <h2 class="wedding-wall__title" id="wedding-wall-title"><a href="/services/#mariage">Mariage<span class="sr-only"> : voir les prestations mariage et demande en mariage</span></a></h2>
       <ul class="wedding-wall__photos">${photos.map(polaroid).join('')}</ul>
-      <p class="wedding-wall__hint">Choisissez une photo pour voir la prestation</p>
+      <a class="wedding-wall__cta" href="/services/#mariage">Voir les formules mariage <span aria-hidden="true">↗</span></a>
     </section>`;
 }
 

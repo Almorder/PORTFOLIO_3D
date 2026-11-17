@@ -36,8 +36,12 @@ const visuals = {
 // non-interactive background; the still remains underneath as a resilient fallback.
 const homeHeroVideo = {
   id:'xAapoE5OKIk',
-  title:'Vidéo de fond — Nolan Arc'
+  title:'Vidéo de fond — Nolan Arc',
+  // Fichier hébergé sur le site (sans extension) : quand il est renseigné, la vidéo démarre seule,
+  // sans demande d'autorisation, car aucun service tiers n'est appelé. Fichiers produits par tools/video/hero.sh.
+  file:''
 };
+const heroSelfHosted = Boolean(homeHeroVideo.file);
 
 
 const workMoodSlides = [
@@ -92,17 +96,19 @@ export function homePage(){
   <main id="main-content" class="v16-home">
     <div class="hero-stack" data-hero-stack>
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      <div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>
+      ${heroSelfHosted
+        ? `<div class="v16-hero__media v16-hero__media--file" aria-hidden="true"><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="auto" poster="${homeHeroVideo.file}.jpg"><source src="${homeHeroVideo.file}.webm" type="video/webm"><source src="${homeHeroVideo.file}.mp4" type="video/mp4"></video><div class="v16-hero__veil"></div></div>`
+        : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>`}
       <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
-        <p class="hero-roles">Réalisation, direction artistique<br>et stratégie de marque</p>
+        <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
         <div class="v16-hero__actions"><a class="is-primary" href="#work-preview">Voir le Work <span aria-hidden="true">↓</span></a><a href="#quick-contact">Parler d’un projet <span aria-hidden="true">↗</span></a></div>
       </div>
-      <button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>
+      ${heroSelfHosted ? '' : `<button type="button" class="v16-hero__video-toggle" data-cookie-settings data-hero-video-toggle aria-pressed="false">Fond vidéo <span aria-hidden="true">▶</span></button>`}
     </section>
 
     <section class="fab-projects v16-work-preview" id="work-preview">
-      <header class="fab-section-heading motion-reveal"><div><h2>Work.</h2><span>sélection</span></div><p>Le projet parle d’abord. Si vous voulez aller plus loin, la fiche donne simplement mon rôle, le contexte et les choix qui ont compté.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Work.</h2><span>sélection</span></div><p>À regarder avant de lire.</p></header>
       <div class="fab-project-grid">
         <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
@@ -145,19 +151,19 @@ export function homePage(){
     </section>
 
     <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Des phrases reçues après le travail. Pas une note de plateforme inventée.</p></header>
+      <header class="fab-section-heading motion-reveal"><div><h2>Retours.</h2></div><p>Leurs mots, pas les miens.</p></header>
       ${morphTestimonials(site.testimonials)}
     </section>
 
     <section class="v16-proof" aria-labelledby="v16-proof-title">
-      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Quelques chiffres pour situer le niveau d’expérience.</h2></header>
+      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Pas mon premier tournage.</h2></header>
       ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
     </section>
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
       <h2 class="sr-only" id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain</h2>
       <figure class="gear-photo"><img src="/assets/gear/desk.webp" srcset="/assets/gear/desk-900.webp 900w, /assets/gear/desk.webp 1672w" sizes="100vw" width="1672" height="941" alt="Tablette et stylet, écouteurs, micro canon, boîtier Sony Alpha 7 IV, objectif et stabilisateur DJI RS 3 Pro posés sur un tapis de découpe orange" loading="lazy" decoding="async"></figure>
-      <div class="brand-ecosystem__head"><p>Matériel de prise de vue, optiques, accessoires et post-production. Ce bloc montre mon environnement de travail, pas une liste de clients.</p></div>
+      <div class="brand-ecosystem__head"><p>Le matériel avec lequel je tourne et je monte. Je le connais assez pour l’oublier sur le plateau.</p></div>
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
@@ -315,7 +321,7 @@ export function privacyPage(){
   <h2>Destinataires et sous-traitant du formulaire</h2><p>Les données sont accessibles à Nolan Arc et transitent, pour l’envoi technique du formulaire, par ${esc(legal.formProcessor.name)}. Ce service agit comme intermédiaire technique pour transmettre le message ; ses propres conditions de traitement et de sécurité s’appliquent également. Aucune donnée du formulaire n’est utilisée par Nolan Arc à des fins publicitaires.</p>
   <h2>Durées de conservation</h2><p>Les demandes de prospects qui ne débouchent pas sur une relation contractuelle sont conservées au maximum selon la règle suivante : ${esc(legal.prospectRetention)}. Lorsqu’une relation contractuelle est conclue, les données nécessaires à l’exécution, à la facturation et à la défense des droits sont conservées selon les durées légales applicables : ${esc(legal.clientRetention)}.</p>
   <h2>Vos droits</h2><p>Vous pouvez demander l’accès, la rectification, l’effacement ou la limitation de vos données et exercer, selon le fondement du traitement, vos droits d’opposition et de portabilité. Pour exercer vos droits : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>. Vous pouvez également introduire une réclamation auprès de la CNIL.</p>
-  <h2>Contenus et services tiers</h2><p>Le fond vidéo YouTube de l’accueil reste désactivé tant que vous n’avez pas autorisé les contenus vidéo externes. Les autres lecteurs YouTube et les vidéos hébergées sur Instagram (pages Work et Services) sont chargés uniquement après une action explicite dans leur emplacement ; Instagram est un service de Meta et ses propres conditions s’appliquent alors. Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts afin de respecter l’identité graphique du site ; votre navigateur contacte donc les serveurs de ce prestataire lors du chargement des polices. La fréquentation du site est mesurée avec Cloudflare Web Analytics, sans cookie et de façon agrégée ; vous pouvez vous y opposer depuis la page Cookies. Les liens vers Instagram, YouTube et Calendly ouvrent les services concernés ; leurs propres politiques s’appliquent lorsque vous quittez nolanarc.com.</p>
+  <h2>Contenus et services tiers</h2><p>${heroSelfHosted ? 'Le fond vidéo de l’accueil est hébergé sur ce site : il ne fait appel à aucun service tiers. Les lecteurs YouTube' : 'Le fond vidéo YouTube de l’accueil reste désactivé tant que vous n’avez pas autorisé les contenus vidéo externes. Les autres lecteurs YouTube'} et les vidéos hébergées sur Instagram (pages Work et Services) sont chargés uniquement après une action explicite dans leur emplacement ; Instagram est un service de Meta et ses propres conditions s’appliquent alors. Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts afin de respecter l’identité graphique du site ; votre navigateur contacte donc les serveurs de ce prestataire lors du chargement des polices. La fréquentation du site est mesurée avec Cloudflare Web Analytics, sans cookie et de façon agrégée ; vous pouvez vous y opposer depuis la page Cookies. Les liens vers Instagram, YouTube et Calendly ouvrent les services concernés ; leurs propres politiques s’appliquent lorsque vous quittez nolanarc.com.</p>
   <h2>Sécurité</h2><p>Le site limite les données collectées au nécessaire et n’embarque aucun outil publicitaire ; seule une mesure d’audience sans cookie (Cloudflare Web Analytics) est utilisée, avec possibilité de s’y opposer. Les échanges avec les services externes restent soumis aux mesures de sécurité et aux conditions propres de ces prestataires.</p>
   <p class="legal-update">Dernière mise à jour : 16 novembre 2026.</p></article></main>` + footer();
 }
@@ -323,7 +329,7 @@ export function privacyPage(){
 export function cookiesPage(){
   return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
   <h2>Principe</h2><p>Nolanarc.com n’utilise ni outil publicitaire ni profilage. Le site mesure uniquement son audience avec un outil sans cookie (voir ci-dessous) et n’enregistre pas votre parcours pour personnaliser la visite.</p>
-  <h2>Vidéo YouTube</h2><p>Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée depuis le bouton « Fond vidéo » de l’accueil ou depuis le footer. Sur les pages projet, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
+  <h2>Vidéo YouTube</h2><p>${heroSelfHosted ? 'Aucun lecteur YouTube n’est chargé avant votre choix. Le fond vidéo de l’accueil est un fichier hébergé sur ce site : il ne dépose aucun cookie et ne contacte aucun service tiers. Sur les pages projet' : 'Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée depuis le bouton « Fond vidéo » de l’accueil ou depuis le footer. Sur les pages projet'}, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
   <h2>Mesure d’audience</h2><p>Le site utilise Cloudflare Web Analytics pour savoir combien de personnes le visitent et quelles pages sont consultées. Cet outil ne dépose aucun cookie, n’utilise pas d’identifiant publicitaire et ne vous suit pas d’un site à l’autre. Les statistiques sont agrégées et servent uniquement à améliorer le site. Vous pouvez vous y opposer à tout moment : le bouton ci-dessous désactive la mesure sur cet appareil en enregistrant un petit cookie fonctionnel d’opposition, conservé un an (le signal « Ne pas suivre » de votre navigateur est aussi respecté).</p><p><button type="button" class="legal-optout" data-audience-optout aria-pressed="false">Ne pas compter ma visite</button></p>
   <h2 id="instagram">Vidéos Instagram (Social media videos)</h2><p>Sur les pages Work et Services, des vidéos sont hébergées sur Instagram. Aucune connexion à Instagram n’est établie au chargement de la page. Le lecteur n’est créé qu’après votre clic sur le bouton de lecture de la vidéo ; votre navigateur communique alors avec Instagram (Meta), qui peut utiliser des cookies et traceurs selon ses propres règles. Sans clic, vous pouvez aussi ouvrir chaque publication directement sur Instagram.</p>
   <h2>Polices et liens externes</h2><p>Les polices Yrsa, Syne et DM Sans sont chargées via Google Fonts. Ce chargement crée une connexion vers les serveurs du fournisseur afin de récupérer les fichiers nécessaires. Les liens vers Instagram, YouTube et Calendly n’activent pas ces services tant que vous ne les ouvrez pas. Une fois le site tiers ouvert, ses propres règles en matière de cookies et de données personnelles s’appliquent.</p>
