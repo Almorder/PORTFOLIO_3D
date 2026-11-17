@@ -4,6 +4,27 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
+// Politique de sécurité du contenu : le navigateur refuse tout script, cadre ou envoi qui ne vient pas
+// d'une source listée ici. GitHub Pages ne permet pas d'en-têtes HTTP : la règle est posée en balise meta
+// (frame-ancestors, lui, se règle dans Cloudflare, voir SECURITY.md).
+const supabaseOrigin = (site.supabaseUrl||'').replace(/\/$/,'');
+export const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'sha256-tuKyZn/3ycw/MNMDii/kvSPrelo6SCsJSecqb1n2neg=' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https://img.youtube.com https://i.ytimg.com https://images.unsplash.com https://upload.wikimedia.org https://images.squarespace-cdn.com https://static.smallrig.com",
+  "media-src 'self' blob:",
+  "frame-src https://www.youtube-nocookie.com https://www.instagram.com",
+  `connect-src 'self' https://formsubmit.co https://cloudflareinsights.com${supabaseOrigin ? ` ${supabaseOrigin} ${supabaseOrigin.replace('https://','wss://')}` : ''}`,
+  "form-action 'self' https://formsubmit.co",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+  "upgrade-insecure-requests",
+].join('; ');
+
 export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[] }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const personId = `${site.domain}/#nolan`;
@@ -34,6 +55,7 @@ export function head({ title, description, path='/', image=`${site.domain}/asset
 <html lang="fr" class="no-js">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080706">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -61,7 +83,6 @@ ${imageHeight?`<meta property="og:image:height" content="${esc(imageHeight)}">`:
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${image}">
 <meta name="twitter:image:alt" content="${esc(imageAlt)}">
-<link rel="preconnect" href="https://images.unsplash.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' : ''}

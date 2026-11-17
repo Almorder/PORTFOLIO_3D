@@ -1,4 +1,4 @@
-// Tableau de bord Nolan Arc — connexion Google, vue d'ensemble, édition des contenus, publication.
+// Tableau de bord Nolan Arc: connexion Google, vue d'ensemble, édition des contenus, publication.
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const root = document.querySelector('[data-admin-app]');
@@ -266,7 +266,7 @@
           el('div', { className: 'admin-row' }, [note, publish])
         ], 'admin-card--wide'),
         card('Historique', [el('ul', { className: 'admin-log' }, state.snapshots.length
-          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.note ? ` — ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
+          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.note ? ` | ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
           : [el('li', { textContent: 'Aucune version enregistrée.' })])]),
         card('Repartir du site actuel', [el('p', { textContent: 'Remplace tous les brouillons par le contenu actuellement en ligne.' }), reset])
       ])

@@ -4,7 +4,7 @@ const clamp = (v,min=0,max=1)=>Math.max(min,Math.min(max,v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const showcaseState=new WeakMap();
 
-// Logo Preloader — minimal branded entrance on Home only.
+// Logo Preloader: minimal branded entrance on Home only.
 // The component follows the public Framer behaviour: entrance → optional hold → fade-out,
 // with hard fail-safes so it can never trap navigation.
 const preloader=$('[data-brand-preloader]');
@@ -26,7 +26,7 @@ if(preloader){
   addEventListener('pageshow',e=>{if(e.persisted) leave();},{once:true});
 }
 
-// Nolan Arc custom cursor — a rounded orange square that becomes transparent on interaction.
+// Nolan Arc custom cursor: a rounded orange square that becomes transparent on interaction.
 const customCursor=$('[data-custom-cursor]');
 if(customCursor && matchMedia('(hover:hover) and (pointer:fine)').matches && !reduced){
   document.documentElement.classList.add('has-custom-cursor');
@@ -47,7 +47,7 @@ if(customCursor && matchMedia('(hover:hover) and (pointer:fine)').matches && !re
   addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
 }
 
-// Route prefetch — contact/work/services/about are warmed before the click without delaying first paint.
+// Route prefetch: contact/work/services/about are warmed before the click without delaying first paint.
 const prefetched=new Set();
 const prefetchRoute=href=>{
   try{const url=new URL(href,location.href);if(url.origin!==location.origin||prefetched.has(url.pathname)||url.pathname===location.pathname)return;prefetched.add(url.pathname);const link=document.createElement('link');link.rel='prefetch';link.as='document';link.href=url.pathname+url.search;document.head.append(link);}catch{}
@@ -237,13 +237,15 @@ if(form){
     e.preventDefault();
     const submit=$('[data-submit]',form); const status=$('[data-form-status]',form);
     if(!form.reportValidity()) return;
+    // Anti-rafale : un envoi toutes les 30 secondes au plus depuis cette page.
+    const nowTs=Date.now(); if(form.lastSent&&nowTs-form.lastSent<30000){ const st=$('[data-form-status]',form); if(st) st.textContent='Message déjà envoyé. Patientez quelques secondes avant d’en renvoyer un.'; return; }
     submit.disabled=true; submit.dataset.original=submit.innerHTML; submit.textContent='Envoi…'; status.textContent='';
     try{
       const payload=Object.fromEntries(new FormData(form).entries());
       const res=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({success:res.ok}));
       if(!res.ok || data.success===false) throw new Error('submit');
-      form.reset(); if(input||buttons.length) setIntent(initialIntent);
+      form.lastSent=Date.now(); form.reset(); if(input||buttons.length) setIntent(initialIntent);
       status.textContent='Message envoyé. Je reviens vers vous sous 48 h ouvrées.';
     }catch{
       status.innerHTML='L’envoi a échoué. Vous pouvez écrire directement à <a href="mailto:nolanribcontact@gmail.com">nolanribcontact@gmail.com</a>.';
@@ -262,7 +264,7 @@ $$('[data-nolan-portrait]').forEach(img=>{
 });
 
 
-// Brand logo fallbacks — preserve clean cards even when a remote brand asset is unavailable.
+// Brand logo fallbacks: preserve clean cards even when a remote brand asset is unavailable.
 $$('.v16-logo-media img').forEach(img=>{
   const fallback=img.nextElementSibling;
   const fail=()=>{img.hidden=true;fallback?.classList.add('is-visible');};
@@ -270,7 +272,7 @@ $$('.v16-logo-media img').forEach(img=>{
   if(img.complete&&img.naturalWidth===0) fail();
 });
 
-// Audience measurement — Cloudflare Web Analytics (cookieless). Skipped on opt-out, Do Not Track or Global Privacy Control.
+// Audience measurement: Cloudflare Web Analytics (cookieless). Skipped on opt-out, Do Not Track or Global Privacy Control.
 const optOutKey='nolanarc_audience_optout';
 const audienceOptedOut=()=>{
   if(document.cookie.split('; ').some(v=>v===`${optOutKey}=1`)) return true;
@@ -310,7 +312,7 @@ $$('[data-hero-file]').forEach(video=>{
   sync();
 });
 
-// Hero video facade — cinematic when authorised, zero YouTube request before consent.
+// Hero video facade: cinematic when authorised, zero YouTube request before consent.
 const heroVideo=$('[data-hero-video]');
 const consentBox=$('[data-cookie-consent]');
 const consentCookie='nolanarc_external_video';
@@ -376,7 +378,7 @@ consentBox?.addEventListener('click',event=>{
 });
 $$('[data-cookie-settings]').forEach(button=>button.addEventListener('click',()=>{unmountHeroVideo();showConsent();}));
 
-// V16 pricing switcher — one compact pricing surface, three offers.
+// V16 pricing switcher: one compact pricing surface, three offers.
 $$('[data-pricing-switcher]').forEach(section=>{
   const tabs=$$('[data-pricing-tab]',section), panels=$$('[data-pricing-panel]',section);
   if(!tabs.length||!panels.length) return;
@@ -397,7 +399,7 @@ $$('[data-pricing-switcher]').forEach(section=>{
   set(initial);
 });
 
-// V16 expertise switcher — reused in Work and Services. Query string can preselect Services.
+// V16 expertise switcher: reused in Work and Services. Query string can preselect Services.
 $$('[data-expertise-switcher]').forEach(section=>{
   const tabs=$$('[data-expertise-tab]',section),panels=$$('[data-expertise-panel]',section);
   if(!tabs.length||!panels.length) return;
@@ -930,7 +932,7 @@ if('IntersectionObserver' in window && !reduced){
   revealTargets.forEach(el=>io.observe(el));
 }
 
-// Animated Stats Pro — independent implementation of the public behaviour: scroll trigger,
+// Animated Stats Pro: independent implementation of the public behaviour: scroll trigger,
 // easeOutExpo, stagger, replay, decimal support and Blur / Slide / Fade / Scale entrance styles.
 $$('[data-animated-stats]').forEach(section=>{
   const cards=$$('[data-stat-card]',section);
@@ -987,7 +989,7 @@ $$('[data-animated-stats]').forEach(section=>{
   }else run();
 });
 
-// Focus Testimonials — continuous reading flow with a robust delegated expander.
+// Focus Testimonials: continuous reading flow with a robust delegated expander.
 $$('[data-focus-testimonials]').forEach(section=>{
   const items=$$('[data-testimonial-index]',section);
   const max=Math.max(1,Number(section.dataset.maxVisible||items.length));
@@ -1027,72 +1029,10 @@ $$('[data-focus-testimonials]').forEach(section=>{
   section.addEventListener('pointerleave',clear);
 });
 
-// Glass Showcase Pro — independent implementation based on the public spec.
+// Glass Showcase Pro: independent implementation based on the public spec.
 // It uses our own Three.js scene for the physical glass layer and a canvas particle transition.
 // The paid Framer source is not bundled or reverse-copied. A DOM/image fallback is always present.
-async function mountShowcaseWebGL(showcase){
-  const mount=$('[data-showcase-webgl]',showcase);
-  if(!mount || reduced || !('WebGLRenderingContext' in window)) return;
-  try{
-    const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js');
-    if(!document.contains(showcase)) return;
-    const renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:'low-power'});
-    renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
-    renderer.setClearColor(0x000000,0);
-    mount.append(renderer.domElement);
-    const scene=new THREE.Scene();
-    const camera=new THREE.PerspectiveCamera(32,1,.1,100);
-    camera.position.set(0,0,7.2);
-    const group=new THREE.Group(); scene.add(group);
-    const geometry=new THREE.BoxGeometry(3.15,4.05,.34,6,8,1);
-    const material=new THREE.MeshPhysicalMaterial({
-      color:0xffffff,
-      roughness:.08,
-      metalness:0,
-      transparent:true,
-      opacity:.28,
-      transmission:clamp(Number(showcase.dataset.transmission||.94),0,1),
-      ior:Math.max(1,Number(showcase.dataset.ior||1.45)),
-      thickness:Math.max(.05,Number(showcase.dataset.thickness||.7)),
-      clearcoat:1,
-      clearcoatRoughness:.08,
-      specularIntensity:1
-    });
-    const box=new THREE.Mesh(geometry,material); group.add(box);
-    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,25),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.3})); group.add(edges);
-    scene.add(new THREE.AmbientLight(0xffffff,1.8));
-    const key=new THREE.PointLight(0xffc7a6,26,14); key.position.set(-3,4,4); scene.add(key);
-    const fill=new THREE.PointLight(0xd8e3ff,18,12); fill.position.set(4,-2,3); scene.add(fill);
-    const state=showcaseState.get(showcase)||{};
-    state.webgl={renderer,scene,camera,group,box,edges,visible:false,raf:0,start:performance.now()};
-    showcaseState.set(showcase,state);
-    const resize=()=>{
-      const r=mount.getBoundingClientRect(); if(!r.width||!r.height) return;
-      renderer.setSize(r.width,r.height,false); camera.aspect=r.width/r.height; camera.updateProjectionMatrix();
-    };
-    new ResizeObserver(resize).observe(mount); resize();
-    const float=Math.max(0,Number(showcase.dataset.float||.08));
-    const draw=now=>{
-      if(!state.webgl?.visible) return;
-      const t=(now-state.webgl.start)/1000;
-      const p=Number(showcase.dataset.progress||.5);
-      group.position.y=Math.sin(t*.85)*float;
-      group.rotation.y=(p-.5)*-.18 + Math.sin(t*.55)*.025;
-      group.rotation.x=(p-.5)*.04 + Math.cos(t*.7)*.012;
-      renderer.render(scene,camera);
-      state.webgl.raf=requestAnimationFrame(draw);
-    };
-    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
-      state.webgl.visible=entry.isIntersecting;
-      cancelAnimationFrame(state.webgl.raf);
-      if(entry.isIntersecting) state.webgl.raf=requestAnimationFrame(draw);
-    }),{threshold:.05});
-    io.observe(showcase);
-    showcase.classList.add('has-webgl');
-  }catch{
-    showcase.classList.add('webgl-fallback');
-  }
-}
+// Vitrine WebGL retirée : aucune bibliothèque n'est chargée depuis un CDN tiers (sécurité). Les images restent animées en CSS.
 function setShowcaseProgress(showcase,p){
   showcase.dataset.progress=String(clamp(p));
   const state=showcaseState.get(showcase);
@@ -1142,28 +1082,8 @@ function burstShowcase(showcase,state,nextIdx){
   };
   state.raf=requestAnimationFrame(frame);
 }
-// WebGL is progressive enhancement: load it only shortly before the showcase is needed,
- // and skip it on constrained/mobile devices. The CSS/image choreography remains identical.
-const canUseShowcaseWebGL=!reduced
-  && matchMedia('(min-width:901px)').matches
-  && !navigator.connection?.saveData
-  && (navigator.deviceMemory==null || navigator.deviceMemory>=4);
-if(canUseShowcaseWebGL){
-  const queueShowcase=showcase=>{
-    const run=()=>mountShowcaseWebGL(showcase);
-    if('requestIdleCallback' in window) requestIdleCallback(run,{timeout:1200}); else setTimeout(run,120);
-  };
-  if('IntersectionObserver' in window){
-    const lazyShowcaseObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
-      if(!entry.isIntersecting) return;
-      lazyShowcaseObserver.unobserve(entry.target);
-      queueShowcase(entry.target);
-    }),{rootMargin:'520px 0px',threshold:0});
-    $$('[data-glass-showcase]').forEach(showcase=>lazyShowcaseObserver.observe(showcase));
-  }else $$('[data-glass-showcase]').forEach(queueShowcase);
-}
 
-// Stacked Flow — actual layered carousel: wheel, arrows, keyboard, tap-to-focus and touch drag.
+// Stacked Flow: actual layered carousel: wheel, arrows, keyboard, tap-to-focus and touch drag.
 $$('[data-stacked-flow]').forEach(flow=>{
   const cards=$$('[data-stack-card]',flow); if(!cards.length) return;
   const current=$('[data-stack-current]',flow);
@@ -1207,7 +1127,7 @@ $$('[data-stacked-flow]').forEach(flow=>{
   flow.tabIndex=0; render();
 });
 
-// Video Slide Show — Work-only layered portrait carousel.
+// Video Slide Show: Work-only layered portrait carousel.
 // It reproduces the public Framer behaviours (layering, arrows, dots, autoplay) and adds requested velocity-based drag inertia.
 $$('[data-video-slide-show]').forEach(slider=>{
   const slides=$$('[data-video-slide]',slider),dots=$$('[data-video-dot]',slider),stage=$('[data-video-stage]',slider); if(!slides.length||!stage)return;
@@ -1220,7 +1140,7 @@ $$('[data-video-slide-show]').forEach(slider=>{
   const loadActiveVideo=()=>{
     const slide=slides[active],frame=$('[data-slide-frame]',slide),poster=$('.video-slide__poster',slide);const id=slide?.dataset.videoId,start=Math.max(0,Number(slide?.dataset.videoStart||0));if(!id||!frame)return;
     const muted=slider.dataset.videoMuted==='true',loop=slider.dataset.videoLoop==='true';const iframe=document.createElement('iframe');const params=new URLSearchParams({rel:'0',autoplay:'1',start:String(start),mute:muted?'1':'0',loop:loop?'1':'0'});if(loop)params.set('playlist',id);
-    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} — ${start}s`;iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
+    iframe.src=`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?${params}`;iframe.title=`${$('.video-slide__copy strong',slide)?.textContent||'Extrait vidéo'} | ${start}s`;iframe.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share';iframe.allowFullscreen=true;frame.replaceChildren(iframe);poster?.classList.add('is-hidden');slide.classList.add('is-playing');
   };
   const clearDragVisual=()=>{slider.style.setProperty('--drag-px','0px');slider.style.setProperty('--drag-tilt','0deg');slider.classList.remove('is-dragging');};
   const render=()=>{
@@ -1251,7 +1171,7 @@ $$('[data-video-slide-show]').forEach(slider=>{
   render();restart();
 });
 
-// Dynamic FAQ — accessible accordion, one open answer at a time.
+// Dynamic FAQ: accessible accordion, one open answer at a time.
 $$('[data-faq-section]').forEach(section=>{
   const items=$$('[data-faq-item]',section);
   items.forEach(item=>$('[data-faq-answer]',item)?.removeAttribute('hidden'));
@@ -1267,7 +1187,7 @@ $$('[data-faq-section]').forEach(section=>{
   });
 });
 
-// Line Menu TOC — collapsed rail at rest. It opens on hover/focus and closes a moment after the pointer leaves.
+// Line Menu TOC: collapsed rail at rest. It opens on hover/focus and closes a moment after the pointer leaves.
 $$('[data-line-toc]').forEach(toc=>{
   const links=$$('a[data-toc-target]',toc);
   const targets=links.map(a=>document.getElementById(a.dataset.tocTarget)).filter(Boolean);
@@ -1294,7 +1214,7 @@ $$('[data-line-toc]').forEach(toc=>{
   setActive(targets[0].id);
 });
 
-// Hold Confirm — generic hold-to-confirm behaviour with direction, cancel/snap-back, keyboard support and completion state.
+// Hold Confirm: generic hold-to-confirm behaviour with direction, cancel/snap-back, keyboard support and completion state.
 // The exact Framer listing URL was not retrievable during this audit, so this is an independent implementation, not copied source.
 $$('[data-hold-confirm]').forEach(button=>{
   const duration=Math.max(350,Number(button.dataset.holdMs||650));
@@ -1312,7 +1232,7 @@ $$('[data-hold-confirm]').forEach(button=>{
   button.addEventListener('keyup',e=>{if((e.key===' '||e.key==='Enter')&&holding){e.preventDefault();cancel()}});
 });
 
-// Page View Counter — faithful Supabase-backed wiring from the public component description.
+// Page View Counter: faithful Supabase-backed wiring from the public component description.
 // It stays hidden until the user's own Supabase Project URL + anon public key are supplied at build time.
 (async()=>{
   const counters=$$('[data-page-view-counter]'); if(!counters.length) return;
