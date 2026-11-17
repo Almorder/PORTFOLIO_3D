@@ -25,7 +25,7 @@ const dimNeeds = {
   strategie: { need: 'J’ai une marque à clarifier.', text: 'Vous savez ce que vous faites, moins comment le dire. On remet à plat ce que vous voulez transmettre, et à qui, pour savoir par quoi commencer.', price: '89 € / h' },
 };
 const bentoTiles = [
-  { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face — court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
+  { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face, court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
   ...projects.filter(p=>p.slug!=='le-bol-den-face').map(p=>({ title: p.title, label: p.card?.label||p.type||'', text: p.summary, image: p.card?.image||'', alt: p.card?.alt||'', href: p.href, cta: 'Voir le contexte' })),
   { title: 'Social media', label: 'Vidéos verticales', text: 'Box, Taliri, Polestar 3, une demande en mariage : quatre formats courts, à lire juste en dessous.', image: '', href: '#social', cta: 'Voir les vidéos' },
 ];
@@ -39,7 +39,7 @@ const visuals = {
 // non-interactive background; the still remains underneath as a resilient fallback.
 const homeHeroVideo = {
   id:'xAapoE5OKIk',
-  title:'Vidéo de fond — Nolan Arc',
+  title:'Vidéo de fond | Nolan Arc',
   // Fichier hébergé sur le site (sans extension) : quand il est renseigné, la vidéo démarre seule,
   // sans demande d'autorisation, car aucun service tiers n'est appelé. Fichiers produits par tools/video/hero.sh.
   file:''
@@ -92,10 +92,10 @@ const ecosystem = [
 export function homePage(){
   const stats = site.proofStats;
   return head({
-    title:'Nolan Arc — Réalisation, direction artistique & stratégie',
+    title:'Nolan Arc | Réalisation, direction artistique et stratégie de marque',
     description:'Nolan Ribeiro, réalisateur et directeur artistique : films de marque, films de mariage dès 1 500 €, direction artistique et stratégie de marque. Paris et Île-de-France.',
     extraSchema:faqSchema(site.faqs.home,'/'),
-    path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc — halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:'page-home page-fabrica page-v16'
+    path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc, halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:'page-home page-fabrica page-v16'
   }) + header('/') + `
   <main id="main-content" class="v16-home">
     <div class="hero-stack" data-hero-stack>
@@ -103,7 +103,7 @@ export function homePage(){
       ${heroSelfHosted
         ? `<div class="v16-hero__media v16-hero__media--file" aria-hidden="true"><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="auto" poster="${homeHeroVideo.file}.jpg"><source src="${homeHeroVideo.file}.webm" type="video/webm"><source src="${homeHeroVideo.file}.mp4" type="video/mp4"></video><div class="v16-hero__veil"></div></div>`
         : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>`}
-      <h1 class="sr-only" id="v16-hero-title">Nolan Arc — réalisation, direction artistique et stratégie de marque</h1>
+      <h1 class="sr-only" id="v16-hero-title">Nolan Arc : réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
         <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
       </div>
@@ -112,7 +112,7 @@ export function homePage(){
     <section class="fab-projects v16-work-preview" id="work-preview">
       <header class="fab-section-heading work-heading motion-reveal"><h2>Work.</h2><p>Mes réalisations et projets</p></header>
       <div class="fab-project-grid">
-        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
+        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face, court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
       </div>
       <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
@@ -171,7 +171,7 @@ export function homePage(){
 
     <section class="price-proof" id="pricing" aria-labelledby="pricing-title" data-price-proof>
       <div class="price-proof__grid" aria-hidden="true" data-price-grid></div>
-      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Des points de départ clairs. Le reste se décide ensemble, sur devis.</p><small class="price-proof__tip">Attrapez une carte, lancez-la.</small></header>
+      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>De quoi répondre à tout.</p></header>
       <ul class="price-arena" data-price-arena aria-label="Offres et tarifs">
         ${pricing.map((c,i)=>`<li class="price-card price-card--${c.theme}" data-price-card style="--i:${i}">
           <div class="price-card__inner">
@@ -190,7 +190,7 @@ export function homePage(){
 
     <section class="v16-quick-contact final-cta" id="quick-contact">
       <form class="v16-quick-contact__form motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
-        <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot"><input type="hidden" name="_subject" value="Message rapide | nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/"><input type="hidden" name="_template" value="table">
         <small>Nolan.Arc</small><h2>Un message suffit.</h2>
         <label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label>
         <label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label>
@@ -203,7 +203,7 @@ export function homePage(){
 }
 
 export function workPage(){
-  return head({title:'Work — Nolan Arc', description:'Réalisations de Nolan Ribeiro : court métrage « Le bol d’en face », films de mariage, direction artistique et vidéos pour les réseaux sociaux.', path:'/work/', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Projets', itemListElement:bentoTiles.filter(t=>t.href.startsWith('/')).map((t,i)=>({ '@type':'ListItem', position:i+1, name:t.title, url:`${site.domain}${t.href}` })) }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
+  return head({title:'Work | Nolan Arc', description:'Réalisations de Nolan Ribeiro : court métrage « Le bol d’en face », films de mariage, direction artistique et vidéos pour les réseaux sociaux.', path:'/work/', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Projets', itemListElement:bentoTiles.filter(t=>t.href.startsWith('/')).map((t,i)=>({ '@type':'ListItem', position:i+1, name:t.title, url:`${site.domain}${t.href}` })) }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
     <section class="fab-page-title motion-reveal"><div><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
     <section class="bento-section motion-reveal" aria-label="Projets">${bentoFocus(bentoTiles)}</section>
     <section class="ig-section ig-stage motion-reveal" id="social" aria-labelledby="ig-title">
@@ -228,7 +228,7 @@ export function workPage(){
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} — court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bol.poster, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }], image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
+  return head({title:`${bol.title} | court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bol.poster, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }], image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
     <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
@@ -238,12 +238,12 @@ export function projectPage(){
 }
 
 export function servicesPage(){
-  return head({title:'Services et tarifs — Nolan Arc',description:'Films de mariage dès 1 500 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure : prestations et tarifs de Nolan Ribeiro.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
+  return head({title:'Services et tarifs | Nolan Arc',description:'Films de mariage dès 1 500 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure : prestations et tarifs de Nolan Ribeiro.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
     <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
     <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
       <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
       <div class="v16-service-switcher__panels">
-        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bol.poster}" alt="Le bol d’en face — réalisation Nolan Ribeiro" loading="lazy"></figure></div>
+        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bol.poster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" loading="lazy"></figure></div>
         <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
         <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
       </div>
@@ -256,7 +256,7 @@ export function servicesPage(){
 }
 
 export function aboutPage(){
-  return head({title:'À propos — Nolan Ribeiro, Nolan Arc',description:'Nolan Ribeiro, réalisateur et directeur artistique : parcours, pratique de la vidéo depuis 2022 et manière de travailler.',path:'/a-propos/',extraSchema:[{ '@type':'AboutPage', '@id':`${site.domain}/a-propos/#about`, url:`${site.domain}/a-propos/`, mainEntity:{ '@id':`${site.domain}/#nolan` } }],bodyClass:'page-about page-fabrica page-v17'}) + header('/a-propos/') + `<main id="main-content" class="v17-about-page">
+  return head({title:'À propos de Nolan Ribeiro | Nolan Arc',description:'Nolan Ribeiro, réalisateur et directeur artistique : parcours, pratique de la vidéo depuis 2022 et manière de travailler.',path:'/a-propos/',extraSchema:[{ '@type':'AboutPage', '@id':`${site.domain}/a-propos/#about`, url:`${site.domain}/a-propos/`, mainEntity:{ '@id':`${site.domain}/#nolan` } }],bodyClass:'page-about page-fabrica page-v17'}) + header('/a-propos/') + `<main id="main-content" class="v17-about-page">
     <section class="v17-about-hero" id="nolan">
       <figure class="v17-about-portrait"><img src="/assets/nolan-portrait.jpg" alt="Portrait de Nolan Ribeiro" data-nolan-portrait></figure>
       <div class="v17-about-hero__copy"><span class="fab-dot-label">Nolan Ribeiro · Nolan Arc</span><h1>Je ne suis pas arrivé à ces trois disciplines <em>par plan de carrière.</em></h1><p>J’ai surtout continué à suivre les problèmes que j’avais envie de résoudre : raconter mieux, rendre un univers cohérent, puis comprendre pourquoi certaines idées fonctionnent réellement.</p><div class="v17-about-hero__links"><a href="/work/">Voir le Work ↗</a><a href="/contact/">Parler d’un projet ↗</a></div></div>
@@ -282,7 +282,7 @@ export function aboutPage(){
 }
 
 export function journalPage(){
-  return head({title:'Journal — Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main id="main-content">
+  return head({title:'Journal | Nolan Arc',description:'Notes pratiques de Nolan Arc sur la préparation, le cadrage et le montage.',path:'/journal/',bodyClass:'page-journal'}) + header('/journal/') + `<main id="main-content">
     <section class="journal-hero motion-reveal"><span class="eyebrow">Journal</span><h1>Ce que je regarde<br><em>avant d’appuyer sur REC.</em></h1><p>Préparation, cadrage, rythme : des décisions concrètes que j’utilise pour éviter de tourner ou monter au hasard.</p></section>
     <section class="journal-stack">${notes.map((n,i)=>`<article id="${n.slug}" class="motion-reveal"><span>0${i+1}</span><small>${n.category} · ${n.date}</small><h2>${n.title}</h2><p>${n.excerpt}</p></article>`).join('')}</section>
     <section class="journal-bridge motion-reveal"><span class="eyebrow">Dans un vrai projet</span><div><h2>Voir ces choix appliqués dans un film.</h2><a class="text-link" href="/projet/le-bol-den-face/">Le bol d’en face <span>↗</span></a></div></section>
@@ -290,7 +290,7 @@ export function journalPage(){
 }
 
 export function contactPage(){
-  return head({title:'Contact — Nolan Arc',description:'Écrire à Nolan Ribeiro pour un film, une direction artistique ou un projet de marque. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
+  return head({title:'Contact | Nolan Arc',description:'Écrire à Nolan Ribeiro pour un film, une direction artistique ou un projet de marque. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
     <section class="contact-composer motion-gradient" data-gradient-host>
       ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
       <div class="contact-composer__intro motion-reveal">
@@ -301,11 +301,11 @@ export function contactPage(){
       </div>
       <form class="contact-form contact-form--composer motion-reveal" data-contact-form data-offers="${esc(JSON.stringify(Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,message:pricingMessage(o)}]))))}" action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot">
-        <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_subject" value="Nouveau projet | nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
         <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"><input type="hidden" name="offre" data-offer-input value=""></div></fieldset>
         <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
         <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
-        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 à 3 000 €</option><option>3 000 à 7 500 €</option><option>7 500 € +</option></select></label></div></details>
         <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
       </form>
     </section>
@@ -319,10 +319,10 @@ const legalValue = (value, fallback='À compléter avant publication') => value 
 
 export function legalPage(){
   const vat = legal.vat ? esc(legal.vat) : 'Non renseigné / à confirmer selon le régime fiscal réel';
-  return head({title:'Mentions légales — Nolan Arc',description:'Mentions légales du site Nolan Arc.',path:'/mentions-legales/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Informations légales</span><h1>Mentions légales</h1>
-  <h2>Éditeur du site</h2><p><strong>${esc(site.legalName)}</strong>${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, exerçant sous l’identité professionnelle <strong>${esc(site.name)}</strong>.<br>Email : <a href="mailto:${site.email}">${esc(site.email)}</a>.${legal.publicLegalContactsConfirmed && legal.professionalAddress ? `<br>Adresse professionnelle : ${esc(legal.professionalAddress)}.` : ''}${legal.publicLegalContactsConfirmed && legal.professionalPhone ? `<br>Téléphone professionnel : ${esc(legal.professionalPhone)}.` : ''}<br>SIREN : ${legalValue(legal.siren)}.<br>SIRET : ${legalValue(legal.siret)}.<br>Code APE : ${legalValue(legal.ape)}.<br>TVA : ${vat}.</p>
+  return head({title:'Mentions légales | Nolan Arc',description:'Mentions légales du site Nolan Arc.',path:'/mentions-legales/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Informations légales</span><h1>Mentions légales</h1>
+  <h2>Éditeur du site</h2><p><strong>${esc(site.legalName)}</strong>${legal.businessForm ? `, ${esc(legal.businessForm)}` : ''}, exerçant sous l’identité professionnelle <strong>${esc(site.name)}</strong>.<br>Email : <a href="mailto:${site.email}">${esc(site.email)}</a>.${legal.publicLegalContactsConfirmed && legal.professionalAddress ? `<br>Adresse professionnelle : ${esc(legal.professionalAddress)}.` : ''}${legal.publicLegalContactsConfirmed && legal.professionalPhone ? `<br>Téléphone professionnel : ${esc(legal.professionalPhone)}.` : ''}<br>SIREN : ${legalValue(legal.siren)}.<br>SIRET : ${legalValue(legal.siret)}.<br>Code APE : ${legalValue(legal.ape)}.<br>TVA : ${vat}.</p>
   <h2>Directeur de la publication</h2><p>${esc(legal.publicationDirector)}.</p>
-  <h2>Hébergement</h2><p>${esc(legal.host.name)}, ${esc(legal.host.address)} — <a href="${esc(legal.host.website)}" rel="noreferrer">${esc(legal.host.website)}</a>.${legal.host.phone ? ` Téléphone : ${esc(legal.host.phone)}.` : legal.host.phoneNote ? ` ${esc(legal.host.phoneNote)}` : ''}</p>
+  <h2>Hébergement</h2><p>${esc(legal.host.name)}, ${esc(legal.host.address)}, <a href="${esc(legal.host.website)}" rel="noreferrer">${esc(legal.host.website)}</a>.${legal.host.phone ? ` Téléphone : ${esc(legal.host.phone)}.` : legal.host.phoneNote ? ` ${esc(legal.host.phoneNote)}` : ''}</p>
   <h2>Propriété intellectuelle</h2><p>Sauf mention contraire, les textes, photographies, films, éléments graphiques et créations présentés sur ce site sont protégés par les droits de propriété intellectuelle de leurs auteurs et ayants droit. Toute réutilisation dépassant les exceptions prévues par la loi nécessite l’autorisation préalable du titulaire concerné.</p>
   <h2>Données personnelles et traceurs</h2><p>Les informations détaillées sur les traitements de données sont disponibles dans la <a href="/confidentialite/">politique de confidentialité</a>. Les choix relatifs aux contenus externes sont décrits dans la page <a href="/cookies/">Cookies et contenus externes</a>.</p>
   <h2>Conditions commerciales</h2><p>Les prestations sont encadrées par les <a href="/cgv/">Conditions générales de vente et de prestation de services</a>, complétées par le devis ou contrat accepté pour chaque projet.</p>
@@ -330,8 +330,8 @@ export function legalPage(){
 }
 
 export function privacyPage(){
-  return head({title:'Confidentialité — Nolan Arc',description:'Politique de confidentialité et traitement des données personnelles sur nolanarc.com.',path:'/confidentialite/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Vie privée</span><h1>Politique de confidentialité</h1>
-  <h2>Responsable du traitement</h2><p>${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}. Contact pour toute demande relative aux données personnelles : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>.</p>
+  return head({title:'Confidentialité | Nolan Arc',description:'Politique de confidentialité et traitement des données personnelles sur nolanarc.com.',path:'/confidentialite/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Vie privée</span><h1>Politique de confidentialité</h1>
+  <h2>Responsable du traitement</h2><p>${esc(site.legalName)}${legal.businessForm ? `, ${esc(legal.businessForm)}` : ''}. Contact pour toute demande relative aux données personnelles : <a href="mailto:${legal.privacyContact}">${esc(legal.privacyContact)}</a>.</p>
   <h2>Formulaire de contact</h2><p>Lorsque vous utilisez le formulaire, sont traitées les informations que vous renseignez : nom, adresse email, entreprise éventuelle, catégorie et description du projet, budget éventuel, ainsi que les informations librement ajoutées dans le message. La finalité est de répondre à votre demande, d’évaluer la possibilité d’une collaboration et, le cas échéant, de prendre des mesures précontractuelles à votre demande.</p>
   <p>Les champs obligatoires sont signalés dans le formulaire. Sans nom, adresse email et description du projet, il n’est pas possible de traiter correctement la demande.</p>
   <h2>Base juridique</h2><p>Lorsqu’une demande concerne la préparation d’un projet ou d’un devis, le traitement est fondé sur les mesures précontractuelles prises à votre demande. Pour une sollicitation générale sans perspective contractuelle immédiate, la réponse peut reposer sur l’intérêt légitime de Nolan Arc à traiter les messages qui lui sont adressés.</p>
@@ -344,7 +344,7 @@ export function privacyPage(){
 }
 
 export function cookiesPage(){
-  return head({title:'Cookies et contenus externes — Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
+  return head({title:'Cookies et contenus externes | Nolan Arc',description:'Informations sur les cookies, traceurs et contenus externes utilisés sur nolanarc.com.',path:'/cookies/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Traceurs</span><h1>Cookies & contenus externes</h1>
   <h2>Principe</h2><p>Nolanarc.com n’utilise ni outil publicitaire ni profilage. Le site mesure uniquement son audience avec un outil sans cookie (voir ci-dessous) et n’enregistre pas votre parcours pour personnaliser la visite.</p>
   <h2>Vidéo YouTube</h2><p>${heroSelfHosted ? 'Aucun lecteur YouTube n’est chargé avant votre choix. Le fond vidéo de l’accueil est un fichier hébergé sur ce site : il ne dépose aucun cookie et ne contacte aucun service tiers. Sur les pages projet' : 'Aucun lecteur YouTube n’est chargé avant votre choix. Sur l’accueil, vous pouvez autoriser ou refuser le fond vidéo ; votre préférence est conservée dans un cookie fonctionnel pendant six mois et peut être modifiée à tout moment depuis « Préférences vidéo » dans le footer. Sur les pages projet'}, l’activation du lecteur constitue un choix contextuel pour la lecture demandée. Après autorisation, votre navigateur communique avec YouTube et ce service peut utiliser des traceurs selon ses propres règles.</p>
   <h2>Mesure d’audience</h2><p>Le site utilise Cloudflare Web Analytics pour savoir combien de personnes le visitent et quelles pages sont consultées. Cet outil ne dépose aucun cookie, n’utilise pas d’identifiant publicitaire et ne vous suit pas d’un site à l’autre. Les statistiques sont agrégées et servent uniquement à améliorer le site. Vous pouvez vous y opposer à tout moment : le bouton ci-dessous désactive la mesure sur cet appareil en enregistrant un petit cookie fonctionnel d’opposition, conservé un an (le signal « Ne pas suivre » de votre navigateur est aussi respecté).</p><p><button type="button" class="legal-optout" data-audience-optout aria-pressed="false">Ne pas compter ma visite</button></p>
@@ -355,9 +355,9 @@ export function cookiesPage(){
 }
 
 export function cgvPage(){
-  const mediator = legal.mediator.name ? `${esc(legal.mediator.name)} — ${esc(legal.mediator.address)} — <a href="${esc(legal.mediator.website)}" rel="noreferrer">${esc(legal.mediator.website)}</a>` : `Aucun médiateur de la consommation n’est actuellement indiqué, l’adhésion devant être conclue par le professionnel avant que ses coordonnées puissent être publiées. Pour toute réclamation préalable : <a href="mailto:${site.email}">${esc(site.email)}</a>.`;
-  return head({title:'CGV — Nolan Arc',description:'Conditions générales de vente et de prestation de services Nolan Arc.',path:'/cgv/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Conditions commerciales</span><h1>Conditions générales de vente et de prestation de services</h1>
-  <h2>1. Prestataire et champ d’application</h2><p>Les présentes conditions encadrent les prestations proposées par ${esc(site.legalName)}${legal.businessForm ? ` — ${esc(legal.businessForm)}` : ''}, sous l’identité professionnelle ${esc(site.name)}. Elles s’appliquent aux clients professionnels et, lorsqu’une prestation est conclue avec un consommateur, sous réserve des dispositions impératives du Code de la consommation. Le devis ou contrat accepté précise le périmètre du projet et prévaut sur les présentes conditions pour les modalités particulières.</p>
+  const mediator = legal.mediator.name ? `${esc(legal.mediator.name)}, ${esc(legal.mediator.address)}, <a href="${esc(legal.mediator.website)}" rel="noreferrer">${esc(legal.mediator.website)}</a>` : `Aucun médiateur de la consommation n’est actuellement indiqué, l’adhésion devant être conclue par le professionnel avant que ses coordonnées puissent être publiées. Pour toute réclamation préalable : <a href="mailto:${site.email}">${esc(site.email)}</a>.`;
+  return head({title:'CGV | Nolan Arc',description:'Conditions générales de vente et de prestation de services Nolan Arc.',path:'/cgv/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Conditions commerciales</span><h1>Conditions générales de vente et de prestation de services</h1>
+  <h2>1. Prestataire et champ d’application</h2><p>Les présentes conditions encadrent les prestations proposées par ${esc(site.legalName)}${legal.businessForm ? `, ${esc(legal.businessForm)}` : ''}, sous l’identité professionnelle ${esc(site.name)}. Elles s’appliquent aux clients professionnels et, lorsqu’une prestation est conclue avec un consommateur, sous réserve des dispositions impératives du Code de la consommation. Le devis ou contrat accepté précise le périmètre du projet et prévaut sur les présentes conditions pour les modalités particulières.</p>
   <h2>2. Formation du contrat</h2><p>La prise de contact via le site ne vaut pas commande. Le contrat est formé lorsque le devis, bon de commande ou contrat transmis par Nolan Arc est accepté selon les modalités qui y sont indiquées. Le document accepté précise au minimum la nature de la mission, les livrables, le calendrier estimatif et le prix ou son mode de calcul.</p>
   <h2>3. Prix</h2><p>Les prestations sont principalement réalisées sur devis, en fonction du périmètre, de la durée de production, des livrables, des droits demandés et des frais éventuels. Lorsque le prix exact ne peut être calculé à l’avance, son mode de calcul et les frais connus sont communiqués avant l’engagement du client. Pour les consommateurs, les montants communiqués sont exprimés TTC lorsque la TVA est applicable.</p>
   <h2>4. Paiement</h2><p>${legalValue(legal.paymentTerms, 'Conditions de paiement à définir : échéancier, acompte éventuel et date d’exigibilité.')}</p><p><strong>Clients professionnels :</strong> pénalités de retard : ${legalValue(legal.latePenaltyB2B, 'Taux de pénalités de retard B2B à définir dans le respect du minimum légal.')}. Une indemnité forfaitaire de 40 € pour frais de recouvrement est due dans les conditions prévues par la loi. Escompte : ${legalValue(legal.discountTerms, 'Conditions d’escompte à définir, ou indiquer explicitement « aucun escompte ».')}.</p><p><strong>Clients consommateurs :</strong> Nolan Arc n’applique pas de doublement automatique du prix ni de pénalité punitive forfaitaire. En cas d’impayé, Nolan Arc peut suspendre la prestation et/ou la livraison et exercer les voies de recouvrement permises par le droit applicable.</p>
@@ -373,7 +373,7 @@ export function cgvPage(){
 }
 
 export function withdrawalPage(){
-  return head({title:'Rétractation — Nolan Arc',description:'Informations et modèle de formulaire de rétractation pour les contrats à distance conclus avec un consommateur.',path:'/retractation/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Consommateurs</span><h1>Droit de rétractation</h1>
+  return head({title:'Rétractation | Nolan Arc',description:'Informations et modèle de formulaire de rétractation pour les contrats à distance conclus avec un consommateur.',path:'/retractation/',bodyClass:'page-legal'}) + header() + `<main id="main-content" class="legal-page-shell">${legalNav}<article class="legal-content"><span class="eyebrow">Consommateurs</span><h1>Droit de rétractation</h1>
   <h2>Principe</h2><p>Pour un contrat de prestation de services conclu à distance avec un consommateur, un droit de rétractation de quatorze jours à compter de la conclusion du contrat s’applique en principe, sauf exception prévue par la loi. Les conditions particulières applicables à votre projet sont rappelées avant la conclusion du contrat.</p>
   <h2>Demande d’exécution anticipée</h2><p>Si vous souhaitez que la prestation commence avant l’expiration du délai de rétractation, une demande expresse peut être nécessaire. Lorsque les conditions légales d’une perte du droit de rétractation sont réunies après exécution complète, une information et un accord spécifiques sont recueillis avant le commencement de la prestation.</p>
   <h2>Exercer votre droit</h2><p>Vous pouvez envoyer une déclaration dénuée d’ambiguïté à <a href="mailto:${site.email}">${esc(site.email)}</a>, ou utiliser le modèle ci-dessous.</p>
@@ -382,14 +382,14 @@ export function withdrawalPage(){
 }
 
 export function adminPage(){
-  return head({title:'Tableau de bord — Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
+  return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
 </main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){
-  return head({title:'404 — Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="black-hole" data-black-hole>
+  return head({title:'404 | Nolan Arc',description:'Cette page n’existe pas.',path:'/404/',bodyClass:'page-404'}) + header() + `<main id="main-content" class="black-hole" data-black-hole>
     <canvas class="black-hole__canvas" aria-hidden="true"></canvas>
     <div class="black-hole__copy">
       <span class="black-hole__code">Erreur 404</span>

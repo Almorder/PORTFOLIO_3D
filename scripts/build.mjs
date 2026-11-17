@@ -84,16 +84,18 @@ const redirects = {
 for(const [file,target] of Object.entries(redirects)){
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true});
   const canonicalTarget=target.split('#')[0] || '/services/';
-  await writeFile(dest,`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${target}"><link rel="canonical" href="${site.domain}${canonicalTarget}"><title>Redirection — Nolan Arc</title></head><body><p>Cette page a changé. <a href="${target}">Continuer vers Nolan Arc</a>.</p></body></html>`,'utf8');
+  await writeFile(dest,`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${target}"><link rel="canonical" href="${site.domain}${canonicalTarget}"><title>Redirection | Nolan Arc</title></head><body><p>Cette page a changé. <a href="${target}">Continuer vers Nolan Arc</a>.</p></body></html>`,'utf8');
 }
 
 const routes=['/','/work/','/projet/le-bol-den-face/','/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
 const today=new Date().toISOString().slice(0,10);
+// Icône du site (onglet, résultats Google, écran d'accueil du téléphone).
+await writeFile(join(out,'site.webmanifest'),JSON.stringify({name:'Nolan Arc',short_name:'Nolan Arc',start_url:'/',display:'browser',background_color:'#080706',theme_color:'#080706',icons:[{src:'/assets/icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'/assets/icons/icon-512.png',sizes:'512x512',type:'image/png'}]})+'\n');
 await writeFile(join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(r=>`  <url><loc>${site.domain}${r}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
 // Robots : tout est ouvert (moteurs et assistants IA), sauf l'espace d'administration.
 await writeFile(join(out,'robots.txt'),`User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: ${site.domain}/sitemap.xml\n`);
 // llms.txt : la fiche courte que les assistants IA (ChatGPT, Claude, Perplexity…) peuvent lire en une fois.
-await writeFile(join(out,'llms.txt'),`# Nolan Arc — Nolan Ribeiro
+await writeFile(join(out,'llms.txt'),`# Nolan Arc, Nolan Ribeiro
 
 > Nolan Ribeiro (marque Nolan Arc) est réalisateur, directeur artistique et stratège de marque. Il réalise des films de marque, des films de mariage et des courts métrages, et accompagne des marques en direction artistique et en stratégie. Basé en Île-de-France, il intervient à Paris et en France. Langue de travail : français.
 

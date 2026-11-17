@@ -4,7 +4,7 @@ export const esc = (value='') => String(value)
   .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc — halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[] }) {
+export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[] }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const personId = `${site.domain}/#nolan`;
   const businessId = `${site.domain}/#business`;
@@ -17,11 +17,11 @@ export function head({ title, description, path='/', image=`${site.domain}/asset
     { name:'Stratégie de marque', price:'89', unit:'HUR', description:'Session de stratégie de marque à l’heure. Accompagnement complet sur devis.', url:`${site.domain}/services/` },
   ];
   const graph = [
-    { '@type':'WebSite', '@id':`${site.domain}/#website`, url:site.domain, name:site.name, inLanguage:'fr-FR', publisher:{ '@id':businessId } },
+    { '@type':'WebSite', '@id':`${site.domain}/#website`, url:`${site.domain}/`, name:site.name, alternateName:['Nolan.Arc','Nolan Ribeiro'], inLanguage:'fr-FR', publisher:{ '@id':businessId } },
     { '@type':'Person', '@id':personId, name:site.legalName, givenName:'Nolan', familyName:'Ribeiro', alternateName:site.name, url:site.domain, jobTitle:'Réalisateur, directeur artistique et stratège de marque', knowsAbout:['Réalisation vidéo','Film de mariage','Court métrage','Direction artistique','Stratégie de marque','Montage vidéo'], knowsLanguage:['fr'], sameAs, worksFor:{ '@id':businessId } },
-    { '@type':'ProfessionalService', '@id':businessId, name:site.name, alternateName:`${site.name} — ${site.legalName}`, url:site.domain, description:'Réalisation photo et vidéo (films de marque, films de mariage, courts métrages), direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, logo:`${site.domain}/assets/og-home.png`, founder:{ '@id':personId }, sameAs,
+    { '@type':'ProfessionalService', '@id':businessId, name:site.name, alternateName:`${site.name}, ${site.legalName}`, url:site.domain, description:'Réalisation photo et vidéo (films de marque, films de mariage, courts métrages), direction artistique et stratégie de marque.', image:`${site.domain}/assets/og-home.png`, logo:{ '@type':'ImageObject', url:`${site.domain}/assets/icons/icon-512.png`, width:512, height:512 }, founder:{ '@id':personId }, sameAs,
       areaServed:[{ '@type':'City', name:'Paris' },{ '@type':'AdministrativeArea', name:'Île-de-France' },{ '@type':'Country', name:'France' }],
-      priceRange:'89 € – sur devis', currenciesAccepted:'EUR', availableLanguage:['fr'],
+      priceRange:'À partir de 89 €', currenciesAccepted:'EUR', availableLanguage:['fr'],
       contactPoint:{ '@type':'ContactPoint', contactType:'Demande de projet', url:`${site.domain}/contact/`, availableLanguage:['fr'] },
       knowsAbout:['Réalisation vidéo','Film de mariage','Direction artistique','Stratégie de marque'],
       hasOfferCatalog:{ '@type':'OfferCatalog', name:'Prestations', itemListElement:offers.map(o=>({ '@type':'Offer', name:o.name, description:o.description, url:o.url, priceCurrency:'EUR', priceSpecification:{ '@type':'PriceSpecification', minPrice:o.price, priceCurrency:'EUR', ...(o.unit?{ unitCode:o.unit }:{}) }, itemOffered:{ '@type':'Service', name:o.name, provider:{ '@id':businessId } } })) } },
@@ -43,6 +43,11 @@ export function head({ title, description, path='/', image=`${site.domain}/asset
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="96x96" href="/assets/icons/icon-96.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
@@ -81,7 +86,7 @@ export function header(active='') {
   <header class="site-header fab-header" data-header data-fnb>
     <div class="fnb-bg" data-fnb-bg aria-hidden="true"></div><div class="fnb-ring" aria-hidden="true"></div>
     <div class="fnb-row" data-fnb-row>
-      <a class="brand fab-brand" href="/" aria-label="Nolan Arc — Accueil" data-fnb-item><span>N</span><span class="fnb-tail"><span>olan</span></span><span class="fnb-rest"><b>.</b><span class="fnb-tail"><span>Arc</span></span></span></a>
+      <a class="brand fab-brand" href="/" aria-label="Nolan Arc, accueil" data-fnb-item><span>N</span><span class="fnb-tail"><span>olan</span></span><span class="fnb-rest"><b>.</b><span class="fnb-tail"><span>Arc</span></span></span></a>
       <nav class="site-nav fab-nav" aria-label="Navigation principale">${nav}</nav>
       <a class="fab-nav__link fab-nav__contact ${activeFor(active,'/contact/')}" href="/contact/" data-fnb-item>Contact</a>
       <button class="menu-button fab-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-button data-fnb-item><span data-menu-label>Menu</span></button>

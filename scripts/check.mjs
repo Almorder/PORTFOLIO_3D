@@ -78,6 +78,9 @@ for(const source of [pagesSource,siteSource,legalSource]){
 const home=await readFile(join(dist,'index.html'),'utf8');
 if(!/1\u202f500\u00a0€/.test(await readFileRaw(join(dist,'index.html'),'utf8'))) fail('Build: prices must keep non-breaking spaces (no « 1 / 500 € » line break)');
 // Lisibilité par les moteurs et assistants IA
+if(!existing.has('favicon.ico')||!existing.has('assets/icons/icon-512.png')||!home.includes('rel="icon" href="/favicon.ico"')||!home.includes('rel="apple-touch-icon"')) fail('SEO: site icon (favicon) missing, Google would show a blank globe');
+// Aucun tiret long ni demi-cadratin dans ce qui est publié (signal « texte généré » pour certains lecteurs et outils).
+for(const file of [...existing].filter(f=>/\.(html|txt)$/.test(f))){ const raw=await readFileRaw(join(dist,file),'utf8'); if(/[\u2014\u2013]/.test(raw)) fail(`${file}: contains an em/en dash (— or –)`); }
 for(const file of ['llms.txt','robots.txt','sitemap.xml']) if(!existing.has(file)) fail(`SEO/IA: ${file} missing`);
 { const ld=JSON.parse((home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1]||'{}'); const types=(ld['@graph']||[]).map(x=>x['@type']);
   for(const t of ['Person','ProfessionalService','FAQPage']) if(!types.includes(t)) fail(`SEO/IA: home JSON-LD lacks ${t}`);
@@ -169,7 +172,7 @@ if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFi
 if(/<b data-counter data-counter-target="(19|20)\d\d"/.test(home)) fail('Home: a year must not be animated as a counter');
 if(!app.includes("readConsent()!=='accepted'")||!app.includes("Max-Age=15552000")||!app.includes('unmountHeroVideo')) fail('V20 privacy/performance: consent-gated hero engine missing');
 if(!components.includes('role="region"')||!components.includes('aria-labelledby="${esc(id)}-question-${i}"')) fail('V20 a11y: FAQ region relationships missing');
-if(!home.includes('data-contact-form')||!home.includes('Message rapide — nolanarc.com')) fail('Home V17: quick contact form missing');
+if(!home.includes('data-contact-form')||!home.includes('Message rapide | nolanarc.com')) fail('Home V17: quick contact form missing');
 
 // Navigation hierarchy: Journal footer-only.
 const headerChunk=home.slice(home.indexOf('<header'),home.indexOf('</header>')+9);

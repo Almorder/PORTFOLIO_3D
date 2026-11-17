@@ -228,7 +228,7 @@ if(form){
     if(offer){
       if(offerInput) offerInput.value=offer.title;
       if(message&&!message.value.trim()){message.value=offer.message;}
-      const subject=form.querySelector('input[name="_subject"]'); if(subject) subject.value=`Nouveau projet — ${offer.title} — nolanarc.com`;
+      const subject=form.querySelector('input[name="_subject"]'); if(subject) subject.value=`Nouveau projet : ${offer.title} | nolanarc.com`;
       message?.addEventListener('focus',()=>{const end=message.value.length;message.setSelectionRange(end,end);},{once:true});
     }
   }catch{}
@@ -455,7 +455,7 @@ $$('[data-instagram-post]').forEach(card=>{
     if(!/^[A-Za-z0-9_-]+$/.test(id||'')) return;
     const iframe=document.createElement('iframe');
     iframe.src=`https://www.instagram.com/p/${id}/embed/`;
-    iframe.title=`${card.dataset.postTitle||'Publication'} — Instagram`;
+    iframe.title=`${card.dataset.postTitle||'Publication'} | Instagram`;
     iframe.loading='lazy';
     iframe.allowFullscreen=true;
     iframe.referrerPolicy='strict-origin-when-cross-origin';
