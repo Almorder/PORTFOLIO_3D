@@ -17,8 +17,8 @@ const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
 const dimNeeds = {
-  realisation: { need: 'J’ai un film à faire.', text: 'Pas besoin d’avoir tout prévu. On part de ce que le film doit faire ressentir ; je m’occupe du tournage jusqu’au montage, et vous gardez la main sur les choix qui comptent.', price: 'Mariage dès 1 500 €' },
-  direction: { need: 'J’ai un univers à rendre cohérent.', text: 'Vos images, vos vidéos et vos supports ne se ressemblent pas toujours. On cherche ensemble ce qui les relie, pour que votre univers se reconnaisse au premier regard.', price: 'Dès 200 €' },
+  realisation: { need: 'J’ai un film à faire.', text: 'Pas besoin d’avoir tout prévu. On part de ce que le film doit faire ressentir ; je m’occupe du tournage jusqu’au montage, et vous gardez la main sur les choix qui comptent.', price: '1 500 €' },
+  direction: { need: 'J’ai un univers à rendre cohérent.', text: 'Vos images, vos vidéos et vos supports ne se ressemblent pas toujours. On cherche ensemble ce qui les relie, pour que votre univers se reconnaisse au premier regard.', price: '200 €' },
   strategie: { need: 'J’ai une marque à clarifier.', text: 'Vous savez ce que vous faites, moins comment le dire. On remet à plat ce que vous voulez transmettre, et à qui, pour savoir par quoi commencer.', price: '89 € / h' },
 };
 const bentoTiles = [
@@ -128,7 +128,7 @@ export function homePage(){
             <span class="folder__tab">${esc(x.label)}</span>
             <span class="folder__top"><strong>${esc(dimNeeds[x.key].need)}</strong><i aria-hidden="true">↗</i></span>
             <span class="folder__more">${esc(dimNeeds[x.key].text)}</span>
-            <span class="folder__foot"><span>Repère de prix</span><b>${esc(dimNeeds[x.key].price)}</b></span>
+            <span class="folder__foot"><span>À partir de</span><b>${esc(dimNeeds[x.key].price)}</b></span>
           </span>
         </a>`).join('')}
       </div>
@@ -140,7 +140,7 @@ export function homePage(){
       <div class="ring-section__head motion-reveal"><h2 id="ring-title">Comment je travaille.</h2></div>
       <div class="ring motion-reveal">
         <div class="ring__figure">
-          <svg viewBox="0 0 120 120" role="img" aria-label="Trois façons de travailler : comprendre, choisir, tenir le fil"><circle class="ring__arc" data-ring-arc="0" cx="60" cy="60" r="46" pathLength="300" style="--o:-3"/><circle class="ring__arc" data-ring-arc="1" cx="60" cy="60" r="46" pathLength="300" style="--o:-103"/><circle class="ring__arc" data-ring-arc="2" cx="60" cy="60" r="46" pathLength="300" style="--o:-203"/></svg>
+          <svg viewBox="0 0 120 120" role="img" aria-label="Trois façons de travailler : comprendre, choisir, tenir le fil"><defs><linearGradient id="ring-g0" gradientUnits="userSpaceOnUse" x1="105.9" y1="62.9" x2="39.5" y2="101.2"><stop offset="0" stop-color="#ff8a4c"/><stop offset="1" stop-color="#b3200c"/></linearGradient><linearGradient id="ring-g1" gradientUnits="userSpaceOnUse" x1="34.5" y1="98.3" x2="34.5" y2="21.7"><stop offset="0" stop-color="#ffd48f"/><stop offset="1" stop-color="#d9700f"/></linearGradient><linearGradient id="ring-g2" gradientUnits="userSpaceOnUse" x1="39.5" y1="18.8" x2="105.9" y2="57.1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9bba8"/></linearGradient></defs><circle class="ring__track" cx="60" cy="60" r="46"/><circle class="ring__ticks" cx="60" cy="60" r="56.5" pathLength="360"/><circle class="ring__arc" data-ring-arc="0" cx="60" cy="60" r="46" pathLength="300" style="--o:-3" stroke="url(#ring-g0)"/><circle class="ring__arc" data-ring-arc="1" cx="60" cy="60" r="46" pathLength="300" style="--o:-103" stroke="url(#ring-g1)"/><circle class="ring__arc" data-ring-arc="2" cx="60" cy="60" r="46" pathLength="300" style="--o:-203" stroke="url(#ring-g2)"/><circle class="ring__shine" data-ring-shine="0" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-3" aria-hidden="true"/><circle class="ring__shine" data-ring-shine="1" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-103" aria-hidden="true"/><circle class="ring__shine" data-ring-shine="2" cx="60" cy="60" r="49.6" pathLength="300" style="--o:-203" aria-hidden="true"/></svg>
           <div class="ring__center" aria-hidden="true"><span data-ring-count>1</span><small data-ring-name>Comprendre</small></div>
         </div>
         <div class="ring__side">
@@ -163,7 +163,7 @@ export function homePage(){
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
       <h2 class="sr-only" id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain</h2>
       <figure class="gear-photo"><img src="/assets/gear/desk.webp" srcset="/assets/gear/desk-900.webp 900w, /assets/gear/desk.webp 1672w" sizes="100vw" width="1672" height="941" alt="Tablette et stylet, écouteurs, micro canon, boîtier Sony Alpha 7 IV, objectif et stabilisateur DJI RS 3 Pro posés sur un tapis de découpe orange" loading="lazy" decoding="async"></figure>
-      <div class="brand-ecosystem__head"><p>Le matériel avec lequel je conçois, je tourne et je monte. Rien n’est laissé au hasard : chacun d’entre eux me donne les moyens d’exprimer ma vision.</p></div>
+      <div class="brand-ecosystem__head"><p>Le matériel avec lequel je conçois, je tourne et je monte. Rien n’est laissé au hasard, car chacun d’entre eux me donne les moyens d’exprimer ma vision.</p></div>
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
@@ -178,7 +178,7 @@ export function homePage(){
       </div>
     </section>
 
-    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Les réponses utiles avant de passer à l’étape suivante.'})}
+    ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Au cas où une question vous passe par la tête.'})}
 
     <section class="v16-quick-contact final-cta" id="quick-contact">
       <form class="v16-quick-contact__form motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
