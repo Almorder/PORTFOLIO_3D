@@ -127,6 +127,9 @@ for(const f of ['index.html','404.html','admin/index.html','contact/index.html',
   const sec=await readFile(join(dist,'.well-known/security.txt'),'utf8').catch(()=>'');
   const exp=sec.match(/^Expires: (.+)$/m); if(!/^Contact: /m.test(sec)||!exp||new Date(exp[1])<new Date()) fail('Security: security.txt missing or expired'); }
 const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
+// Pages légales : fiche en bref, sommaire, date à jour, vérification publique de l'entreprise.
+for(const f of ['mentions-legales','confidentialite','cgv','cookies','retractation']){ const h=await readFile(join(dist,f,'index.html'),'utf8'); if(!h.includes('class="lg-brief"')||!h.includes('data-legal-toc')||!h.includes('aria-current="page"')||!/Mise à jour le \d/.test(h)) fail(`Legal: ${f} must keep its summary, table of contents and update date`); }
+if(!(await readFile(join(dist,'mentions-legales/index.html'),'utf8')).includes('annuaire-entreprises.data.gouv.fr/entreprise/')) fail('Legal: public registry link missing on mentions');
 if(!home.includes('nolanarc-audience-token" content="1c1cf63d191049d8acc58b62961377c6"')) fail('Audience: token meta missing on home');
 if(/<script[^>]+static\.cloudflareinsights\.com/.test(home)) fail('Audience: beacon must not be hard-coded in HTML (opt-out must run first)');
 if(!cookiesHtml.includes('data-audience-optout')||!cookiesHtml.includes('Cloudflare Web Analytics')) fail('Audience: cookies page must document Cloudflare and offer opt-out');

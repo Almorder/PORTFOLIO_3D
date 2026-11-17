@@ -1256,3 +1256,23 @@ $$('[data-hold-confirm]').forEach(button=>{
     });
   }catch{counters.forEach(c=>c.dataset.counterStatus='error')}
 })();
+
+// Pages légales : sommaire ouvert sur grand écran et replié sur mobile, section en cours surlignée, impression, copie du modèle.
+{
+  const toc=$('[data-legal-toc]');
+  if(toc){
+    const wide=matchMedia('(min-width:1000px)'); const sync=()=>{toc.open=wide.matches;}; sync(); wide.addEventListener?.('change',sync);
+    const links=$$('a[href^="#"]',toc); const byId=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+    links.forEach(a=>a.addEventListener('click',()=>{ if(!wide.matches) toc.open=false; }));
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>entries.forEach(e=>{ if(!e.isIntersecting) return; links.forEach(a=>a.removeAttribute('aria-current')); byId.get(e.target.id)?.setAttribute('aria-current','true'); }),{rootMargin:'-18% 0px -72% 0px'});
+      byId.forEach((a,id)=>{ const s=document.getElementById(id); if(s) io.observe(s); });
+    }
+  }
+  $$('[data-print]').forEach(b=>b.addEventListener('click',()=>window.print()));
+  $$('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
+    const t=document.getElementById(b.dataset.copy); if(!t) return;
+    try{ await navigator.clipboard.writeText(t.innerText.trim()); b.textContent='Modèle copié'; }
+    catch{ b.textContent='Copie impossible : sélectionnez le texte du modèle'; }
+  }));
+}
