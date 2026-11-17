@@ -9,6 +9,7 @@ import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, bentoFocus } from './showcase.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
+import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema } from './components.mjs';
 
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
@@ -16,13 +17,6 @@ const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', im
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 // Accueil, « Tarifs » : une carte par offre, sur le modèle d'un mur de témoignages vidéo.
-const priceCards = [
-  { tag:'Mariage', title:weddingOffers.mariage.title, price:weddingOffers.mariage.price, text:'Votre journée filmée, puis montée en un vrai film.', facts:weddingOffers.mariage.facts.slice(0,2), cta:weddingOffers.mariage.cta, href:weddingOffers.mariage.href, texture:'/assets/da/texture.webp' },
-  { tag:'Demande', title:weddingOffers.demande.title, price:weddingOffers.demande.price, text:'Une demande préparée avec vous en amont, puis filmée le jour J. Devis selon le projet.', cta:weddingOffers.demande.cta, href:weddingOffers.demande.href, texture:'/assets/da/texture-c.webp' },
-  { tag:'Réalisation', title:'Film de marque', price:'Sur devis', text:'Film de marque, contenus pour les réseaux sociaux ou projet plus large : un devis après un premier échange.', cta:'Présenter le projet', href:'/contact/?intent=brand', texture:'/assets/da/texture-wide.webp' },
-  { tag:'Direction artistique', title:'Interventions ciblées dès 200 €', price:'Dès 200 €', text:'Un point d’entrée pour un besoin précis. Le périmètre évolue selon ce qu’il faut créer, corriger ou harmoniser.', cta:'Présenter le projet', href:'/contact/?intent=brand', texture:'/assets/da/texture-b.webp' },
-  { tag:'Stratégie de marque', title:'Session ciblée — 89 € / h', price:'89 € / h', text:'Audit, priorisation ou session de travail. Accompagnement — sur devis.', cta:'Réserver une session', href:'/contact/?intent=brand', texture:'/assets/da/texture.webp' },
-];
 
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
 const dimNeeds = {
@@ -177,26 +171,19 @@ export function homePage(){
 
     <section class="price-proof" id="pricing" aria-labelledby="pricing-title" data-price-proof>
       <div class="price-proof__grid" aria-hidden="true" data-price-grid></div>
-      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Des points de départ clairs. Le reste se décide ensemble, sur devis.</p></header>
-      <div class="price-proof__rail">
-        <button type="button" class="price-proof__nav is-prev" data-price-prev aria-label="Offre précédente">←</button>
-        <ul class="price-proof__track" data-price-track>
-          ${priceCards.map((c,i)=>`<li class="price-card motion-reveal" style="--i:${i}">
-            <div class="price-card__media" style="--tex:url(${c.texture})">
-              <span class="price-card__tag">${esc(c.tag)}</span>
-              <a class="price-card__go" href="${c.href}" aria-label="${esc(c.cta)} : ${esc(c.title)}">↗</a>
-              <span class="price-card__price"><i aria-hidden="true"></i>${esc(c.price)}</span>
-            </div>
-            <div class="price-card__body">
-              <h3>${esc(c.title)}</h3>
-              <p>${esc(c.text)}</p>
-              ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
-              <a class="price-card__cta" href="${c.href}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
-            </div>
-          </li>`).join('')}
-        </ul>
-        <button type="button" class="price-proof__nav is-next" data-price-next aria-label="Offre suivante">→</button>
-      </div>
+      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>Des points de départ clairs. Le reste se décide ensemble, sur devis.</p><small class="price-proof__tip">Attrapez une carte, lancez-la.</small></header>
+      <ul class="price-arena" data-price-arena aria-label="Offres et tarifs">
+        ${pricing.map((c,i)=>`<li class="price-card price-card--${c.theme}" data-price-card style="--i:${i}">
+          <div class="price-card__inner">
+            <span class="price-card__tag">${esc(c.tag)}</span>
+            <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
+            <h3>${esc(c.title)}</h3>
+            <p class="price-card__text">${esc(c.text)}</p>
+            ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
+            <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
+          </div>
+        </li>`).join('')}
+      </ul>
     </section>
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Au cas où une question vous passe par la tête.'})}
@@ -223,7 +210,7 @@ export function workPage(){
       <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
       <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
         <div class="phone-stack__stage" data-stack-stage>
-          <ul class="phone-stack__cards">${instagramPosts.map((p,i)=>`<li class="ig-card ps-card" data-instagram-post data-stack-card="${i}" data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" aria-label="${i+1} sur ${instagramPosts.length} : ${esc(p.title)}">
+          <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>`<li class="ig-card ps-card" data-instagram-post data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
             <div class="ps-card__screen"><div class="ig-card__cover"><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div>
             <a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
           </li>`).join('')}</ul>
@@ -312,10 +299,10 @@ export function contactPage(){
         <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer. Je vous réponds généralement sous 48 h ouvrées.</p>
         <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
       </div>
-      <form class="contact-form contact-form--composer motion-reveal" data-contact-form action="https://formsubmit.co/ajax/${site.email}" method="POST">
+      <form class="contact-form contact-form--composer motion-reveal" data-contact-form data-offers="${esc(JSON.stringify(Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,message:pricingMessage(o)}]))))}" action="https://formsubmit.co/ajax/${site.email}" method="POST">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot">
         <input type="hidden" name="_subject" value="Nouveau projet — nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"></div></fieldset>
+        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"><input type="hidden" name="offre" data-offer-input value=""></div></fieldset>
         <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
         <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
         <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 – 3 000 €</option><option>3 000 – 7 500 €</option><option>7 500 € +</option></select></label></div></details>
@@ -407,8 +394,8 @@ export function notFoundPage(){
     <div class="black-hole__copy">
       <span class="black-hole__code">Erreur 404</span>
       <h1 class="black-hole__line" data-bh-line aria-live="polite">Mince, il semblerait que vous vous êtes fait aspirer jusqu’ici.</h1>
-      <p class="black-hole__hint">Cette page n’existe pas, ou plus. Bougez la souris, ou maintenez le doigt pour accélérer la chute.</p>
-      <div class="black-hole__actions"><a class="is-primary" href="/">Revenir à l’accueil</a><a href="/work/">Voir le Work ↗</a></div>
+      <div class="black-hole__actions"><a class="black-hole__primary" href="/">Revenir à l’accueil <span aria-hidden="true">↗</span></a><a class="black-hole__secondary" href="/work/">ou voir le Work</a></div>
+      <p class="black-hole__hint">Bougez la souris pour incliner la galaxie. Maintenez le clic, ou le doigt, pour accélérer la chute.</p>
     </div>
   </main>` + footer();
 }

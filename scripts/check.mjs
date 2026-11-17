@@ -117,7 +117,7 @@ if(/<iframe[^>]+instagram\.com|<script[^>]+instagram\.com|<img[^>]+(instagram|cd
 if(!work.includes('data-load-instagram')||!work.includes('DYriAZ_IKrU')||!work.includes('DewEcSOCFV2')) fail('Instagram: the 4 click-to-load cards must be on Work');
 // Work : le travail réel d'abord (film, puis vidéos sociales), les images d'ambiance ensuite.
 if(!(work.indexOf('data-bento')>0&&work.indexOf('data-bento')<work.indexOf('class="ig-section'))) fail('Work: projects bento must come before the social videos');
-if((work.match(/class="ig-card ps-card"/g)||[]).length!==4||!existing.has('assets/work/phone.webp')||!existing.has('assets/work/stage.webp')) fail('Work: four phone cards and their rendered assets expected');
+if((work.match(/class="ig-card ps-card"/g)||[]).length!==8||!existing.has('assets/work/phone.webp')||!existing.has('assets/work/stage.webp')) fail('Work: four phone cards and their rendered assets expected');
 if(!app.includes('instagram.com/p/${id}/embed/')) fail('Instagram: embed must be created from app.js on click');
 const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
 const services=await readFile(join(dist,'services/index.html'),'utf8');
@@ -140,8 +140,10 @@ if((home.match(/class="ring__get"/g)||[]).length!==3) fail('Home: each method st
 if(!home.includes('class="v16-quick-contact final-cta"')||!home.includes('Envoyer le message')||!home.includes('class="hero-copy"')||/v16-hero__actions|data-hero-video-toggle/.test(home)) fail('Home: hero stays bare (no buttons over the video) and the final CTA keeps its form');
 for(const brand of ['Sony','Sigma','Adobe','NiSi','SmallRig','PGYTECH']) if(!home.includes(`Logo ${brand}`) && !home.includes(`>${brand}<`)) fail(`Home V17: ecosystem missing ${brand}`);
 if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six ecosystem cards expected');
-for(const price of ['1 500 €','Dès 200 €','Session ciblée — 89 € / h','Accompagnement — sur devis']) if(!home.includes(price)) fail(`Home: pricing missing ${price}`);
-if((home.match(/class="price-card /g)||[]).length<4||!home.includes('data-price-track')||!home.includes('data-price-grid')||/home-pricing__backdrop/.test(home)) fail('Home: pricing cards rail on its grid, without stock backdrop');
+for(const price of ['1 500 €','250 €','200 €','89 € / h','Accompagnement sur devis','Sur devis']) if(!home.includes(price)) fail(`Home: pricing missing ${price}`);
+if(home.includes('Session ciblée —')) fail('Home: « Session ciblée » without dash');
+if((home.match(/data-price-card/g)||[]).length!==6||!home.includes('data-price-arena')||!home.includes('data-price-grid')||!/href="\/contact\/\?intent=\w+&amp;offre=\w+"/.test(home)||/home-pricing__backdrop/.test(home)) fail('Home: six floating pricing cards on the grid, each linking to a prefilled contact form');
+if(!app.includes('data-offer-input')||!(await readFile(join(dist,'contact/index.html'),'utf8')).includes('data-offers=')) fail('Contact: offers data and prefill handler expected');
 if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
 if(!app.includes("$$('[data-price-proof]').forEach")||!app.includes("$$('[data-faq-section]').forEach")) fail('Home: pricing/FAQ interaction handlers missing');
 if(!home.includes('data-morph-list')||(home.match(/data-morph-open=/g)||[]).length!==(home.match(/<dialog class="morph-panel"/g)||[]).length||!(home.match(/data-morph-open=/g)||[]).length) fail('Home: each testimonial row needs its panel (morphing list)');
@@ -177,7 +179,7 @@ if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V17: Journal
 // WORK — exploration first, projects, compact 3-hat selector.
 if(work.includes('data-video-slide-show')||/images\.unsplash\.com/.test(work.split('<main')[1]||'')) fail('Work: stock mood carousel must not come back (R1: real work only)');
 if((work.match(/data-bento-tile/g)||[]).length!==5||(work.match(/data-bento-focus/g)||[]).length!==5||!work.includes('view-transition-name:bento-4')) fail('Work: bento expects five tiles, each focusable');
-if((work.match(/data-stack-card=/g)||[]).length!==4||!work.includes('phone-stack__frame')||(work.match(/class="ig-card__link"/g)||[]).length<4||!app.includes("$$('[data-phone-stack]').forEach")) fail('Work: one phone with the four social videos sliding inside, each keeping its Instagram link');
+if((work.match(/data-stack-card=/g)||[]).length!==8||(work.match(/data-stack-dot=/g)||[]).length!==4||!work.includes('phone-stack__frame')||(work.match(/class="ig-card__link"/g)||[]).length<4||!app.includes("$$('[data-phone-stack]').forEach")) fail('Work: one phone with the four social videos sliding inside, each keeping its Instagram link');
 if(!home.includes('v16-testimonial-bento')||!home.includes('is-featured')||!home.includes('class="v16-stars"')) fail('Home: testimonials keep their original card layout');
 if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
 if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');

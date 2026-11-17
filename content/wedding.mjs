@@ -20,7 +20,8 @@ export const weddingOffers = {
   demande: {
     id: 'demande-en-mariage',
     title: 'Demande en mariage',
-    price: 'Sur devis',
+    price: 'À partir de 250 €',
+    note: 'Captation vidéo et/ou photo de la demande, sans limite.',
     instagramId: 'DewEcSOCFV2',
     cta: 'Parler de la demande',
     href: '/contact/?intent=moment'

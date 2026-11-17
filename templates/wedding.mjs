@@ -24,7 +24,7 @@ export function weddingOffersSection() {
       <h2 class="wedding-offers__title" id="wedding-offers-title">Mariage et demande en mariage.</h2>
       <div class="wedding-offers__grid">
         <article class="wedding-offer"><h3>${esc(mariage.title)}</h3><strong>${esc(mariage.price)}</strong><ul>${mariage.facts.map(([value, label]) => `<li><b>${esc(value)}</b><span>${esc(label)}</span></li>`).join('')}</ul><a class="wedding-offer__cta" href="${mariage.href}">${esc(mariage.cta)}</a></article>
-        <article class="wedding-offer" id="${demande.id}"><h3>${esc(demande.title)}</h3><strong>${esc(demande.price)}</strong><a class="wedding-offer__cta" href="${demande.href}">${esc(demande.cta)}</a></article>
+        <article class="wedding-offer" id="${demande.id}"><h3>${esc(demande.title)}</h3><strong>${esc(demande.price)}</strong>${demande.note ? `<p class="wedding-offer__note">${esc(demande.note)}</p>` : ''}<a class="wedding-offer__cta" href="${demande.href}">${esc(demande.cta)}</a></article>
         <div class="ig-card wedding-offers__film" data-instagram-post data-post-id="${esc(demande.instagramId)}" data-post-title="${esc(demande.title)}" style="--ig-ratio:9/16"><div class="ig-card__cover"><strong>${esc(demande.title)}</strong><button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(demande.title)} (chargée depuis Instagram)">▶</button></div><a class="ig-card__link" href="https://www.instagram.com/p/${esc(demande.instagramId)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></div>
       </div>
       ${weddingPhotos.length ? `<ul class="wedding-offers__photos">${weddingPhotos.map(polaroid).join('')}</ul>` : ''}
