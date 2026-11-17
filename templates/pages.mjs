@@ -17,9 +17,9 @@ const bol = projects.find(p=>p.slug==='le-bol-den-face');
 const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
 const dimNeeds = {
-  realisation: { need: 'J’ai un film à faire.', price: 'Mariage dès 1 500 €' },
-  direction: { need: 'J’ai un univers à rendre cohérent.', price: 'Dès 200 €' },
-  strategie: { need: 'J’ai une marque à clarifier.', price: '89 € / h' },
+  realisation: { need: 'J’ai un film à faire.', text: 'Pas besoin d’avoir tout prévu. On part de ce que le film doit faire ressentir ; je m’occupe du tournage jusqu’au montage, et vous gardez la main sur les choix qui comptent.', price: 'Mariage dès 1 500 €' },
+  direction: { need: 'J’ai un univers à rendre cohérent.', text: 'Vos images, vos vidéos et vos supports ne se ressemblent pas toujours. On cherche ensemble ce qui les relie, pour que votre univers se reconnaisse au premier regard.', price: 'Dès 200 €' },
+  strategie: { need: 'J’ai une marque à clarifier.', text: 'Vous savez ce que vous faites, moins comment le dire. On remet à plat ce que vous voulez transmettre, et à qui, pour savoir par quoi commencer.', price: '89 € / h' },
 };
 const bentoTiles = [
   { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face — court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
@@ -108,7 +108,7 @@ export function homePage(){
     </section>
 
     <section class="fab-projects v16-work-preview" id="work-preview">
-      <header class="fab-section-heading motion-reveal"><div><h2>Work.</h2><span>sélection</span></div><p>À regarder avant de lire.</p></header>
+      <header class="fab-section-heading work-heading motion-reveal"><h2>Work.</h2><p>Mes réalisations et projets</p></header>
       <div class="fab-project-grid">
         <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face — court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
@@ -127,7 +127,7 @@ export function homePage(){
           <span class="folder__front">
             <span class="folder__tab">${esc(x.label)}</span>
             <span class="folder__top"><strong>${esc(dimNeeds[x.key].need)}</strong><i aria-hidden="true">↗</i></span>
-            <span class="folder__more">${esc(x.value)}</span>
+            <span class="folder__more">${esc(dimNeeds[x.key].text)}</span>
             <span class="folder__foot"><span>Repère de prix</span><b>${esc(dimNeeds[x.key].price)}</b></span>
           </span>
         </a>`).join('')}
@@ -156,14 +156,14 @@ export function homePage(){
     </section>
 
     <section class="v16-proof" aria-labelledby="v16-proof-title">
-      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Repères</span><h2 id="v16-proof-title">Pas mon premier tournage.</h2></header>
+      <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Datas utiles</span><h2 id="v16-proof-title">Quelques chiffres pour situer ma pratique.</h2></header>
       ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
     </section>
 
     <section class="brand-ecosystem v16-ecosystem v20-ecosystem--breather gear-section motion-reveal" aria-labelledby="brand-ecosystem-title">
       <h2 class="sr-only" id="brand-ecosystem-title">Des outils que je connais vraiment sur le terrain</h2>
       <figure class="gear-photo"><img src="/assets/gear/desk.webp" srcset="/assets/gear/desk-900.webp 900w, /assets/gear/desk.webp 1672w" sizes="100vw" width="1672" height="941" alt="Tablette et stylet, écouteurs, micro canon, boîtier Sony Alpha 7 IV, objectif et stabilisateur DJI RS 3 Pro posés sur un tapis de découpe orange" loading="lazy" decoding="async"></figure>
-      <div class="brand-ecosystem__head"><p>Le matériel avec lequel je tourne et je monte. Je le connais assez pour l’oublier sur le plateau.</p></div>
+      <div class="brand-ecosystem__head"><p>Le matériel avec lequel je conçois, je tourne et je monte. Rien n’est laissé au hasard : chacun d’entre eux me donne les moyens d’exprimer ma vision.</p></div>
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
