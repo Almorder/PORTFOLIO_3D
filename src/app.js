@@ -221,6 +221,17 @@ if(form){
     });
   };
   if(input||buttons.length){setIntent(initialIntent);buttons.forEach(b=>b.addEventListener('click',()=>setIntent(b.dataset.formIntent)));}
+  // Arrivée depuis une carte « Tarifs » : l'offre choisie est notée et le message commence déjà.
+  try{
+    const offers=JSON.parse(form.dataset.offers||'{}'), offer=offers[new URLSearchParams(location.search).get('offre')];
+    const message=form.querySelector('textarea[name="message"]'), offerInput=$('[data-offer-input]',form);
+    if(offer){
+      if(offerInput) offerInput.value=offer.title;
+      if(message&&!message.value.trim()){message.value=offer.message;}
+      const subject=form.querySelector('input[name="_subject"]'); if(subject) subject.value=`Nouveau projet — ${offer.title} — nolanarc.com`;
+      message?.addEventListener('focus',()=>{const end=message.value.length;message.setSelectionRange(end,end);},{once:true});
+    }
+  }catch{}
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
@@ -701,23 +712,107 @@ $$('img[data-fallback]').forEach(img=>{
   if(img.complete) check(); else img.addEventListener('load',check,{once:true});
 });
 
-// Accueil, « Tarifs » : rail de cartes défilant avec les flèches (ou au doigt), grille de fond qui réagit au curseur.
+// Accueil, « Tarifs » : des cartes qui flottent sur la grille. On les attrape (clic, ou appui maintenu au doigt),
+// on les déplace, on les lance : elles gardent leur élan, rebondissent entre elles et sur les bords.
 $$('[data-price-proof]').forEach(section=>{
-  const track=$('[data-price-track]',section), prev=$('[data-price-prev]',section), next=$('[data-price-next]',section);
-  if(!track) return;
-  const step=()=>{const card=track.firstElementChild;return card?card.getBoundingClientRect().width+parseFloat(getComputedStyle(track).columnGap||'16'):300;};
-  const sync=()=>{const max=track.scrollWidth-track.clientWidth-2;prev.disabled=track.scrollLeft<=2;next.disabled=track.scrollLeft>=max;section.classList.toggle('is-static',max<=0);};
-  prev?.addEventListener('click',()=>track.scrollBy({left:-step(),behavior:reduced?'auto':'smooth'}));
-  next?.addEventListener('click',()=>track.scrollBy({left:step(),behavior:reduced?'auto':'smooth'}));
-  track.addEventListener('scroll',()=>requestAnimationFrame(sync),{passive:true});
-  addEventListener('resize',sync,{passive:true});
-  sync();
-  const grid=$('[data-price-grid]',section);
+  const arena=$('[data-price-arena]',section), cards=$$('[data-price-card]',section), grid=$('[data-price-grid]',section);
+  if(!arena||!cards.length) return;
   if(grid&&finePointer&&!reduced) section.addEventListener('pointermove',event=>{
     const r=section.getBoundingClientRect();
     grid.style.setProperty('--mx',`${event.clientX-r.left}px`);grid.style.setProperty('--my',`${event.clientY-r.top}px`);
   },{passive:true});
+  const bodies=cards.map((el,i)=>({el,i,x:0,y:0,vx:0,vy:0,w:0,h:0,rot:[-4,3,-2,5,-3,2][i%6],held:false}));
+  const FRICTION=.985, BOUNCE=.78, WALL=.72;
+  let W=0,H=0,raf=0,grabbed=null,lastMove=null,moved=false,pressTimer=0;
+  const place=b=>{b.el.style.transform=`translate3d(${b.x.toFixed(1)}px,${b.y.toFixed(1)}px,0) rotate(${(b.rot+(b.held?b.vx*.6:0)).toFixed(2)}deg)`;};
+  // Disposition de départ : en quinconce, comme des cartes posées sur une table.
+  const layout=()=>{
+    arena.classList.add('is-physics');
+    W=arena.clientWidth;H=arena.clientHeight;
+    const cols=W<620?2:3, rows=Math.ceil(bodies.length/cols);
+    bodies.forEach(b=>{b.w=b.el.offsetWidth;b.h=b.el.offsetHeight;});
+    const cellW=W/cols, cellH=H/rows;
+    bodies.forEach((b,i)=>{
+      const c=i%cols, r=Math.floor(i/cols), jitterX=[.0,.06,-.05,.04,-.03,.05][i%6]*cellW, jitterY=[.05,-.04,.06,-.05,.03,-.02][i%6]*cellH;
+      b.x=Math.min(W-b.w,Math.max(0,c*cellW+(cellW-b.w)/2+jitterX));
+      b.y=Math.min(H-b.h,Math.max(0,r*cellH+(cellH-b.h)/2+jitterY));
+      b.vx=b.vy=0;place(b);
+    });
+    wake(); // sépare tout de suite les cartes qui se chevauchent au départ
+  };
+  // Choc entre deux cartes : on les sépare sur l'axe le plus court, puis on échange leur élan sur cet axe.
+  const collide=(a,b)=>{
+    const dx=(a.x+a.w/2)-(b.x+b.w/2), dy=(a.y+a.h/2)-(b.y+b.h/2);
+    const ox=(a.w+b.w)/2-Math.abs(dx), oy=(a.h+b.h)/2-Math.abs(dy);
+    if(ox<=0||oy<=0) return;
+    const ma=a.held?0:1, mb=b.held?0:1, total=(ma+mb)||1; // une carte tenue en main ne recule pas
+    const axis=ox<oy?'x':'y', overlap=Math.min(ox,oy), sign=Math.sign(axis==='x'?dx:dy)||1, v='v'+axis;
+    a[axis]+=sign*overlap*ma/total; b[axis]-=sign*overlap*mb/total;
+    if((a[v]-b[v])*sign>=0) return; // déjà en train de s'éloigner
+    if(a.held) b[v]=a[v]*1.1; else if(b.held) a[v]=b[v]*1.1;
+    else { const t=a[v]; a[v]=b[v]*BOUNCE; b[v]=t*BOUNCE; }
+  };
+  const step=()=>{
+    raf=0;let active=false;
+    for(const b of bodies){
+      if(!b.held){b.x+=b.vx;b.y+=b.vy;b.vx*=FRICTION;b.vy*=FRICTION;}
+      if(b.x<0){b.x=0;b.vx=Math.abs(b.vx)*WALL;} if(b.x+b.w>W){b.x=W-b.w;b.vx=-Math.abs(b.vx)*WALL;}
+      if(b.y<0){b.y=0;b.vy=Math.abs(b.vy)*WALL;} if(b.y+b.h>H){b.y=H-b.h;b.vy=-Math.abs(b.vy)*WALL;}
+    }
+    for(let k=0;k<3;k++) for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) collide(bodies[i],bodies[j]);
+    for(const b of bodies){ if(Math.abs(b.vx)>.05||Math.abs(b.vy)>.05||b.held) active=true; else {b.vx=b.vy=0;} place(b); }
+    if(active) raf=requestAnimationFrame(step);
+  };
+  const wake=()=>{if(!raf) raf=requestAnimationFrame(step);};
+  const grab=(b,event)=>{
+    grabbed={b,dx:event.clientX-b.x,dy:event.clientY-b.y};b.held=true;b.vx=b.vy=0;
+    lastMove={x:event.clientX,y:event.clientY,t:performance.now()};
+    b.el.classList.add('is-held');arena.classList.add('is-grabbing');
+    bodies.forEach(o=>o.el.style.zIndex=o===b?'5':'1');
+    wake();
+  };
+  bodies.forEach(b=>{
+    b.el.addEventListener('pointerdown',event=>{
+      if(event.button>0||event.target.closest('a')) return;
+      moved=false;
+      if(event.pointerType==='mouse'||event.pointerType==='pen'){event.preventDefault();grab(b,event);}
+      else{ // au doigt : un appui maintenu attrape la carte, un glissé rapide laisse défiler la page
+        clearTimeout(pressTimer);
+        const start={x:event.clientX,y:event.clientY};
+        pressTimer=setTimeout(()=>{grab(b,event);navigator.vibrate?.(8);},260);
+        const cancel=e=>{if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>10) clearTimeout(pressTimer);};
+        b.el.addEventListener('pointermove',cancel,{passive:true});
+        b.el.addEventListener('pointerup',()=>{clearTimeout(pressTimer);b.el.removeEventListener('pointermove',cancel);},{once:true});
+      }
+    });
+  });
+  addEventListener('pointermove',event=>{
+    if(!grabbed) return;
+    const {b}=grabbed, now=performance.now();
+    const nx=event.clientX-grabbed.dx, ny=event.clientY-grabbed.dy;
+    const dt=Math.max(8,now-lastMove.t);
+    b.vx=(event.clientX-lastMove.x)/dt*16; b.vy=(event.clientY-lastMove.y)/dt*16;
+    lastMove={x:event.clientX,y:event.clientY,t:now};
+    if(Math.abs(nx-b.x)+Math.abs(ny-b.y)>1) moved=true;
+    b.x=nx;b.y=ny;wake();
+  });
+  // Tant qu'une carte est tenue au doigt, la page ne défile pas.
+  arena.addEventListener('touchmove',event=>{if(grabbed) event.preventDefault();},{passive:false});
+  const release=()=>{
+    if(!grabbed) return;
+    const {b}=grabbed;b.held=false;
+    if(performance.now()-lastMove.t>90){b.vx=b.vy=0;} // relâchée immobile : elle reste où on l'a posée
+    b.vx=Math.max(-40,Math.min(40,b.vx));b.vy=Math.max(-40,Math.min(40,b.vy));
+    b.el.classList.remove('is-held');arena.classList.remove('is-grabbing');grabbed=null;wake();
+  };
+  addEventListener('pointerup',release);addEventListener('pointercancel',release);
+  arena.addEventListener('click',event=>{if(moved){event.preventDefault();event.stopPropagation();moved=false;}},true);
+  layout();
+  let lastW=arena.clientWidth;
+  addEventListener('resize',()=>{if(Math.abs(arena.clientWidth-lastW)>40){lastW=arena.clientWidth;layout();}else{W=arena.clientWidth;H=arena.clientHeight;wake();}},{passive:true});
+  document.fonts?.ready.then(()=>{bodies.forEach(b=>{b.w=b.el.offsetWidth;b.h=b.el.offsetHeight;});wake();});
 });
+
 
 // Work, « Social media videos » : un seul téléphone, les vidéos glissent dedans (glisser, flèches, clavier, miniatures).
 $$('[data-phone-stack]').forEach(stack=>{
@@ -733,18 +828,20 @@ $$('[data-phone-stack]').forEach(stack=>{
     cards.forEach((card,i)=>{
       let d=i-active; if(d>n/2) d-=n; if(d<-n/2) d+=n; // boucle : les voisins restent de part et d'autre
       const a=Math.abs(d);
-      card.style.setProperty('--d',d);card.style.setProperty('--a',a);
+      card.style.setProperty('--d',d);card.style.setProperty('--a',a);card.style.setProperty('--s',Math.sign(d));
       card.classList.toggle('is-active',d===0);
       card.toggleAttribute('inert',a>2);
+      if(card.hasAttribute('data-stack-copy')) card.setAttribute('aria-hidden',String(d!==0));
       $('[data-load-instagram]',card)?.setAttribute('tabindex',d===0?'0':'-1');
       if(d!==0) stop(card);
     });
-    dots.forEach((dot,i)=>dot.setAttribute('aria-current',String(i===active)));
+    dots.forEach((dot,i)=>dot.setAttribute('aria-current',String(i===active%dots.length)));
   };
   const go=i=>{active=(i+cards.length)%cards.length;layout();};
   $('[data-stack-prev]',stack)?.addEventListener('click',()=>go(active-1));
   $('[data-stack-next]',stack)?.addEventListener('click',()=>go(active+1));
-  dots.forEach((dot,i)=>dot.addEventListener('click',()=>go(i)));
+  // Les vidéos existent en double pour remplir les deux côtés : un point mène à la copie la plus proche.
+  dots.forEach((dot,i)=>dot.addEventListener('click',()=>{const n=cards.length,c=[i,i+dots.length].filter(k=>k<n).sort((x,y)=>Math.min(Math.abs(x-active),n-Math.abs(x-active))-Math.min(Math.abs(y-active),n-Math.abs(y-active)))[0];go(c);}));
   cards.forEach((card,i)=>card.addEventListener('click',event=>{if(i!==active&&!event.target.closest('a')){event.preventDefault();go(i);}}));
   stack.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();go(active-1);}else if(event.key==='ArrowRight'){event.preventDefault();go(active+1);}});
   // Glisser au doigt ou à la souris : au-delà de 40 px, on passe à la vidéo voisine.
@@ -757,58 +854,70 @@ $$('[data-phone-stack]').forEach(stack=>{
   layout();
 });
 
-// Page 404 : une galaxie orange qui tourne autour d'un trou noir. La souris incline et décale le disque,
-// un appui maintenu accélère l'aspiration. Après 30 secondes sur la page, la phrase change.
+// Page 404 : une galaxie spirale vue de biais, des dizaines de milliers d'étoiles en lumière additive,
+// cœur blanc, bras orange. Les étoiles proches du centre tournent plus vite (aspiration).
+// La souris incline et décale la galaxie ; un appui maintenu accélère la chute vers le centre.
+// Après 30 secondes sur la page, la phrase change.
 $$('[data-black-hole]').forEach(root=>{
   const line=$('[data-bh-line]',root);
   setTimeout(()=>{if(!line) return;line.classList.add('is-swapping');setTimeout(()=>{line.textContent='Hmm, vous semblez apprécier. On va bien s’entendre, vous et moi.';line.classList.remove('is-swapping');},450);},30000);
   const canvas=$('canvas',root); const ctx=canvas?.getContext('2d'); if(!ctx) return;
-  const DPR=Math.min(2,devicePixelRatio||1);
-  let W=0,H=0,R=0,parts=[],tilt=.42,tiltTo=.42,shiftX=0,shiftTo=0,boost=0,boostTo=0,raf=0,last=performance.now();
-  // Couleur selon la distance au centre : cœur blanc-ambre, puis orange, puis rouge profond.
-  const color=t=>t<.08?'255,236,205':t<.22?'255,178,96':t<.45?'244,110,38':t<.7?'206,58,18':'130,22,8';
-  const spawn=(p,edge)=>{
-    const arm=Math.floor(Math.random()*3), r=edge?R*(.85+Math.random()*.25):R*Math.pow(Math.random(),1.6)*1.05+R*.06;
-    const twist=Math.log(1+r/R*6)*2.6, spread=(Math.random()-.5)*(.55+r/R*.6);
-    p.r=r; p.a=arm*2.094+twist+spread; p.z=(Math.random()-.5)*R*.035*(1-r/R*.5); p.s=.6+Math.random()*1.3; p.o=.35+Math.random()*.65; return p;
+  const SCALE=.5; // rendu à mi-définition puis agrandi : plus fluide, et le léger flou fait la lueur
+  let W=0,H=0,R=0,img=null,acc=null,N=0,pr,pa,pz,pb,pc;
+  let tilt=.52,tiltTo=.52,spin=0,shiftX=0,shiftTo=0,boost=0,boostTo=0,raf=0,last=performance.now();
+  const ARMS=3;
+  // Palette : blanc chaud au cœur, puis ambre, orange, et rouge profond sur les bords.
+  const ramp=t=>t<.06?[255,246,232]:t<.16?[255,206,140]:t<.34?[255,150,62]:t<.6?[236,92,28]:[168,40,12];
+  const gauss=()=>(Math.random()+Math.random()+Math.random()+Math.random()-2)/2;
+  const seed=i=>{
+    const r=Math.pow(Math.random(),1.35)*R;
+    const arm=i%ARMS, t=r/R;
+    pr[i]=r; pa[i]=arm*(2*Math.PI/ARMS)+Math.log(1+t*9)*2.1+gauss()*(.26+t*.7);
+    pz[i]=gauss()*R*.03*(1-t*.6);
+    pb[i]=.35+Math.random()*.65; pc[i]=Math.min(4,Math.floor(t*5.2+Math.random()*.6));
   };
   const resize=()=>{
-    const b=root.getBoundingClientRect(); W=b.width; H=b.height; R=Math.min(W,H*1.6)*.46;
-    canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
-    const n=Math.round(Math.min(11000,Math.max(3500,W*H/95)));
-    parts=Array.from({length:n},()=>spawn({},false));
+    const box=root.getBoundingClientRect(); W=Math.max(2,Math.round(box.width*SCALE)); H=Math.max(2,Math.round(box.height*SCALE));
+    canvas.width=W; canvas.height=H; R=Math.min(Math.max(W*.42,Math.min(W*.66,H*.42)),H*.9);
+    img=ctx.createImageData(W,H); acc=new Float32Array(W*H*3);
+    N=Math.round(Math.min(70000,Math.max(22000,box.width*box.height/18)));
+    pr=new Float32Array(N);pa=new Float32Array(N);pz=new Float32Array(N);pb=new Float32Array(N);pc=new Uint8Array(N);
+    for(let i=0;i<N;i++) seed(i);
   };
+  const colors=[0,.08,.2,.45,.8].map(ramp);
   const frame=now=>{
     raf=0; const dt=Math.min(.05,(now-last)/1000); last=now;
-    tilt+=(tiltTo-tilt)*.06; shiftX+=(shiftTo-shiftX)*.06; boost+=(boostTo-boost)*.05;
-    ctx.globalCompositeOperation='source-over'; ctx.fillStyle='rgba(6,3,2,.34)'; ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='lighter';
-    const cx=W*.5+shiftX, cy=H*.42, rc=R*.085;
-    for(const p of parts){
-      const w=(.55+boost*2.2)*Math.pow(R/(p.r+R*.04),1.15)*.32; // les étoiles proches du centre tournent plus vite
-      p.a+=w*dt; p.r-=(R*.004+boost*R*.06)*dt*(R/(p.r+R*.2));
-      if(p.r<rc*1.05) spawn(p,true);
-      const x=Math.cos(p.a)*p.r, y=Math.sin(p.a)*p.r*tilt+p.z;
-      const t=p.r/R, c=color(t);
-      ctx.fillStyle=`rgba(${c},${(p.o*(1-t*.55)).toFixed(3)})`;
-      ctx.fillRect(cx+x,cy+y,p.s,p.s);
+    tilt+=(tiltTo-tilt)*.05; shiftX+=(shiftTo-shiftX)*.05; boost+=(boostTo-boost)*.05; spin+=dt*.05;
+    acc.fill(0);
+    const cx=W*.5+shiftX, cy=H*.4, ct=Math.cos(.35*Math.sin(spin)), st=Math.sin(.35*Math.sin(spin))*.15;
+    const fall=R*(.004+boost*.09)*dt;
+    for(let i=0;i<N;i++){
+      let r=pr[i];
+      pa[i]+=dt*(.18+boost*1.6)*Math.pow(R/(r+R*.05),.85)*.35;
+      if(boost>.02||fall>0){ r-=fall*(R/(r+R*.25)); if(r<R*.012){ seed(i); pr[i]=R*(.9+Math.random()*.1); continue; } pr[i]=r; }
+      const x=Math.cos(pa[i])*r, y=Math.sin(pa[i])*r;
+      const px=(cx+x*ct-y*st)|0, py=(cy+(y*ct+x*st)*tilt+pz[i])|0;
+      if(px<0||py<0||px>=W||py>=H) continue;
+      const k=(py*W+px)*3, c=colors[pc[i]], b=pb[i]*.3;
+      acc[k]+=c[0]*b; acc[k+1]+=c[1]*b; acc[k+2]+=c[2]*b;
     }
-    // Horizon : disque noir, anneau de lumière orange, halo
+    const d=img.data;
+    for(let p=0,q=0;p<acc.length;p+=3,q+=4){ d[q]=acc[p]+6; d[q+1]=acc[p+1]+3; d[q+2]=acc[p+2]+2; d[q+3]=255; }
+    ctx.putImageData(img,0,0);
+    // Lueur du cœur
+    ctx.globalCompositeOperation='lighter';
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*.42);
+    g.addColorStop(0,'rgba(255,240,220,.8)');g.addColorStop(.08,'rgba(255,190,120,.4)');g.addColorStop(.35,'rgba(255,120,40,.16)');g.addColorStop(1,'rgba(255,90,20,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,R*.42,R*.42*Math.max(.3,tilt*1.2),0,0,Math.PI*2);ctx.fill();
     ctx.globalCompositeOperation='source-over';
-    const glow=ctx.createRadialGradient(cx,cy,rc*.6,cx,cy,rc*3.2);
-    glow.addColorStop(0,'rgba(255,140,60,.0)');glow.addColorStop(.32,'rgba(255,120,40,.35)');glow.addColorStop(1,'rgba(255,90,20,0)');
-    ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(cx,cy,rc*3.2,rc*3.2*Math.max(.35,tilt),0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#030101';ctx.beginPath();ctx.arc(cx,cy,rc,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,196,130,.85)';ctx.lineWidth=1.6;ctx.shadowColor='rgba(255,120,40,.9)';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(cx,cy,rc*1.04,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
     if(!reduced) raf=requestAnimationFrame(frame);
   };
-  resize(); addEventListener('resize',()=>{resize();},{passive:true});
-  root.addEventListener('pointermove',event=>{const b=root.getBoundingClientRect();const u=(event.clientX-b.left)/b.width-.5,v=(event.clientY-b.top)/b.height-.5;tiltTo=Math.max(.18,Math.min(.85,.42+v*.7));shiftTo=u*W*.08;},{passive:true});
-  root.addEventListener('pointerdown',()=>{boostTo=1;});
-  addEventListener('pointerup',()=>{boostTo=0;});root.addEventListener('pointerleave',()=>{boostTo=0;tiltTo=.42;shiftTo=0;});
+  resize(); let rt=0; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(resize,150);},{passive:true});
+  root.addEventListener('pointermove',event=>{const b=root.getBoundingClientRect();const u=(event.clientX-b.left)/b.width-.5,v=(event.clientY-b.top)/b.height-.5;tiltTo=Math.max(.22,Math.min(.9,.52+v*.6));shiftTo=u*W*.1;},{passive:true});
+  root.addEventListener('pointerdown',event=>{if(!event.target.closest('a')) boostTo=1;});
+  addEventListener('pointerup',()=>{boostTo=0;});root.addEventListener('pointerleave',()=>{boostTo=0;tiltTo=.52;shiftTo=0;});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!raf&&!reduced){last=performance.now();raf=requestAnimationFrame(frame);}});
-  // Mouvement réduit : une seule image fixe, après quelques pas de calcul pour former les bras.
-  if(reduced){for(let i=0;i<40;i++) frame(performance.now()+i*16);} else raf=requestAnimationFrame(frame);
+  if(reduced) frame(performance.now()); else raf=requestAnimationFrame(frame);
 });
 
 // Reveal elements only when JS is present; no content is hidden without JS.
