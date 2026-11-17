@@ -110,6 +110,13 @@ if(!/admin\.js\?v=[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.js must car
 if(/<script[^>]+src="https?:/i.test(adminHtml)) fail('Admin: no third-party script');
 if(/service_role|sb_secret_/i.test(adminHtml+await readFile(join(root,'public/admin/admin.js'),'utf8')+JSON.stringify(siteData))) fail('Admin: a secret key must never be shipped');
 if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('Admin: must not be in sitemap');
+// Cockpit d'activité : chargé avant admin.js, aucune injection HTML, tables réservées à l'administrateur.
+{ const ck=await readFile(join(root,'public/admin/cockpit.js'),'utf8'), sql=await readFile(join(root,'supabase/cockpit_schema.sql'),'utf8');
+  if(!adminHtml.includes('/admin/cockpit.js?v=')||adminHtml.indexOf('cockpit.js')>adminHtml.indexOf('admin.js?v=')||!adminHtml.includes('data-offers=')||!adminHtml.includes('data-business=')) fail('Cockpit: script or data attributes missing on /admin/');
+  if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(ck)) fail('Cockpit: HTML injection is forbidden, use textContent');
+  for(const t of ['crm_contacts','crm_deals','crm_documents','crm_events','crm_settings']) if(!sql.includes(`'${t}'`)) fail(`Cockpit: ${t} missing from the RLS loop`);
+  if(!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(sql)||!/revoke all on public\.%I from anon, authenticated/.test(sql)) fail('Cockpit: admin-only policy missing');
+  if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
 // Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
 for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
   const h=await readFile(join(dist,f),'utf8');

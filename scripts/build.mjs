@@ -38,6 +38,7 @@ const cssAsset=`assets/site.${cssHash}.css`;
 const jsAsset=`assets/app.${jsHash}.js`;
 
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
+const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 // Typographie française : un montant ou une durée ne se coupe jamais en fin de ligne (« 1 500 € », « 48 h »).
 // Appliqué au seul texte visible, entre les balises ; les scripts et styles ne sont pas touchés.
 function keepUnitsTogether(html){
@@ -50,7 +51,7 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');
