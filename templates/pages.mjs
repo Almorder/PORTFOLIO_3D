@@ -105,7 +105,7 @@ export function homePage(){
         : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>`}
       <h1 class="sr-only" id="v16-hero-title">Nolan Ribeiro, vidéaste et réalisateur. Nolan Arc : réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
-        <p class="hero-roles"><span class="hero-roles__name">Nolan Ribeiro</span> Réalisation, direction artistique et stratégie de marque</p>
+        <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
       </div>
     </section>
 

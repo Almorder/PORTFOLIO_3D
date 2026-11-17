@@ -313,8 +313,9 @@ for(const file of htmls){
   const catalog=biz.hasOfferCatalog?.itemListElement||[];
   if(catalog.length!==pricingData.length||pricingData.some(c=>!catalog.find(o=>o.name===c.title))) fail('SEO/IA: JSON-LD offers must match content/pricing.mjs');
   // Le nom complet se lit dans le contenu (hors pied de page) de l'accueil et de la page À propos.
-  for(const [label,h] of [['Home',home],['About',about]]){ const main=(h.split('id="main-content"')[1]||'').split('<footer')[0].replace(/<script[\s\S]*?<\/script>/g,'').replace(/<(\w+)[^>]*class="sr-only"[^>]*>[\s\S]*?<\/\1>/g,'').replace(/<[^>]+>/g,' '); if(!main.includes(siteData.legalName)) fail(`SEO: ${label} must show « ${siteData.legalName} » in its visible content`); }
-  if(home.includes('class="sr-only" id="v16-hero-title"')&&!home.includes('class="hero-roles__name">Nolan Ribeiro<')) fail('Home: the hero names Nolan Ribeiro on screen, not only for screen readers');
+  for(const [label,h] of [['Home',home],['About',about]]){ const main=(h.split('id="main-content"')[1]||'').split(label==='Home'?'</body>':'<footer')[0].replace(/<script[\s\S]*?<\/script>/g,'').replace(/<(\w+)[^>]*class="sr-only"[^>]*>[\s\S]*?<\/\1>/g,'').replace(/<[^>]+>/g,' '); if(!main.includes(siteData.legalName)) fail(`SEO: ${label} must show « ${siteData.legalName} » in its visible content (Home: footer included, the banner text is fixed by Nolan)`); }
+  // Bannière : Nolan a fixé le texte (réalisation, direction artistique, stratégie) ; son nom passe par le titre accessible, le titre de page et les données structurées.
+  if(!/id="v16-hero-title">Nolan Ribeiro/.test(home)||home.includes('hero-roles__name')) fail('Home: Nolan Ribeiro must be in the accessible hero title, the visible banner text stays as Nolan set it');
   // Titres et descriptions : uniques, assez courts pour ne pas être coupés, orientés recherche.
   const seen=new Map();
   for(const rel of indexable){ const h=await readFile(join(dist,rel),'utf8'), title=h.match(/<title>([^<]*)<\/title>/)[1], desc=h.match(/<meta name="description" content="([^"]*)"/)?.[1]||'';

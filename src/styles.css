@@ -1705,7 +1705,6 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 /* --- Héros : une seule ligne, sobre --- */
 .hero-roles{margin:0;font:600 12px/1.6 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(240,235,226,.72)}
 .hero-roles br{display:none}
-.hero-roles__name{display:block;margin-bottom:4px;color:var(--paper)}
 
 /* --- Trois dimensions : trois dossiers, l'essentiel d'un coup d'œil --- */
 .dims{padding:clamp(70px,8vw,130px) var(--page);background:var(--fab-bg,#f0ebe2);color:var(--ink)}
