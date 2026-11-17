@@ -285,6 +285,54 @@ for(const file of htmls){
   if(og&&/images\.unsplash\.com/.test(og)) fail(`Image de partage = photo de stock (${label}) : utiliser un visuel Nolan Arc`);
 }
 
+// SEO et IA : sitemap lisible par la Search Console, entité « Nolan Ribeiro » reliée, fiches IA à jour.
+{ const domain=siteData.domain, sitemap=await readFile(join(dist,'sitemap.xml'),'utf8'), robots=await readFile(join(dist,'robots.txt'),'utf8');
+  if(!/^<\?xml version="1\.0" encoding="UTF-8"\?>\n<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/.test(sitemap)||!sitemap.trim().endsWith('</urlset>')||(sitemap.match(/<url>/g)||[]).length!==(sitemap.match(/<\/url>/g)||[]).length) fail('Sitemap: XML header, namespace or <url> blocks malformed');
+  const locs=[...sitemap.matchAll(/<url><loc>([^<]+)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod><\/url>/g)].map(m=>m[1]);
+  if(!locs.length||locs.length!==(sitemap.match(/<loc>/g)||[]).length) fail('Sitemap: every <url> needs one absolute <loc> and a YYYY-MM-DD <lastmod>');
+  const indexable=[];
+  for(const file of htmls){ const rel=relative(dist,file).replaceAll('\\','/'), h=await readFile(file,'utf8');
+    if(h.includes('http-equiv="refresh"')||/<meta name="robots" content="[^"]*noindex/.test(h)) continue;
+    indexable.push(rel);
+    const canon=h.match(/<link rel="canonical" href="([^"]+)">/)?.[1]; if(!canon) fail(`SEO: ${rel} is indexable but has no canonical`);
+    else if(!locs.includes(canon)) fail(`Sitemap: indexable page ${rel} (${canon}) is not listed`); }
+  for(const loc of locs){ if(!loc.startsWith(`${domain}/`)||/[?#\s&]/.test(loc)) { fail(`Sitemap: ${loc} must be an absolute https URL on ${domain}, without query or anchor`); continue; }
+    const target=loc.slice(domain.length+1).replace(/(^|\/)$/,'$1index.html');
+    if(!indexable.includes(target)) fail(`Sitemap: ${loc} does not point to an indexable page`); }
+  for(const f of ['404.html','404/index.html']){ const h=await readFile(join(dist,f),'utf8'); if(!h.includes('<meta name="robots" content="noindex">')||h.includes('rel="canonical"')) fail(`SEO: ${f} must be noindex without canonical (soft 404)`); }
+  if(!robots.split('\n').includes(`Sitemap: ${domain}/sitemap.xml`)) fail('robots.txt: absolute Sitemap line missing');
+  if(/^Disallow:\s*\/\s*$/m.test(robots)) fail('robots.txt: the site must stay open to search engines and AI assistants');
+  // Entité : une seule personne, ses comptes réels (content/site.mjs), la marque reliée par founder.
+  const graph=JSON.parse(home.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+  const person=graph.find(x=>x['@type']==='Person')||{}, biz=graph.find(x=>x['@type']==='ProfessionalService')||{};
+  if(person.name!==siteData.legalName||!(person.alternateName||[]).includes(siteData.name)||!/vidéaste/i.test(person.jobTitle||'')||person['@id']!==biz.founder?.['@id']) fail('SEO/IA: Person Nolan Ribeiro must carry alternateName Nolan Arc, a jobTitle with vidéaste, and be the founder of the business');
+  const profiles=[siteData.instagram,siteData.youtube].filter(Boolean);
+  if(!profiles.length||(person.sameAs||[]).some(u=>!profiles.includes(u))||(biz.sameAs||[]).some(u=>!profiles.includes(u))) fail('SEO/IA: sameAs may only list the accounts published in content/site.mjs');
+  if(person.address||biz.address) fail('SEO/IA: no postal address in JSON-LD while legal.publicLegalContactsConfirmed is false');
+  const { pricing:pricingData }=await import('../content/pricing.mjs');
+  const catalog=biz.hasOfferCatalog?.itemListElement||[];
+  if(catalog.length!==pricingData.length||pricingData.some(c=>!catalog.find(o=>o.name===c.title))) fail('SEO/IA: JSON-LD offers must match content/pricing.mjs');
+  // Le nom complet se lit dans le contenu (hors pied de page) de l'accueil et de la page À propos.
+  for(const [label,h] of [['Home',home],['About',about]]){ const main=(h.split('id="main-content"')[1]||'').split('<footer')[0].replace(/<script[\s\S]*?<\/script>/g,'').replace(/<(\w+)[^>]*class="sr-only"[^>]*>[\s\S]*?<\/\1>/g,'').replace(/<[^>]+>/g,' '); if(!main.includes(siteData.legalName)) fail(`SEO: ${label} must show « ${siteData.legalName} » in its visible content`); }
+  if(home.includes('class="sr-only" id="v16-hero-title"')&&!home.includes('class="hero-roles__name">Nolan Ribeiro<')) fail('Home: the hero names Nolan Ribeiro on screen, not only for screen readers');
+  // Titres et descriptions : uniques, assez courts pour ne pas être coupés, orientés recherche.
+  const seen=new Map();
+  for(const rel of indexable){ const h=await readFile(join(dist,rel),'utf8'), title=h.match(/<title>([^<]*)<\/title>/)[1], desc=h.match(/<meta name="description" content="([^"]*)"/)?.[1]||'';
+    if(seen.has(title)) fail(`SEO: title duplicated on ${rel} and ${seen.get(title)}`); seen.set(title,rel);
+    if(title.length>65) fail(`SEO: title too long on ${rel} (${title.length} > 65)`);
+    if(desc.length<70||desc.length>170) fail(`SEO: description length on ${rel} (${desc.length}, expected 70 to 170)`); }
+  if(!/vidéaste/.test(home.match(/<title>([^<]*)/)[1])||!/Nolan Ribeiro/.test(home.match(/<title>([^<]*)/)[1])) fail('SEO: home title must name Nolan Ribeiro and say vidéaste');
+  // Fiches IA : générées depuis les contenus, tous les tarifs y figurent, liens absolus.
+  for(const f of ['llms.txt','llms-full.txt']){ if(!existing.has(f)) { fail(`SEO/IA: ${f} missing`); continue; } const t=await readFile(join(dist,f),'utf8');
+    if(!t.startsWith('# ')||!t.includes(siteData.legalName)||!t.includes(siteData.name)||!t.includes(`${domain}/contact/`)) fail(`SEO/IA: ${f} must open with a title and name Nolan Ribeiro, Nolan Arc and the contact page`);
+    for(const c of pricingData) if(!t.includes(c.title)||(c.price!=='Sur devis'&&!t.includes(c.price.replace('€ / h','€ de l’heure')))) fail(`SEO/IA: ${f} lacks the offer « ${c.title} » or its price`);
+    if(/\]\(\//.test(t)) fail(`SEO/IA: ${f} must use absolute links`); }
+  if(!(await readFile(join(dist,'llms.txt'),'utf8')).includes(`${domain}/llms-full.txt`)) fail('SEO/IA: llms.txt must point to llms-full.txt');
+  // IndexNow (Bing) : une seule clé, servie à la racine, dont le fichier contient exactement la clé.
+  const keys=[...existing].filter(f=>/^[0-9a-f]{32}\.txt$/.test(f));
+  if(keys.length!==1) fail(`IndexNow: exactly one key file expected at the root, found ${keys.length}`);
+  else if((await readFile(join(dist,keys[0]),'utf8'))!==keys[0].slice(0,-4)) fail('IndexNow: the key file must contain only its own key'); }
+
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 if(/mediator:\s*\{[\s\S]*?name:\s*''/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — consumer mediator is not configured; complete adhesion before concluding B2C contracts.');
 if(/publicLegalContactsConfirmed:\s*false/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — public professional address and phone are not confirmed; add publishable business contact details before release.');
