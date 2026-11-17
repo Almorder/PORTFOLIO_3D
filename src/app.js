@@ -675,7 +675,8 @@ $$('[data-ring]').forEach(ring=>{
   const count=$('[data-ring-count]',ring), name=$('[data-ring-name]',ring);
   const select=index=>{
     arcs.forEach((arc,i)=>arc.classList.toggle('is-active',i===index));
-    $$('[data-ring-shine]',ring).forEach((shine,i)=>shine.classList.toggle('is-active',i===index));
+    // La lumière de l'orbe tourne vers l'étape choisie (comme une éclipse).
+    const spin=$('[data-orb-spin]',ring); if(spin) spin.style.setProperty('--a',`${[45,165,285][index]}deg`);
     steps.forEach((step,i)=>step.setAttribute('aria-pressed',String(i===index)));
     panels.forEach((panel,i)=>panel.classList.toggle('is-active',i===index));
     if(count) count.textContent=String(index+1);
