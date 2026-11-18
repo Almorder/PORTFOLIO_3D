@@ -4,7 +4,7 @@
 // (tools/fetch-published.mjs). Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const validLink = v => !v || /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v);
-  const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight } : null;
+  const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
   // Ancien brouillon : l'image était une adresse libre (texte). Elle n'est plus acceptée : on la retire.
   const migrate = t => ({ quote: t.quote || '', name: t.name || '', role: t.role || '', image: t.image && typeof t.image === 'object' && t.image.id ? imageFields(t.image) : null, alt: t.alt || '', link: t.link || '', linkLabel: t.linkLabel || '', visible: t.visible !== false });
 
@@ -66,7 +66,7 @@
       file.addEventListener('change', async () => {
         const f = file.files[0]; if (!f || !media) return;
         busy = i; redraw(); say(`Préparation de ${f.name}…`);
-        try { const { image, report } = await media.store(f, 'cover'); if (t.image?.id) removed.push(t.image.id); t.image = imageFields(image); touch(); say(`${report}. Écris le texte alternatif puis enregistre.`, 'warn'); }
+        try { const { image, report } = await media.store(f, 'cover', 'testimonial'); if (t.image?.id) removed.push(t.image.id); t.image = imageFields(image); touch(); say(`${report}. Écris le texte alternatif puis enregistre.`, 'warn'); }
         catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
         busy = -1; redraw();
       });
@@ -86,6 +86,12 @@
           el('legend', { textContent: 'Image du panneau (facultatif)' }),
           fig,
           el('div', { className: 'admin-tools' }, [file, el('label', { htmlFor: fileId, className: 'admin-mini ph-drop__btn', textContent: busy === i ? 'Envoi en cours…' : t.image ? 'Remplacer l’image' : 'Envoyer une image' }),
+            t.image ? tool('Recadrer', `Recadrer l’image de l’avis de ${who}`, 'crop', async () => {
+              busy = i; redraw();
+              try { const { image } = await media.recrop(t.image, 'cover', 'testimonial'); removed.push(t.image.id); t.image = imageFields(image); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
+              catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+              busy = -1; redraw();
+            }) : null,
             t.image ? tool('Retirer l’image', `Retirer l’image de l’avis de ${who}`, 'noimg', () => { removed.push(t.image.id); t.image = null; t.alt = ''; touch(); redraw(); }) : null].filter(Boolean)),
           t.image ? field('Texte alternatif (obligatoire)', text(t, 'alt', i, { area: true, rows: 2, max: 300, required: true, placeholder: 'Ce que montre l’image, en une phrase' })) : null
         ].filter(Boolean)),

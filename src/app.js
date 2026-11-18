@@ -686,6 +686,13 @@ $$('[data-tm]').forEach(wrap=>{
   });
 });
 
+// Tuile Photographie : une photo toutes les 4,5 s, en fondu ; arrêt si l'onglet est caché ou si le visiteur
+// préfère moins de mouvement.
+$$('[data-bento-slides]').forEach(box=>{
+  const imgs=$$('img',box); if(imgs.length<2||reduced) return;
+  let k=0; setInterval(()=>{ if(document.hidden) return; imgs[k].classList.remove('is-on'); k=(k+1)%imgs.length; imgs[k].classList.add('is-on'); },4500);
+});
+
 // Bento : la tuile cliquée prend la grande place, les autres se réinstallent dans l'ordre.
 $$('[data-bento]').forEach(bento=>{
   const tiles=$$('[data-bento-tile]',bento);

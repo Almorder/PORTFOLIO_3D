@@ -16,9 +16,12 @@
     cover: { large: [1080, 160 * 1024], small: [540, 70 * 1024] },
     folder: { large: [1200, 180 * 1024], small: [640, 80 * 1024] },
     polaroid: { large: [900, 150 * 1024], small: [480, 70 * 1024] },
-    card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] }
+    card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] },
+    // Original gardé pour recadrer de nouveau sans perte (jamais copié sur le site) : 2560 px, 2,8 Mo au plus.
+    original: { large: [2560, 2800 * 1024] }
   };
   const pathsOf = id => [`${id}.webp`, `${id}-s.webp`];
+  const originalOf = id => `${id}-o.webp`;
   const noDash = text => String(text || '').replace(/[\u2014\u2013]/g, '-');
   const kb = bytes => `${Math.max(1, Math.round(bytes / 1024))} Ko`;
   const mb = bytes => `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} Mo`;
@@ -66,11 +69,34 @@
       const gain = sourceBytes ? Math.max(0, Math.round((1 - large.blob.size / sourceBytes) * 100)) : 0;
       return { image, report: `Optimisé : ${kb(large.blob.size)} (écran large), ${kb(small.blob.size)} (téléphone)${gain ? `, -${gain} % par rapport à l’original (${sourceBytes > 1048576 ? mb(sourceBytes) : kb(sourceBytes)})` : ''}` };
     };
-    const store = async (file, preset = 'photo') => {
+    // Envoi d'une image : recadrage dans le format du composant (format = clé de NolanCrop.FORMATS), puis
+    // deux WebP aux tailles affichées. L'original (2560 px) est gardé à part pour un nouveau recadrage.
+    // Annuler le recadrage arrête l'envoi (erreur « annulé »).
+    const fromCrop = async (bitmap, sourceBytes, preset, name, format, initial, source) => {
+      const crop = window.NolanCrop && format ? await window.NolanCrop.open({ bitmap, format, initial }) : { x: 0, y: 0, w: 1, h: 1 };
+      if (!crop) throw new Error('recadrage annulé');
+      const result = await storeSource(window.NolanCrop ? window.NolanCrop.apply(bitmap, crop) : bitmap, sourceBytes, preset, name);
+      let src = source;
+      if (!src) { const o = await encode(bitmap, PRESETS.original.large); await put(BUCKET, originalOf(result.image.id), o.blob, 'image/webp', name); src = { id: result.image.id, width: o.width, height: o.height }; }
+      result.image.source = src;
+      result.image.crop = Object.fromEntries(Object.entries(crop).map(([k, v]) => [k, Math.round(v * 10000) / 10000]));
+      return result;
+    };
+    const store = async (file, preset = 'photo', format = '') => {
       if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(`${file.name} : formats acceptés JPEG, PNG ou WebP`);
       if (file.size > MAX_SOURCE) throw new Error(`${file.name} dépasse 40 Mo`);
       const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      try { return await storeSource(bitmap, file.size, preset, file.name); } finally { bitmap.close?.(); }
+      try { return await fromCrop(bitmap, file.size, preset, file.name, format); } finally { bitmap.close?.(); }
+    };
+    // Nouveau recadrage d'une image déjà envoyée : depuis son original (sans perte) ; pour une image envoyée avant
+    // le recadrage (pas d'original), depuis sa grande taille.
+    const recrop = async (image, preset = 'photo', format = '') => {
+      const path = image.source?.id ? (image.source.fromLarge ? pathsOf(image.source.id)[0] : originalOf(image.source.id)) : pathsOf(image.id)[0];
+      const res = await fetch(publicUrl(BUCKET, path), { cache: 'force-cache' });
+      if (!res.ok) throw new Error('image d’origine introuvable');
+      const bitmap = await createImageBitmap(await res.blob());
+      const source = image.source?.id ? image.source : { id: image.id, width: bitmap.width, height: bitmap.height, fromLarge: true };
+      try { return await fromCrop(bitmap, 0, preset, 'l’image', format || 'photo', image.crop, source); } finally { bitmap.close?.(); }
     };
     // Vidéo : vérifiée par le navigateur (lisible, durée, dimensions), envoyée telle quelle, miniature automatique.
     const storeVideo = async file => {
@@ -101,10 +127,12 @@
     // à la fois dans Photographie et dans un projet).
     const remove = async ids => {
       const gone = [...new Set(ids)].filter(id => id && !inUse(id));
-      if (gone.length) await client.storage.from(BUCKET).remove(gone.flatMap(pathsOf));
+      if (gone.length) await client.storage.from(BUCKET).remove(gone.flatMap(id => [...pathsOf(id), originalOf(id)]));
       gone.forEach(id => { const url = previews.get(id); if (url) { URL.revokeObjectURL(url); previews.delete(id); } });
     };
     const removeVideo = async video => { if (video?.id && !inUse(video.id)) await client.storage.from(VIDEO_BUCKET).remove([`${video.id}.${video.ext}`]); };
-    return { store, storeVideo, preview, remove, removeVideo, noDash, kb, mb, MAX_VIDEO };
+    // Champs d'une image gardés dans les brouillons (dimensions, original et recadrage pour recadrer de nouveau).
+    const fields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
+    return { store, recrop, fields, storeVideo, preview, remove, removeVideo, noDash, kb, mb, MAX_VIDEO };
   };
 })();

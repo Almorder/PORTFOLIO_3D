@@ -2567,14 +2567,11 @@ body.cx-dialog-open{overflow:hidden}
 .wk-photo__item{break-inside:avoid;margin:0 0 10px;border-radius:22px;overflow:hidden;background:var(--paper-2)}
 .wk-photo__item img{display:block;width:100%;height:auto}
 .wk-photo__item figcaption{padding:10px 14px 12px;font:600 10px/1.3 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:rgba(8,7,6,.6)}
-.bento__mosaic{position:absolute;inset:0;z-index:-2;display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:3px}
-.bento__mosaic img{width:100%;height:100%;object-fit:cover}
-.bento__mosaic img:first-child{grid-row:1/3}
-/* Une ou deux photos seulement : la mosaïque garde des cases pleines. */
-.bento__mosaic[data-count="1"]{grid-template-columns:1fr;grid-template-rows:1fr}
-.bento__mosaic[data-count="1"] img:first-child{grid-row:auto}
-.bento__mosaic[data-count="2"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr}
-.bento__mosaic[data-count="2"] img:first-child{grid-row:auto}
+/* Tuile Photographie : diaporama lent, une photo à la fois, en fondu (src/app.js) ; fixe si mouvement réduit. */
+.bento__slides{position:absolute;inset:0;z-index:-2}
+.bento__slides img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+.bento__slides img.is-on{opacity:1}
+@media(prefers-reduced-motion:reduce){.bento__slides img{transition:none}}
 /* Section Photographie : une photo seule est centrée et large, deux photos se partagent la ligne. */
 .wk-photo__grid[data-count="1"]{columns:auto;max-width:min(760px,100%);margin-inline:auto}
 .wk-photo__grid[data-count="2"]{columns:2 280px}
@@ -2711,3 +2708,4 @@ body.cx-dialog-open{overflow:hidden}
   .v16-testimonial-bento.tm-grid blockquote,.v16-testimonial-bento.tm-grid article.is-featured blockquote{font-size:clamp(15px,min(8cqi,12cqb),36px)}
 }
 @media(prefers-reduced-motion:reduce){.tm-extra:not([hidden]){animation:none}.tm-wrap.is-animating{transition:none}}
+.wk-fiche>[data-fiche-row="text"]{flex:1 1 100%;border-left:0;border-top:1px solid rgba(8,7,6,.08)}

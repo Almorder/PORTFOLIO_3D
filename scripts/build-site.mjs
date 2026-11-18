@@ -43,7 +43,7 @@ const jsAsset=`assets/app.${jsHash}.js`;
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js'), testiVersion=await fileVersion('public/admin/testimonials.js');
+const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js'), testiVersion=await fileVersion('public/admin/testimonials.js'), cropVersion=await fileVersion('public/admin/cropper.js');
 // Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
 const { readdir } = await import('node:fs/promises');
 const docsHash=createHash('sha256');
@@ -61,7 +61,7 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion).replaceAll('__TESTI_V__',testiVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion).replaceAll('__TESTI_V__',testiVersion).replaceAll('__CROP_V__',cropVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');

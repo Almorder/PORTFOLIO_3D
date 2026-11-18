@@ -3,26 +3,26 @@
 // RÈGLE R1 : uniquement des photos réelles de Nolan, jamais d'image de stock. Sans aucune photo publiée,
 // la tuile et la section ne sont pas affichées (jamais de cadre vide en ligne) ; une seule photo suffit.
 //
-// Les photos se gèrent depuis l'admin (/admin/, rubrique « Photos de la page Work ») : envoi, ordre,
-// légendes, photo de la tuile. Au déploiement, tools/fetch-published.mjs copie la dernière version publiée
+// Les photos se gèrent depuis l'admin (/admin/, rubrique « Photos ») : envoi, ordre,
+// légendes, section et tuile. Au déploiement, tools/fetch-published.mjs copie la dernière version publiée
 // dans public/assets/photo/site/ et écrit content/photos.published.json (fichiers générés, non versionnés).
 import { readFileSync } from 'node:fs';
 
-let published = { cover: '', items: [] };
+let published = { items: [] };
 try { published = JSON.parse(readFileSync(new URL('./photos.published.json', import.meta.url), 'utf8')); } catch {}
+const items = Array.isArray(published.items) ? published.items : [];
+// Ancienne version publiée (sans les deux cases) : toutes les photos étaient dans la section et dans la tuile.
+const inSection = p => p.inSection !== false, inTile = p => p.inTile ?? true;
 
-// Chaque photo : src (grande), srcSmall (petite), dimensions réelles des deux fichiers, alt obligatoire,
-// series, place (facultatif), year.
-export const photos = Array.isArray(published.items) ? published.items : [];
+// Section Photographie : photos cochées « Visible dans la section Photographie ».
+// Chaque photo : src (grande), srcSmall (petite), dimensions réelles, alt obligatoire, series, place, year.
+export const photos = items.filter(inSection);
 
-// Photo choisie pour la tuile du bento (la première sinon).
-export const coverId = photos.some(p => p.id === published.cover) ? published.cover : (photos[0]?.id || '');
-
-// Les trois photos de la mosaïque de la tuile : celle choisie d'abord, puis les suivantes dans l'ordre.
-export const tilePhotos = [...photos.filter(p => p.id === coverId), ...photos.filter(p => p.id !== coverId)].slice(0, 3);
+// Tuile « Photographie » de Ma sélection : un seul bloc, toutes les photos cochées « Dans la tuile », dans l'ordre.
+// Aucune photo cochée : pas de tuile.
+export const tilePhotos = items.filter(inTile);
 
 // Même liste, au format du brouillon de l'admin (pour « Importer le contenu actuel du site »).
-// cover vide = tuile automatique (première photo) : l'admin peut revenir à « Automatique » après un choix.
-export const photoDraft = { cover: photos.some(p => p.id === published.cover) ? published.cover : '', items: photos.map(({ id, width, height, smallWidth, smallHeight, alt, series, place, year }) => ({ id, width, height, smallWidth, smallHeight, alt, series, place, year, visible: true })) };
+export const photoDraft = { items: items.map(({ id, width, height, smallWidth, smallHeight, source, crop, alt, series, place, year, ...p }) => ({ id, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}), alt, series, place, year, visible: inSection(p), inTile: inTile(p) })) };
 
 export const MIN_PHOTOS = 1;

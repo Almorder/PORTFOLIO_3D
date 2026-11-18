@@ -40,20 +40,27 @@ const validId = id => /^[a-z0-9-]{8,64}$/.test(String(id || ''));
 const imageOf = it => {
   const id = String(it?.id || '');
   const width = dim(it?.width), height = dim(it?.height), smallWidth = dim(it?.smallWidth), smallHeight = dim(it?.smallHeight);
-  return validId(id) && width && height && smallWidth && smallHeight ? { id, src: `${WEB_PATH}${id}.webp`, srcSmall: `${WEB_PATH}${id}-s.webp`, width, height, smallWidth, smallHeight } : null;
+  if (!(validId(id) && width && height && smallWidth && smallHeight)) return null;
+  // Original et recadrage (admin seulement, pour recadrer de nouveau) : gardés tels quels s'ils sont valides.
+  const so = it.source, cr = it.crop, frac = v => typeof v === 'number' && v >= 0 && v <= 1;
+  const source = so && validId(so.id) && dim(so.width) && dim(so.height) ? { id: so.id, width: so.width, height: so.height, ...(so.fromLarge === true ? { fromLarge: true } : {}) } : null;
+  const crop = cr && ['x', 'y', 'w', 'h'].every(k => frac(cr[k])) ? { x: cr.x, y: cr.y, w: cr.w, h: cr.h } : null;
+  return { id, src: `${WEB_PATH}${id}.webp`, srcSmall: `${WEB_PATH}${id}-s.webp`, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}) };
 };
 
-// Photos : une photo masquée ou sans texte alternatif n'est jamais publiée.
+// Photos : chaque photo a deux cases indépendantes, « Visible dans la section Photographie » (visible) et
+// « Dans la tuile Photographie » (inTile). Une photo sans l'une ni l'autre, ou sans texte alternatif, n'est jamais
+// publiée. Ancien brouillon sans inTile : la photo visible reste dans la tuile (comportement d'avant).
 export function normalizePhotos(draft) {
   const seen = new Set(), list = [];
   for (const it of Array.isArray(draft?.items) ? draft.items : []) {
     const image = imageOf(it), alt = clean(it?.alt, 300);
-    if (!image || seen.has(image.id) || it.visible !== true || !alt) continue;
+    const inSection = it?.visible === true, inTile = typeof it?.inTile === 'boolean' ? it.inTile : inSection;
+    if (!image || seen.has(image.id) || !(inSection || inTile) || !alt) continue;
     seen.add(image.id);
-    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year) });
+    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile });
   }
-  // cover vide = « Automatique » (choisi dans l'admin) : le site prend alors la première photo.
-  return { cover: list.some(p => p.id === draft?.cover) ? draft.cover : '', items: list };
+  return { items: list };
 }
 
 // Projets : seuls les champs éditables passent. Les champs techniques (adresse de la page, affiche, statut)
@@ -89,7 +96,9 @@ export function legacyMedia(p) {
   if (!kind) return [];
   return [{ key: 'm-1', kind, image: p.image || null, alt: p.alt || '', videoId: kind === 'youtube' ? p.videoId : '', instagramId: kind === 'instagram' ? p.instagramId : '' }];
 }
-const PAGE_MODES = ['auto', 'page', 'link'];
+// page : page projet au clic ; none : pas de page (fiche sous la grille) ; link : lien externe ;
+// auto : ancien réglage, page dès deux médias.
+const PAGE_MODES = ['page', 'none', 'link', 'auto'];
 // Adresse de la page projet (/projet/<adresse>/) : choisie dans l'admin, sinon tirée du titre.
 export const slugify = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '');
 export function normalizeProjects(list) {
@@ -199,7 +208,7 @@ export function normalizeTestimonials(list) {
 const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex').slice(0, 16);
 const prepare = (photos, projects, social = null, images = null, testimonials = null) => {
   const p = normalizePhotos(photos), pr = normalizeProjects(projects), so = normalizeSocial(social), im = normalizeImages(images), te = normalizeTestimonials(testimonials);
-  return { ...p, projects: pr, social: so, images: im, testimonials: te, hash: fingerprint({ cover: p.cover, list: p.items, projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}), ...(te ? { testimonials: te } : {}) }) };
+  return { ...p, projects: pr, social: so, images: im, testimonials: te, hash: fingerprint({ list: p.items, projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}), ...(te ? { testimonials: te } : {}) }) };
 };
 
 const getJson = async (url, headers = {}) => {
@@ -218,7 +227,7 @@ async function latestSnapshot() {
 async function liveManifest() {
   const m = await getJson(`${liveUrl}${WEB_PATH}manifest.json`);
   const social = Array.isArray(m.social) ? m.social.map(p => ({ ...p, coverImage: p.image, video: p.video })) : null;
-  const live = prepare({ cover: m.cover, items: (m.items || []).map(p => ({ ...p, visible: true })) }, m.projects ?? null, social, m.images ?? null, m.testimonials ?? null);
+  const live = prepare({ items: (m.items || []).map(p => ({ ...p, visible: p.inSection ?? true, inTile: p.inTile ?? true })) }, m.projects ?? null, social, m.images ?? null, m.testimonials ?? null);
   return { snapshot: m.snapshot || null, ...live, published: /^[a-f0-9]{16}$/.test(m.published || '') ? m.published : live.hash };
 }
 const signature = (body, kind) => kind === 'webp'
@@ -304,7 +313,7 @@ for (const [slot, value] of Object.entries(published.images || {})) if (await co
 // Avis : une image qui ne se copie pas est retirée (l'avis reste, sans image).
 const keptTestimonials = published.testimonials && [];
 for (const t of published.testimonials || []) keptTestimonials.push(t.image && !await copy(t.image, `Image de l'avis de ${t.name}`) ? { ...t, image: null, alt: '' } : t);
-const photos = normalizePhotos({ cover: published.cover, items: keptPhotos.map(p => ({ ...p, visible: true })) });
+const photos = normalizePhotos({ items: keptPhotos.map(p => ({ ...p, visible: p.inSection })) });
 // published : empreinte de la version source, pour que --check ne relance pas sans fin si un fichier manque.
 const manifest = { snapshot: published.snapshot, published: published.published || published.hash, ...photos, projects: keptProjects, social: keptSocial, images: keptImages, testimonials: keptTestimonials };
 const write = (file, data) => writeFile(join(root, 'content', file), JSON.stringify({ snapshot: manifest.snapshot, ...data }, null, 1) + '\n');
