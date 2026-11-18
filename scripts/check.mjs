@@ -244,7 +244,7 @@ if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six eco
 for(const price of ['1 500 €','250 €','200 €','89 € / h','Accompagnement sur devis','Sur devis']) if(!home.includes(price)) fail(`Home: pricing missing ${price}`);
 if(home.includes('Session ciblée —')) fail('Home: « Session ciblée » without dash');
 if((home.match(/data-price-card/g)||[]).length!==6||!home.includes('data-price-arena')||!home.includes('data-price-grid')||!/href="\/contact\/\?intent=\w+&amp;offre=\w+"/.test(home)||/home-pricing__backdrop/.test(home)) fail('Home: six floating pricing cards on the grid, each linking to a prefilled contact form');
-// Tarifs : six cartes à jouer (recto propre à l'offre, dos commun, index de coin), chacune piochable au clavier,
+// Tarifs : six cartes à jouer (recto propre à l'offre avec son index de coin, dos commun), chacune piochable au clavier,
 // prix dans le nom accessible du bouton, CTA prérempli vers Contact ; pioche, rangement, mise en veille, mouvement réduit.
 {
   const { pricing:offers, pricingHref:hrefOf }=await import('../content/pricing.mjs');
@@ -255,7 +255,10 @@ if((home.match(/data-price-card/g)||[]).length!==6||!home.includes('data-price-a
     const label=(li.match(/data-price-draw hidden aria-label="([^"]+)"/)||[])[1]||'';
     if(!li||!label.includes(o.title)||!/€|devis/i.test(label)) fail(`Home: card « ${o.key} » needs a hidden draw button named with its title and price`);
     if(!li.includes(`href="${hrefOf(o).replace(/&/g,'&amp;')}"`)) fail(`Home: card « ${o.key} » CTA must link to ${hrefOf(o)}`);
-    if(!/class="price-card__face price-card__face--back" aria-hidden="true"/.test(li)||!li.includes('class="price-card__index')||!li.includes(o.card.rank)) fail(`Home: card « ${o.key} » needs its back face and corner index`);
+    if(!/class="price-card__face price-card__face--back" aria-hidden="true"/.test(li)) fail(`Home: card « ${o.key} » needs its back face`);
+    // Carte lisible d'un coup d'œil : titre, prix, CTA court ; la description reste pour les lecteurs d'écran.
+    const band=li.slice(li.indexOf('class="price-card__label"'),li.indexOf('class="price-card__more"'));
+    if(!li.includes(`<h3>${o.title}</h3>`)||band.includes(o.text)||o.cta.length>18||!li.slice(li.indexOf('class="price-card__more"')).includes(o.text)) fail(`Home: card « ${o.key} » shows title, price and a short CTA; its description stays screen-reader only`);
     const art=(li.match(/class="price-card__art" src="([^"]+)"/)||[])[1]||'';
     if(!art||!existing.has(art.replace(/^\//,''))) fail(`Home: card « ${o.key} » art missing (${art})`);
   }
