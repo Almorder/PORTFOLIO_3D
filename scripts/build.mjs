@@ -40,7 +40,12 @@ const jsAsset=`assets/app.${jsHash}.js`;
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const tplVersion=await fileVersion('public/admin/doc-templates.js'), docCssVersion=await fileVersion('public/admin/documents.css');
+const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css');
+// Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
+const { readdir } = await import('node:fs/promises');
+const docsHash=createHash('sha256');
+for(const name of (await readdir(join(root,'public/admin/docs'),{recursive:true})).sort()){ try{ docsHash.update(name).update(await readFile(join(root,'public/admin/docs',name))); }catch{} }
+const docsVersion=docsHash.digest('hex').slice(0,10);
 // Typographie française : un montant ou une durée ne se coupe jamais en fin de ligne (« 1 500 € », « 48 h »).
 // Appliqué au seul texte visible, entre les balises ; les scripts et styles ne sont pas touchés.
 function keepUnitsTogether(html){
@@ -53,7 +58,7 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__TPL_V__',tplVersion).replaceAll('__DOCCSS_V__',docCssVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');

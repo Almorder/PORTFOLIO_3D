@@ -16,7 +16,8 @@ export const contentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://img.youtube.com https://i.ytimg.com https://images.unsplash.com https://upload.wikimedia.org https://images.squarespace-cdn.com https://static.smallrig.com",
   "media-src 'self' blob:",
-  "frame-src https://www.youtube-nocookie.com https://www.instagram.com",
+  // 'self' : l'admin affiche ses modèles de documents (public/admin/docs/) dans un cadre de même origine.
+  "frame-src 'self' https://www.youtube-nocookie.com https://www.instagram.com",
   `connect-src 'self' https://formsubmit.co https://cloudflareinsights.com${supabaseOrigin ? ` ${supabaseOrigin} ${supabaseOrigin.replace('https://','wss://')}` : ''}`,
   "form-action 'self' https://formsubmit.co",
   "base-uri 'self'",

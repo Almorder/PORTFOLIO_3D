@@ -1,0 +1,19 @@
+/* Nolan Arc | ajouts de l'admin aux modèles de documents (chargés par l'admin dans l'aperçu, jamais modifiés ailleurs).
+   1. Polices : Noto Sans et Noto Serif, celles des PDF d'origine, servies par le site (licence OFL, voir fonts/OFL.txt).
+   2. Valeurs remplies : visibles (les marqueurs d'origine sont transparents), retours à la ligne conservés.
+   3. Écran seulement : la feuille A4 posée sur un fond, marges identiques à l'impression. Rien ne change à l'impression. */
+@font-face{font-family:"Noto Sans";font-style:normal;font-weight:400;font-display:block;src:url(fonts/noto-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Noto Sans";font-style:normal;font-weight:600;font-display:block;src:url(fonts/noto-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Noto Sans";font-style:normal;font-weight:700;font-display:block;src:url(fonts/noto-sans-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Noto Serif";font-style:normal;font-weight:500;font-display:block;src:url(fonts/noto-serif-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Noto Serif";font-style:normal;font-weight:700;font-display:block;src:url(fonts/noto-serif-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Noto Serif";font-style:italic;font-weight:400;font-display:block;src:url(fonts/noto-serif-latin-400-italic.woff2) format("woff2")}
+
+.na-value{white-space:pre-line}
+.na-tick{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 8.5pt/1 "Noto Sans",Arial,sans-serif;color:#080706}
+.na-hidden{display:none!important}
+
+@media screen{
+  html{background:#e7e1d8}
+  body{width:210mm;margin:24px auto;padding:13mm 14mm 18mm;background:#fff;box-shadow:0 1px 2px rgba(8,7,6,.08),0 18px 50px rgba(69,48,33,.16)}
+}

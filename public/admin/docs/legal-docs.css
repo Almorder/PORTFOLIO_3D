@@ -1,0 +1,148 @@
+@page {
+  size: A4;
+  margin: 13mm 14mm 18mm;
+  @bottom-left {
+    content: "NOLAN ARC";
+    font-family: "Syne", "Noto Sans", Arial, sans-serif;
+    font-size: 6.7pt;
+    font-weight: 700;
+    letter-spacing: .16em;
+    color: #7d746c;
+  }
+  @bottom-right {
+    content: "Page " counter(page) " / " counter(pages);
+    font-family: "DM Sans", "Noto Sans", Arial, sans-serif;
+    font-size: 7pt;
+    color: #7d746c;
+  }
+}
+
+:root {
+  --ink:#080706;
+  --ink-soft:#17100d;
+  --ivory:#F0EBE2;
+  --paper:#ffffff;
+  --ember:#CC460C;
+  --ember-soft:#E97736;
+  --muted:#756e67;
+  --line:#d8d1c9;
+  --line-soft:#ece7e1;
+  --surface:#fbf9f6;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:"DM Sans","Noto Sans",Arial,Helvetica,sans-serif;font-size:9.6pt;line-height:1.48}
+body{padding:0}
+.doc{max-width:183mm;margin:0 auto;background:#fff;position:relative}
+
+/* ---------- Editorial header: same DNA as nolanarc.com, print-safe ---------- */
+.brand{position:relative;display:flex;justify-content:space-between;gap:9mm;align-items:flex-end;padding:7mm 0 8mm;margin:0 0 7mm;border-bottom:1.2px solid var(--ink)}
+.brand::before{content:"(NA)";position:absolute;left:0;top:0;font-family:"Syne","Noto Sans",sans-serif;font-size:6.8pt;letter-spacing:.08em;font-weight:700;color:var(--ink)}
+.brand::after{content:"";position:absolute;left:0;bottom:-1.2px;width:34mm;height:2.2px;background:var(--ember)}
+.brand>div:first-child{padding-top:5mm;flex:1 1 auto;min-width:0}
+.kicker{font-family:"Syne","Noto Sans",sans-serif;font-size:7pt;letter-spacing:.18em;text-transform:uppercase;color:var(--ember);font-weight:700;margin:0 0 2.5mm}
+.brand h1{font-family:"Yrsa","Noto Serif",Georgia,serif;font-weight:500;font-size:35pt;line-height:.9;letter-spacing:-1.45px;margin:0;max-width:118mm}
+.brand .meta{flex:0 0 54mm;align-self:flex-start;text-align:left;border:1px solid var(--ink);border-radius:4mm;padding:4mm 4.5mm;color:var(--ink);font-family:"Syne","Noto Sans",sans-serif;font-size:7.6pt;line-height:1.75;letter-spacing:.025em;background:#fff;min-height:30mm}
+.subtitle{font-family:"Yrsa","Noto Serif",Georgia,serif;font-style:italic;font-size:13.2pt;line-height:1.25;color:var(--ember);margin:0 0 7mm;max-width:143mm}
+
+/* ---------- Field cards ---------- */
+.grid{display:flex;flex-wrap:wrap;gap:3.2mm}
+.field{position:relative;flex:1 1 calc(50% - 1.6mm);border:1px solid var(--line);border-radius:4.2mm;padding:4mm 4.4mm;min-height:16mm;background:#fff;min-width:0;overflow-wrap:anywhere}
+.field::after{content:"";position:absolute;left:4.4mm;top:-1px;width:12mm;height:1.5px;background:var(--ember)}
+.field.full{flex-basis:100%}
+.label{font-family:"Syne","Noto Sans",sans-serif;font-size:6.6pt;text-transform:uppercase;letter-spacing:.14em;color:#81786f;margin-bottom:1.5mm;font-weight:600}
+.value{font-size:9.6pt;color:var(--ink-soft);min-height:4mm}
+.variable{color:inherit;font-style:normal}
+
+/* Invisible anchors used to place AcroForm fields after PDF render. */
+.pdf-marker,.box-marker{color:transparent!important;text-shadow:none!important;caret-color:transparent!important}
+.pdf-marker{display:inline-block;min-width:10mm;min-height:3mm}
+.box-marker{position:absolute;left:.2mm;top:.2mm;font-size:1pt;line-height:1;white-space:nowrap}
+
+/* ---------- Section component ---------- */
+.section{margin:7.5mm 0;break-inside:avoid}
+.section h2{display:flex;align-items:center;gap:3mm;font-family:"Syne","Noto Sans",sans-serif;font-size:7.3pt;line-height:1.2;text-transform:uppercase;letter-spacing:.15em;color:var(--ink);padding:0;margin:0 0 4mm;font-weight:700}
+.section h2::before{content:"";width:9mm;height:2px;background:var(--ember);flex:0 0 9mm}
+.section h2::after{content:"";height:1px;background:var(--line);flex:1 1 auto}
+.section h3{font-family:"Yrsa","Noto Serif",Georgia,serif;font-size:15pt;font-weight:500;letter-spacing:-.2px;margin:4mm 0 2mm}
+.section p{margin:0 0 2.8mm}
+.section ul{margin:2mm 0 0 4.5mm;padding-left:4mm}
+.section li{margin:1.3mm 0}
+
+/* ---------- Modular surfaces ---------- */
+.callout{position:relative;background:var(--ink);color:#fff;border-radius:5mm;padding:5mm 5.5mm;margin:5mm 0;overflow:hidden}
+.callout::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.2mm;background:var(--ember)}
+.callout strong{color:#ffb184}
+.soft{position:relative;background:#fff;border:1px solid var(--line);border-radius:5mm;padding:5mm 5.5mm;margin:4mm 0;box-shadow:0 1mm 3mm rgba(8,7,6,.035)}
+.soft::before{content:"";position:absolute;top:-1px;left:5.5mm;width:18mm;height:1.5px;background:var(--ember)}
+.warning{border-left:2.2px solid var(--ember);padding:2mm 0 2mm 4mm;color:#5c544d}
+.legal-ref{font-size:8pt;color:#6d655e;border:1px solid var(--line);border-radius:3mm;padding:3.2mm 3.6mm;margin-top:4mm;background:var(--surface)}
+
+/* ---------- Pricing table ---------- */
+table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--ink);border-radius:4.2mm;overflow:hidden}
+th,td{padding:3.2mm;border-bottom:1px solid var(--line-soft);text-align:left}
+th{font-family:"Syne","Noto Sans",sans-serif;font-size:6.5pt;text-transform:uppercase;letter-spacing:.09em;color:#5d5650;background:#fff;font-weight:700;border-bottom:1px solid var(--ink)}
+td.num,th.num{text-align:right;white-space:nowrap}
+.category-row td{height:auto!important;padding:2.3mm 3.2mm;background:var(--surface);color:var(--ember);font-family:"Syne","Noto Sans",sans-serif;font-size:6.6pt;font-weight:700;text-transform:uppercase;letter-spacing:.13em;border-bottom:1px solid var(--line)}
+.writable-row td{height:12.5mm;vertical-align:middle}
+.writable-row td:first-child{min-width:82mm}
+.total td{font-size:11.5pt;font-weight:700;border-top:1.5px solid var(--ink);border-bottom:0;background:var(--ink);color:#fff}
+
+/* ---------- Checkboxes ---------- */
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 7mm}
+.check{display:flex;gap:2.5mm;align-items:flex-start;position:relative}
+.box{position:relative;display:inline-block;width:4.3mm;height:4.3mm;min-width:4.3mm;min-height:4.3mm;border:1.15px solid var(--ink);background:#fff;flex:0 0 4.3mm;margin-top:.45mm;vertical-align:-.6mm;border-radius:.8mm}
+.box::before,.box::after{content:none!important}
+.line{display:inline-block;min-width:38mm;border-bottom:1px solid #7e776f;height:4mm;vertical-align:baseline}
+
+/* ---------- Signature cards ---------- */
+.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:7mm}
+.signature{position:relative;border:1px solid var(--line);border-radius:4mm;padding:4mm 4.5mm;min-height:28mm;background:#fff}
+.signature::before{content:"";position:absolute;left:4.5mm;top:-1px;width:10mm;height:1.5px;background:var(--ink)}
+.signature strong{font-family:"Syne","Noto Sans",sans-serif;font-size:7pt;text-transform:uppercase;letter-spacing:.10em}
+.signature small{display:block;margin-top:2mm;color:#7f776e;font-size:7.3pt}
+
+/* ---------- Bank component ---------- */
+.bank{position:relative;border:1px solid var(--ink);border-radius:4.5mm;padding:5mm 5.5mm;background:#fff;overflow:hidden}
+.bank::after{content:"BANK";position:absolute;right:4.5mm;top:3mm;font-family:"Syne","Noto Sans",sans-serif;font-size:19pt;font-weight:700;letter-spacing:.06em;color:#f0ece7;z-index:0}
+.bank-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:2.8mm 8mm}
+.bank-row{font-size:9pt;flex:1 1 44%;min-width:0}
+.bank-row strong{display:block;font-family:"Syne","Noto Sans",sans-serif;font-size:6.4pt;text-transform:uppercase;letter-spacing:.12em;color:#7a736b;margin-bottom:.8mm}
+.bank-wide{flex-basis:100%}
+.bank-code{font-family:"Courier New",monospace;font-size:8.7pt;letter-spacing:.01em;white-space:nowrap}
+
+.page-break{break-before:page}
+.no-break{break-inside:avoid}
+
+/* ---------- Closing CTA: echoes the website without wasting ink ---------- */
+.experience-footer{position:relative;margin-top:11mm;padding:6mm 6mm 5.5mm;border:1px solid var(--ink);border-radius:5mm;break-inside:avoid;background:#fff}
+.experience-footer::before{content:"";position:absolute;left:6mm;top:-1px;width:28mm;height:2px;background:var(--ember)}
+.experience-footer h2{font-family:"Yrsa","Noto Serif",Georgia,serif;font-size:15pt;line-height:1;margin:0 0 2.6mm;letter-spacing:-.2px;text-transform:none;color:var(--ink)}
+.experience-footer h2::after{content:"  ↗";color:var(--ember)}
+.experience-footer p{margin:0 0 4mm;color:#37312c;max-width:150mm}
+.experience-footer .identity{font-family:"Syne","Noto Sans",sans-serif;font-size:6.5pt;line-height:1.75;text-transform:uppercase;letter-spacing:.10em;color:#69615a}
+.experience-footer a{color:inherit;text-decoration:none;font-weight:700}
+
+@media print{html,body,.doc{background:#fff}.doc{max-width:none}}
+body.compact .brand{margin-bottom:5.5mm;padding-bottom:6mm}
+body.compact .subtitle{margin-bottom:5.5mm}
+body.compact .section{margin:5.8mm 0}
+body.compact .signature{min-height:22mm}
+body.compact .signature-grid{margin-top:5.5mm}
+body.compact .experience-footer{margin-top:8mm;padding-top:5mm}
+body.compact .field{min-height:14.5mm;padding:3.6mm 4mm}
+body.compact .writable-row td{height:11.7mm}
+
+.experience-footer.compact-footer{margin-top:5mm;padding:4mm 4.5mm 3.8mm;border-radius:4mm}
+.experience-footer.compact-footer h2{font-size:12pt;margin-bottom:1.6mm}
+.experience-footer.compact-footer p{font-size:8pt;line-height:1.35;margin-bottom:2.2mm}
+.experience-footer.compact-footer .identity{font-size:5.6pt;line-height:1.5;letter-spacing:.08em}
+
+body.contract-dated .section{margin:4.7mm 0}
+body.contract-dated .section h2{margin-bottom:3mm}
+body.contract-dated .section p{margin-bottom:2mm}
+body.contract-dated .section li{margin:.8mm 0}
+body.contract-dated .soft{padding:4mm 4.5mm;margin:3mm 0}
+body.contract-dated .callout{padding:4mm 5mm;margin:3.5mm 0}
+body.contract-dated .signature{min-height:17mm;padding:3mm 4mm}
+body.contract-dated .signature-grid{margin-top:4mm}

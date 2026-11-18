@@ -464,10 +464,10 @@ export function withdrawalPage(){
 }
 
 export function adminPage(){
-  return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<link rel="stylesheet" href="/admin/documents.css?v=__DOCCSS_V__">\n<title>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
+  return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
-<div class="admin-app" data-admin-app data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret,vat:legal.vat,latePenalty:legal.latePenaltyB2B,discount:legal.discountTerms}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-templates.js?v=__TPL_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+<div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

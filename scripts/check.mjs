@@ -18,7 +18,8 @@ execFileSync(process.execPath,['--check',join(root,'src/app.js')],{stdio:'inheri
 async function walk(dir){let out=[];for(const name of await readdir(dir)){const file=join(dir,name),info=await stat(file);out=out.concat(info.isDirectory()?await walk(file):file)}return out}
 const files=await walk(dist);
 const existing=new Set(files.map(f=>relative(dist,f).replaceAll('\\','/')));
-const htmls=files.filter(f=>f.endsWith('.html'));
+// Les modèles de documents de l'admin (admin/docs/) ne sont pas des pages du site : contrôles dédiés plus bas.
+const htmls=files.filter(f=>f.endsWith('.html')&&!relative(dist,f).replaceAll('\\','/').startsWith('admin/docs/'));
 const css=await readFile(join(root,'src/styles.css'),'utf8');
 const app=await readFile(join(root,'src/app.js'),'utf8');
 const components=await readFile(join(root,'templates/components.mjs'),'utf8');
@@ -117,12 +118,35 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   for(const t of ['crm_contacts','crm_deals','crm_documents','crm_events','crm_settings']) if(!sql.includes(`'${t}'`)) fail(`Cockpit: ${t} missing from the RLS loop`);
   if(!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(sql)||!/revoke all on public\.%I from anon, authenticated/.test(sql)) fail('Cockpit: admin-only policy missing');
   if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
-// Documents : gabarits chargés, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
-{ const tpl=await readFile(join(root,'public/admin/doc-templates.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
-  if(!adminHtml.includes('/admin/doc-templates.js?v=')||!adminHtml.includes('/admin/documents.css?v=')||adminHtml.indexOf('doc-templates.js')>adminHtml.indexOf('cockpit.js?v=')) fail('Documents: templates must load before the cockpit');
-  if(/FR\d{2}[\s\d]{20,}|CEPAFRPP|\+33\s?\(0\)\s?7|07[\s.]?82[\s.]?04/i.test(tpl)) fail('Documents: bank details or phone must never be hard-coded (public repo)');
-  if(/<script|\son[a-z]+\s*=|javascript:/i.test(tpl)) fail('Documents: templates must not contain scripts or event handlers');
-  if(!/insert into storage\.buckets[\s\S]+false/.test(dsql)||(dsql.match(/bucket_id = 'documents' and \(select public\.is_admin\(\)\)/g)||[]).length<5) fail('Documents: storage bucket must stay private and admin-only'); }
+// Documents : modèles d'origine de Nolan (public/admin/docs/), décrits dans doc-models.js, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
+{ const models=await readFile(join(root,'public/admin/doc-models.js'),'utf8'), msgs=await readFile(join(root,'public/admin/messages.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
+  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
+  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, admin');
+  if(!adminHtml.includes('/admin/admin.css?v=')||!/data-docs="[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.css and the documents version must be on /admin/');
+  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
+  global.window={}; new Function('window',models)(window); new Function('window',msgs)(window);
+  const { models:list, settingsFields }=window.NolanDocModels, { steps, messages }=window.NolanMessages;
+  const docFiles=[...existing].filter(f=>/^admin\/docs\/[^/]+\.html$/.test(f));
+  if(docFiles.length!==7||!existing.has('admin/docs/legal-docs.css')||!existing.has('admin/docs/fill.css')) fail('Documents: the six original models, the pro forma invoice, legal-docs.css and fill.css are expected in admin/docs/');
+  for(const m of list){
+    const html=await readFile(join(dist,'admin/docs',m.file),'utf8').catch(()=>'');
+    if(!html) { fail(`Documents: model file missing for ${m.id}`); continue; }
+    if(/FR\d{2}[\s\d]{20,}|CEPAFRPP|Caisse d.Epargne|RIBEIRO NOLAN|\+33\s?\(0\)\s?7|07[\s.]?82[\s.]?04/i.test(html)) fail(`Documents: bank details or phone hard-coded in ${m.file} (public repo)`);
+    if(/<script|\son[a-z]+\s*=|javascript:/i.test(html)) fail(`Documents: ${m.file} must not contain scripts or event handlers`);
+    if(!html.includes('href="legal-docs.css"')) fail(`Documents: ${m.file} must use legal-docs.css`);
+    const covered=new Set([...m.sections.flatMap(sec=>[...(sec.fields||[]),...(sec.flags||[])].map(f=>f.name)),...Object.keys(settingsFields),...(m.computed||[]),...(m.lines?m.lines.slots.flatMap(sl=>sl.rows.flatMap(n=>[`Ligne${n}`,`Qte${n}`,`Prix${n}`,`Total${n}`])):[])]);
+    const checks=new Set(m.sections.flatMap(sec=>(sec.checks||[]).map(c=>c.name)));
+    for(const [,f] of html.matchAll(/data-field="(\w+)"/g)) if(!covered.has(f)) fail(`Documents: field ${f} of ${m.file} is not in the admin form`);
+    for(const [,c] of html.matchAll(/\[\[CHK:(\w+)\]\]/g)) if(!checks.has(c)) fail(`Documents: box ${c} of ${m.file} is not in the admin form`);
+    for(const [,f] of html.matchAll(/data-if(?:not)?="(\w+)"/g)) if(!covered.has(f)) fail(`Documents: condition ${f} of ${m.file} has no value`);
+  }
+  const facture=await readFile(join(dist,'admin/docs/facture-pro-forma.html'),'utf8');
+  if(!facture.includes('Document informatif.</strong> La facture officielle est émise via Indy, plateforme agréée de facturation électronique.')||!facture.includes('TVA non applicable, art. 293 B du CGI')||!/data-if="ClientPro">[^<]*40 €/.test(facture)) fail('Documents: pro forma must state Indy, art. 293 B, and the 40 € indemnity only for professionals');
+  if(messages.length<18||messages.some(m=>!m.when||!m.why||!steps.some(st=>st.id===m.step))) fail('Messages: each message needs a step, a when and a why');
+  if(!/insert into storage\.buckets[\s\S]+false/.test(dsql)||(dsql.match(/bucket_id = 'documents' and \(select public\.is_admin\(\)\)/g)||[]).length<5) fail('Documents: storage bucket must stay private and admin-only');
+  const v2=await readFile(join(root,'supabase/admin_v2_schema.sql'),'utf8');
+  if(!/alter table public\.crm_messages enable row level security/.test(v2)||!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(v2)||!/revoke all on public\.crm_messages from anon, authenticated/.test(v2)) fail('Admin v2: crm_messages must be admin-only');
+  if(/\bdrop table\b|\bdelete from\b|\btruncate\b/i.test(v2)) fail('Admin v2: the migration must never delete data'); }
 // Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
 for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
   const h=await readFile(join(dist,f),'utf8');
@@ -131,6 +155,8 @@ for(const f of ['index.html','404.html','admin/index.html','contact/index.html',
   else { if(/'unsafe-eval'/.test(csp[1])||/script-src[^;]*'unsafe-inline'/.test(csp[1])) fail(`Security: CSP too permissive on ${f}`);
     if(!/object-src 'none'/.test(csp[1])||!/base-uri 'self'/.test(csp[1])||!/form-action 'self' https:\/\/formsubmit\.co/.test(csp[1])) fail(`Security: CSP directives missing on ${f}`); }
   if(h.indexOf('Content-Security-Policy')>h.indexOf('<script')&&h.includes('<script')) fail(`Security: CSP must come before any script on ${f}`);
+  if(csp && !/frame-src 'self' /.test(csp[1])) fail(`Security: frame-src must allow 'self' (admin document preview) on ${f}`);
+  if(csp && /frame-src[^;]*(\*|https?:(?:;|\s))/.test(csp[1])) fail(`Security: frame-src must list exact origins on ${f}`);
 }
 { const js=await readFile(join(root,'src/app.js'),'utf8');
   if(/import\(\s*['"]https?:/.test(js)) fail('Security: no third-party module import from a CDN');
