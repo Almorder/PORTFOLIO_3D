@@ -18,15 +18,8 @@ const media=(t,cls)=>t.image
   ? `<span class="${cls}"><img src="${esc(t.image)}" alt="" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
-/** Avis en cartes (forme d'origine) : un clic ouvre la carte en grand panneau (image du projet, phrase entière, lien). */
-export function morphTestimonials(items=[]){
-  return `<div class="v16-testimonial-bento" data-morph-list>${items.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}">
-      <div class="v16-stars" aria-label="Retour client positif">★★★★★</div>
-      <blockquote>« ${esc(t.quote)} »</blockquote>
-      <footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
-      <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(t.name)}"></button>
-    </article>`).join('')}</div>
-    ${items.map((t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
+/** Panneau d'un avis (dialog natif) : partagé par l'accueil et la page Contact, ouvert par [data-morph-open]. */
+export const morphPanel=(t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
         <div class="morph-panel__inner">
           ${media(t,'morph-panel__media')}
           <div class="morph-panel__body">
@@ -36,7 +29,17 @@ export function morphTestimonials(items=[]){
           </div>
           <button type="button" class="morph-panel__close" data-morph-close aria-label="Fermer">×</button>
         </div>
-      </dialog>`).join('')}`;
+      </dialog>`;
+
+/** Avis en cartes (forme d'origine) : un clic ouvre la carte en grand panneau (image du projet, phrase entière, lien). */
+export function morphTestimonials(items=[]){
+  return `<div class="v16-testimonial-bento" data-morph-list>${items.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}">
+      <div class="v16-stars" aria-label="Retour client positif">★★★★★</div>
+      <blockquote>« ${esc(t.quote)} »</blockquote>
+      <footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
+      <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(t.name)}"></button>
+    </article>`).join('')}</div>
+    ${items.map((t,i)=>morphPanel(t,i)).join('')}`;
 }
 
 /** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand. */
