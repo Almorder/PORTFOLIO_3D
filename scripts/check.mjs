@@ -278,6 +278,14 @@ for(const name of ['name="nom"','name="email"','name="message"']) if(!contact.in
 if(!contact.includes('Budget / entreprise')||!contact.includes('data-form-intent')) fail('Contact V17: V15 optional detail/intent system missing');
 if(!contact.includes('id="faq-contact"')) fail('Contact V17: dedicated FAQ missing');
 if(contact.includes('data-brand-preloader')) fail('Contact V17: preloader must not delay internal route');
+// CONTACT V2 — quatre portes d'entrée, formulaire en trois étapes, confirmation accessible.
+if(!contact.includes('data-copy-email=')||!contact.includes(`href="mailto:${siteData.email}?subject=`)) fail('Contact V2: email channel must copy the address and open mail with a subject');
+if(!/href="https:\/\/ig\.me\/m\/[\w.]+"[^>]*data-copy-ig=/.test(contact)) fail('Contact V2: Instagram channel must open ig.me and copy the opening message');
+if(!contact.includes(`href="${siteData.calendly}"`)) fail('Contact V2: Calendly channel missing');
+if((contact.match(/class="cx-step/g)||[]).length!==3) fail('Contact V2: the form keeps three targeted steps');
+for(const page of [contact,home]) if(!page.includes('data-contact-dialog')||!/role="dialog" aria-modal="true"/.test(page)||!page.includes('48 h')) fail('Contact V2: confirmation dialog (role, aria-modal, 48 h) missing');
+if(!app.includes("e.key==='Escape'){e.preventDefault();close()")||!app.includes('role="alert"')) fail('Contact V2: dialog must close on Escape and failures must be announced');
+
 
 // Public privacy preference.
 for(const html of [home,work,project,services,about,journal,contact,privacy]){

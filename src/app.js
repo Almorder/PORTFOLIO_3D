@@ -204,13 +204,82 @@ if(menuButton && mobileMenu){
 }
 
 
+// Copie dans le presse-papiers, avec repli pour les navigateurs sans API Clipboard.
+const copyText=async text=>{
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch{
+    try{ const t=document.createElement('textarea'); t.value=text; t.setAttribute('readonly',''); t.className='honeypot'; document.body.append(t); t.select(); const ok=document.execCommand('copy'); t.remove(); return ok; }
+    catch{ return false; }
+  }
+};
+
+// Confirmation d'envoi : dialogue modal, focus piégé, Échap ferme, focus rendu à l'élément d'origine.
+const contactDialog=$('[data-contact-dialog]');
+const dialogApi=(()=>{
+  if(!contactDialog) return null;
+  const card=$('[role="dialog"]',contactDialog); let back=null, hideTimer=0;
+  const focusables=()=>$$('a[href],button:not([disabled])',card);
+  const close=()=>{
+    if(contactDialog.hidden) return;
+    contactDialog.classList.remove('is-open'); document.body.classList.remove('cx-dialog-open');
+    clearTimeout(hideTimer); hideTimer=setTimeout(()=>{contactDialog.hidden=true;},reduced?0:320);
+    (back&&document.contains(back)?back:document.body).focus?.();
+  };
+  const open=returnTo=>{
+    clearTimeout(hideTimer); back=returnTo||document.activeElement; contactDialog.hidden=false;
+    document.body.classList.add('cx-dialog-open');
+    requestAnimationFrame(()=>{contactDialog.classList.add('is-open'); (focusables().find(el=>el.matches('.cx-dialog__actions a'))||card).focus();});
+  };
+  $$('[data-dialog-close]',contactDialog).forEach(el=>el.addEventListener('click',close));
+  document.addEventListener('keydown',e=>{
+    if(contactDialog.hidden) return;
+    if(e.key==='Escape'){e.preventDefault();close();return;}
+    if(e.key==='Tab'){
+      const list=focusables(); if(!list.length) return;
+      const first=list[0], last=list.at(-1);
+      if(!card.contains(document.activeElement)){e.preventDefault();first.focus();return;}
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  return {open,close};
+})();
+
+// Moyens de contact directs : l'email est copié pendant que la messagerie s'ouvre ; Instagram ne permet pas
+// de préremplir un message privé, donc la phrase d'ouverture est copiée pour être collée dans la conversation.
+const channelStatus=$('[data-channel-status]');
+const flagChannel=(link,text)=>{
+  const note=$('[data-channel-note]',link);
+  if(note){ note.dataset.original??=note.textContent; note.textContent=text; }
+  link.classList.add('is-copied'); if(channelStatus) channelStatus.textContent=text;
+  clearTimeout(link.copyTimer); link.copyTimer=setTimeout(()=>{link.classList.remove('is-copied'); if(note) note.textContent=note.dataset.original;},4200);
+};
+$$('[data-copy-email]').forEach(link=>link.addEventListener('click',async()=>{
+  const ok=await copyText(link.dataset.copyEmail);
+  flagChannel(link,ok?'Adresse copiée':'Votre messagerie s’ouvre');
+}));
+$$('[data-copy-ig]').forEach(link=>link.addEventListener('click',async()=>{
+  const ok=await copyText(link.dataset.copyIg);
+  flagChannel(link,ok?'Message copié, collez-le dans la conversation':'Écrivez-moi en message privé');
+}));
+
 // Contact intent adapts only from the URL or an explicit click on the current page.
 const form=$('[data-contact-form]');
 if(form){
   const buttons=$$('[data-form-intent]',form);
   const input=$('[data-intent-input]',form);
-  const initialIntent=new URLSearchParams(location.search).get('intent') || 'other';
+  const message=form.querySelector('textarea[name="message"]');
+  const hint=$('[data-message-hint]',form);
+  const params=new URLSearchParams(location.search);
+  const initialIntent=params.get('intent') || 'other';
   const map={brand:'Marque',moment:'Mariage / moment',story:'Film / récit',other:'Autre'};
+  // Sur la page Contact, le champ message s'adapte à l'intention choisie.
+  const prompts={
+    moment:['La date, le lieu et ce que vous voulez garder de ce moment.','Une date, même approximative, m’aide à vérifier ma disponibilité.'],
+    brand:['Votre marque, ce qui bloque aujourd’hui et ce que vous attendez de moi.','Un lien vers votre compte ou votre site suffit pour commencer.'],
+    story:['L’idée du film, à quoi il doit servir et la date si elle existe.','Chaque film commence par une consultation : quelques lignes suffisent.'],
+    other:['L’idée, la date si elle existe, le lieu et ce que vous attendez de moi.','Quelques lignes suffisent. On précise le reste ensemble.'],
+  };
   const setIntent=(key='other')=>{
     const safe=map[key]?key:'other';
     if(input) input.value=map[safe];
@@ -219,36 +288,51 @@ if(form){
       b.classList.toggle('is-active',active);
       b.setAttribute('aria-pressed',String(active));
     });
+    if(hint&&message){ message.placeholder=prompts[safe][0]; hint.textContent=prompts[safe][1]; }
   };
   if(input||buttons.length){setIntent(initialIntent);buttons.forEach(b=>b.addEventListener('click',()=>setIntent(b.dataset.formIntent)));}
   // Arrivée depuis une carte « Tarifs » : l'offre choisie est notée et le message commence déjà.
   try{
-    const offers=JSON.parse(form.dataset.offers||'{}'), offer=offers[new URLSearchParams(location.search).get('offre')];
-    const message=form.querySelector('textarea[name="message"]'), offerInput=$('[data-offer-input]',form);
+    const offers=JSON.parse(form.dataset.offers||'{}'), offer=offers[params.get('offre')];
+    const offerInput=$('[data-offer-input]',form), chip=$('[data-offer-chip]',form);
     if(offer){
       if(offerInput) offerInput.value=offer.title;
       if(message&&!message.value.trim()){message.value=offer.message;}
       const subject=form.querySelector('input[name="_subject"]'); if(subject) subject.value=`Nouveau projet : ${offer.title} | nolanarc.com`;
+      if(chip){ chip.textContent=`Offre choisie : ${offer.title}${offer.price?` · ${offer.price}`:''}`; chip.hidden=false; }
       message?.addEventListener('focus',()=>{const end=message.value.length;message.setSelectionRange(end,end);},{once:true});
     }
   }catch{}
+
+  // Champs invalides signalés aux technologies d'assistance, puis libérés dès la correction.
+  $$('input[required],textarea[required]',form).forEach(field=>{
+    field.addEventListener('invalid',()=>field.setAttribute('aria-invalid','true'));
+    field.addEventListener('input',()=>{ if(field.checkValidity()) field.removeAttribute('aria-invalid'); });
+  });
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
     const submit=$('[data-submit]',form); const status=$('[data-form-status]',form);
     if(!form.reportValidity()) return;
     // Anti-rafale : un envoi toutes les 30 secondes au plus depuis cette page.
-    const nowTs=Date.now(); if(form.lastSent&&nowTs-form.lastSent<30000){ const st=$('[data-form-status]',form); if(st) st.textContent='Message déjà envoyé. Patientez quelques secondes avant d’en renvoyer un.'; return; }
-    submit.disabled=true; submit.dataset.original=submit.innerHTML; submit.textContent='Envoi…'; status.textContent='';
+    const nowTs=Date.now(); if(form.lastSent&&nowTs-form.lastSent<30000){ if(status) status.textContent='Message déjà envoyé. Patientez quelques secondes avant d’en renvoyer un.'; return; }
+    submit.disabled=true; submit.dataset.original=submit.innerHTML; submit.textContent='Envoi…'; status.textContent=''; status.classList.remove('is-error');
+    const payload=Object.fromEntries(new FormData(form).entries());
     try{
-      const payload=Object.fromEntries(new FormData(form).entries());
       const res=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({success:res.ok}));
       if(!res.ok || data.success===false) throw new Error('submit');
       form.lastSent=Date.now(); form.reset(); if(input||buttons.length) setIntent(initialIntent);
-      status.textContent='Message envoyé. Je reviens vers vous sous 48 h ouvrées.';
+      $$('[aria-invalid]',form).forEach(f=>f.removeAttribute('aria-invalid'));
+      if(dialogApi){ status.textContent='Message envoyé.'; dialogApi.open(submit); }
+      else status.textContent='Message envoyé. Je reviens vers vous sous 48 h ouvrées.';
     }catch{
-      status.innerHTML='L’envoi a échoué. Vous pouvez écrire directement à <a href="mailto:nolanribcontact@gmail.com">nolanribcontact@gmail.com</a>.';
+      // Le message n'est pas perdu : il est repris dans un email prêt à partir.
+      const to=new URL(form.action).pathname.split('/').pop();
+      const body=String(payload.message||'').slice(0,1500);
+      const href=`mailto:${to}?subject=${encodeURIComponent('Un projet | nolanarc.com')}&body=${encodeURIComponent(body)}`;
+      status.classList.add('is-error');
+      status.innerHTML=`<p role="alert"><strong>L’envoi n’a pas abouti.</strong> Votre message est toujours là. Vous pouvez réessayer, ou me l’envoyer par email : <a href="${href}">${to}</a>.</p>`;
     }finally{
       submit.disabled=false; submit.innerHTML=submit.dataset.original || 'Envoyer ↗';
     }
