@@ -7,3 +7,4 @@ dist/
 !.env.example
 content/photos.published.json
 public/assets/photo/site/
+content/projects.published.json

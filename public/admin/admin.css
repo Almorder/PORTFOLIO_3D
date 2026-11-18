@@ -177,3 +177,18 @@ a.admin-button{display:inline-flex;align-items:center;text-decoration:none}
   .admin-search__results{position:static;margin-top:6px}
   .ck-table{font-size:13px}
 }
+
+/* ---------- Projets de « Ma sélection » ---------- */
+.pj-admin{display:grid;gap:16px}
+.pj-list{display:grid;gap:10px}
+.pj-card>summary{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.pj-card>summary span{font-weight:600;overflow-wrap:anywhere}
+.pj-status{font-size:12px;opacity:.7}
+.pj-status.is-off{color:#a33607;opacity:1}
+.pj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.pj-media{display:grid;gap:10px}
+.pj-media .ph-thumb{max-width:280px}
+.pj-media__label{margin:0;font-weight:600;font-size:14px}
+.pj-media__tools{align-items:center}
+.pj-more{margin:4px 0}
+.pj-more>summary{cursor:pointer;font-size:14px}

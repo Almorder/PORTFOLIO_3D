@@ -4,7 +4,7 @@
 // trois photos, la tuile et la section ne sont pas affichées (jamais de cadre vide en ligne).
 //
 // Les photos se gèrent depuis l'admin (/admin/, rubrique « Photos de la page Work ») : envoi, ordre,
-// légendes, photo de la tuile. Au déploiement, tools/fetch-photos.mjs copie la dernière version publiée
+// légendes, photo de la tuile. Au déploiement, tools/fetch-published.mjs copie la dernière version publiée
 // dans public/assets/photo/site/ et écrit content/photos.published.json (fichiers générés, non versionnés).
 import { readFileSync } from 'node:fs';
 

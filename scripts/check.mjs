@@ -120,10 +120,10 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
 // Documents : modèles d'origine de Nolan (public/admin/docs/), décrits dans doc-models.js, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
 { const models=await readFile(join(root,'public/admin/doc-models.js'),'utf8'), msgs=await readFile(join(root,'public/admin/messages.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
-  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','photos.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
-  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, photos, admin');
+  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','photos.js','projects.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
+  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, photos, projects, admin');
   if(!adminHtml.includes('/admin/admin.css?v=')||!/data-docs="[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.css and the documents version must be on /admin/');
-  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs],['photos.js',await readFile(join(root,'public/admin/photos.js'),'utf8')],['admin.js',await readFile(join(root,'public/admin/admin.js'),'utf8')]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
+  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs],['photos.js',await readFile(join(root,'public/admin/photos.js'),'utf8')],['projects.js',await readFile(join(root,'public/admin/projects.js'),'utf8')],['admin.js',await readFile(join(root,'public/admin/admin.js'),'utf8')]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
   global.window={}; new Function('window',models)(window); new Function('window',msgs)(window);
   const { models:list, settingsFields }=window.NolanDocModels, { steps, messages }=window.NolanMessages;
   const docFiles=[...existing].filter(f=>/^admin\/docs\/[^/]+\.html$/.test(f));
@@ -161,7 +161,16 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
     if(!(ph.width&&ph.height&&ph.smallWidth&&ph.smallHeight)) fail(`Photos: ${ph.src} needs its real dimensions`);
   }
   if(pics.length>=3&&!/<section class="wk-photo" id="photo"/.test(workHtml)) fail('Work: three published photos must show the photography section');
-  if(/<img[^>]+supabase\.co/i.test(workHtml)) fail('Photos: visitors must never load a photo from Supabase'); }
+  if(/<img[^>]+supabase\.co/i.test(workHtml)) fail('Photos: visitors must never load a photo from Supabase');
+  // Projets de « Ma sélection » publiés depuis l'admin : image servie par le site (seule exception, l'affiche
+  // YouTube du film tant qu'elle n'est pas copiée), texte alternatif présent, aucun lecteur chargé d'avance.
+  const { projects:pj }=await import('../content/projects.mjs');
+  const bento=workHtml.slice(workHtml.indexOf('data-bento'),workHtml.indexOf('data-fiche'));
+  for(const [,src,alt] of bento.matchAll(/<img src="([^"]+)" alt="([^"]*)"/g)){
+    if(!(src.startsWith('/')&&existing.has(src.slice(1)))&&src!==pj.find(p=>p.slug==='le-bol-den-face')?.poster) fail(`Work: bento image not served by the site (${src})`);
+    if(!alt.trim()) fail(`Work: bento image without alt (${src})`); }
+  if(/<iframe|<video/i.test(bento)) fail('Work: no player may load in the bento before a click');
+  if(!pj.some(p=>p.slug==='le-bol-den-face')||!existing.has('projet/le-bol-den-face/index.html')) fail('Work: Le bol d’en face and its page must always exist'); }
 // Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
 for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
   const h=await readFile(join(dist,f),'utf8');
@@ -263,7 +272,10 @@ if(!app.includes('drag.velocity')||!app.includes('projected=state.delta+state.ve
 const visibleCards=1+projectData.filter(p=>p.visible&&p.card&&p.card.image).length;
 if(!app.includes('[data-gradient-motion]')||!app.includes("getContext('webgl'")||!css.includes('.gradient-motion-bg.has-mesh i')) fail('Mesh gradient: WebGL layer with CSS fallback expected');
 if((home.match(/<a class="fab-project-card[\s"]/g)||[]).length!==visibleCards) fail(`Home: ${visibleCards} carte(s) projet attendue(s) (projets visibles), trouvé autre chose`);
-for(const p of projectData){ if(p.visible&&p.slug!=='le-bol-den-face'&&!(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))) fail(`Projet « ${p.title} » visible sans média réel (R1) : mettre card.image réel ou visible:false`); }
+// Média réel : image du code (card.image), image envoyée depuis l'admin (copiée dans le site) ou vidéo YouTube / Instagram
+// (la page n'affiche ces projets qu'avec une image servie par le site, voir templates/pages.mjs).
+const realMedia=p=>(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))||(p.image&&existing.has(String(p.image.srcSmall||'').slice(1)))||/^[\w-]{11}$/.test(p.videoId||'')||(p.mediaKind==='instagram'&&p.instagramId&&p.image);
+for(const p of (await import('../content/projects.mjs')).projects){ if(p.visible&&p.slug!=='le-bol-den-face'&&!realMedia(p)) fail(`Projet « ${p.title} » visible sans média réel (R1) : mettre card.image réel ou visible:false`); }
 for(const file of htmls){ if(/Illustration temporaire/i.test(await readFile(file,'utf8'))) fail(`Placeholder « Illustration temporaire » visible (${relative(dist,file)}) — R1`); }
 // WORK V2 : « Ma sélection » (grille par défaut, liste filtrable), fiche, avis de l'accueil, accès direct au contact.
 if(!work.includes('data-work-views')||!/data-work-view="grid" aria-pressed="true"/.test(work)||!/data-work-panel="list" hidden/.test(work)||!work.includes('data-work-filter="tout"')||!work.includes('data-fiche')) fail('Work V2: grid/list toggle (grid by default), filters and project sheet expected');

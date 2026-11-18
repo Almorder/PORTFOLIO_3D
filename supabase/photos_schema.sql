@@ -4,13 +4,14 @@
 --
 -- Ce que fait ce fichier, concrètement :
 -- 1. Autorise un nouveau bloc de brouillon « photos » (la liste des photos, leur ordre, leurs légendes).
+--    Les images des projets de « Ma sélection » utilisent le même espace de fichiers.
 -- 2. Crée l'espace de fichiers « site-photos » : public en lecture (ce sont les photos publiées sur le site),
 --    uniquement des images WebP, 3 Mo maximum par fichier.
 -- 3. Sécurité : seul l'administrateur peut envoyer, remplacer, lister ou supprimer un fichier.
 --    Un visiteur peut seulement ouvrir une photo dont il connaît l'adresse exacte ; il ne peut pas lister l'espace.
 --
 -- Les visiteurs du site ne contactent jamais Supabase : au déploiement, le site copie les photos publiées
--- chez lui (tools/fetch-photos.mjs) et les sert depuis nolanarc.com.
+-- chez lui (tools/fetch-published.mjs) et les sert depuis nolanarc.com.
 
 -- ---------------------------------------------------------------- 1. Brouillon « photos »
 alter table public.content_drafts drop constraint if exists content_drafts_key_check;

@@ -45,7 +45,10 @@ export function offerCatalog(businessId) {
 }
 
 const visibleProjects = projects.filter(p => p.slug === 'le-bol-den-face' || p.visible);
-const otherProjects = projects.filter(p => !visibleProjects.includes(p));
+// Projets passés décrits dans le code (status) mais sans média en ligne ; projets mis en avant depuis l'admin.
+const otherProjects = projects.filter(p => !visibleProjects.includes(p) && p.status);
+const featuredProjects = projects.filter(p => p.visible && p.slug !== 'le-bol-den-face');
+const projectLine = p => `- ${p.title}${p.year ? ` (${p.year})` : ''}${p.type ? `, ${p.type.toLowerCase()}` : ''}${p.summary ? ` : ${p.summary}` : ''}${p.client ? ` Client : ${p.client}.` : ''} ${url('/work/#selection')}`;
 const bol = projects.find(p => p.slug === 'le-bol-den-face');
 const url = path => `${site.domain}${path}`;
 
@@ -80,7 +83,7 @@ ${offerLines()}
 
 ## Projets
 - ${bol.title} (${bol.year}) : ${bol.type.toLowerCase()}, ${bol.role.toLowerCase()}, ${bol.context}. ${url(bol.href)}
-${otherProjects.map(p => `- ${p.title} (${p.year}) : ${p.role.toLowerCase()}.`).join('\n')}
+${[...featuredProjects.map(projectLine), ...otherProjects.map(p => `- ${p.title} (${p.year}) : ${p.role.toLowerCase()}.`)].join('\n')}
 - Vidéos verticales : ${instagramPosts.map(p => p.title).join(', ')}. ${url('/work/#social')}
 
 ## Pages
@@ -120,7 +123,7 @@ ${offers.map(o => `### ${offerName(o)}\n- Tarif : ${priceLabel(o)}\n- ${o.text}\
 
 ## Projets
 - ${bol.title} (${bol.year}), ${bol.type.toLowerCase()} : ${bol.summary} Rôle : ${bol.role.toLowerCase()}. Contexte : ${bol.context}. Lieu : ${bol.location}. Caméra : ${bol.camera}. ${url(bol.href)}
-${otherProjects.map(p => `- ${p.title} (${p.year}), ${p.type.toLowerCase()} : ${p.summary}`).join('\n')}
+${[...featuredProjects.map(projectLine), ...otherProjects.map(p => `- ${p.title} (${p.year}), ${p.type.toLowerCase()} : ${p.summary}`)].join('\n')}
 - Vidéos verticales pour les réseaux sociaux : ${instagramPosts.map(p => p.kind ? `${p.title} (${p.kind.toLowerCase()})` : p.title).join(', ')}. ${url('/work/#social')}
 
 ## Journal

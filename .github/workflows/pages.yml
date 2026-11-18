@@ -28,10 +28,10 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
+      - name: Copy what was published from the admin (photos, projects)
+        run: node tools/fetch-published.mjs
       - name: Copy film posters to the site
         run: node tools/fetch-posters.mjs
-      - name: Copy published photos to the site
-        run: node tools/fetch-photos.mjs
       - name: Check and build
         run: npm run check
       - name: Configure GitHub Pages

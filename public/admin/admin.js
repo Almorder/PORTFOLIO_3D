@@ -25,7 +25,7 @@
 
   const SECTIONS = [
     { id: 'overview', label: 'État du site', group: 'Site' },
-    { id: 'projects', label: 'Projets du portfolio', group: 'Site', hint: 'Fiches projet et visibilité sur le site.' },
+    { id: 'projects', label: 'Projets du portfolio', group: 'Site', hint: 'Section « Ma sélection » de la page Work.' },
     { id: 'testimonials', label: 'Témoignages', group: 'Site', hint: 'Avis clients affichés sur le site.' },
     { id: 'instagram', label: 'Social media videos', group: 'Site', hint: 'Vidéos Instagram de la page Work.' },
     { id: 'photos', label: 'Photos de la page Work', group: 'Site', hint: 'Section Photographie et tuile du bento.' },
@@ -62,7 +62,7 @@
     // Bloc « photos » à part : il n'existe qu'une fois supabase/photos_schema.sql exécuté, son absence ne bloque pas l'import.
     let count = rows.length;
     if (seed.photos) { const res = await client.from('content_drafts').upsert({ key: 'photos', data: seed.photos }); if (!res.error) count++; }
-    photos?.reset();
+    photos?.reset(); projectsEditor?.reset();
     await load();
     return count;
   };
@@ -149,9 +149,15 @@
     const { data, error } = await client.rpc('publish_snapshot', { p_note: note || null });
     if (error) { say(`Publication impossible : ${error.message}`, 'error'); return false; }
     try { await load(); } catch {}
-    draw(); say(`Version n° ${data} enregistrée. Les photos seront sur le site dans l’heure.`, 'ok');
+    draw(); say(`Version n° ${data} enregistrée. Projets et photos seront sur le site dans l’heure.`, 'ok');
     return true;
   };
+  // Projets de « Ma sélection » (public/admin/projects.js) : éditeur dédié du bloc « projects ».
+  const projectsEditor = window.NolanProjects ? window.NolanProjects({ client, el, button, say, heading, card,
+    getDraft: () => state.drafts.projects?.data,
+    saveDraft: async data => { const res = await client.from('content_drafts').upsert({ key: 'projects', data }); if (!res.error) { try { await load(); } catch {} } return res; },
+    publish: publishVersion,
+    setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
   // Photos de la page Work (public/admin/photos.js) : envoi des fichiers, ordre, légendes, tuile.
   const photos = window.NolanPhotos ? window.NolanPhotos({ client, el, button, say, heading, card,
     getDraft: () => state.drafts.photos?.data,
@@ -163,6 +169,7 @@
   const VIEWS = {};
   if (cockpit) Object.assign(VIEWS, cockpit.views);
   if (photos) VIEWS.photos = photos.view;
+  if (projectsEditor) VIEWS.projects = projectsEditor.view;
   VIEWS.overview = () => {
     const d = key => state.drafts[key]?.data;
     if (!Object.keys(state.drafts).length) {
@@ -321,7 +328,7 @@
       catch (err) { say(`Import impossible : ${err.message}`, 'error'); reset.disabled = false; }
     });
     return el('div', {}, [
-      heading('Publication', 'Une version fige l’ensemble des brouillons. Les photos de la page Work sont mises en ligne automatiquement dans l’heure ; les autres blocs ne sont pas encore relus par le site public (modification dans le code pour l’instant).'),
+      heading('Publication', 'Une version fige l’ensemble des brouillons. Les projets et les photos de la page Work sont mis en ligne automatiquement dans l’heure ; les autres blocs (témoignages, social media videos, textes, informations légales) ne sont pas encore relus par le site public.'),
       el('div', { className: 'admin-grid' }, [
         card('Nouvelle version', [
           el('p', { className: waiting.length ? 'admin-alert' : 'admin-ok', textContent: waiting.length ? `Modifié depuis la dernière version : ${waiting.map(labelOf).join(', ')}.` : 'Aucune modification en attente.' }),

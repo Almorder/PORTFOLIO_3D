@@ -1,7 +1,8 @@
 // Admin Nolan Arc : photos de la page Work (section Photographie et tuile du bento).
 // Les fichiers sont réduits dans le navigateur (WebP, deux tailles, métadonnées et position GPS retirées)
 // puis envoyés dans l'espace Supabase « site-photos ». La liste (ordre, légendes, photo de la tuile) est le
-// brouillon « photos ». Au déploiement, tools/fetch-photos.mjs copie la dernière version publiée sur le site.
+// brouillon « photos ». Au déploiement, tools/fetch-published.mjs copie la dernière version publiée sur le site.
+// window.NolanMedia (réduction, envoi, aperçu) sert aussi aux images des projets (public/admin/projects.js).
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const BUCKET = 'site-photos';
@@ -28,16 +29,25 @@
     return { blob, width, height };
   };
 
-  window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty }) => {
-    const previews = new Map();
-    let model = null, removed = [], busy = false, redraw = () => {};
-    const reset = () => {
-      const data = getDraft() || {};
-      model = { cover: data.cover || '', items: Array.isArray(data.items) ? structuredClone(data.items) : [] };
-      removed = [];
-    };
-    const touch = () => { setDirty(true); say('Modifications non enregistrées.', 'warn'); };
+  // Fichier choisi -> deux WebP envoyés dans l'espace « site-photos ». Renvoie l'identifiant et les dimensions.
+  const previews = new Map();
+  const media = client => {
     const publicUrl = path => client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    const store = async file => {
+      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(`${file.name} : formats acceptés JPEG, PNG ou WebP`);
+      if (file.size > MAX_SOURCE) throw new Error(`${file.name} dépasse 40 Mo`);
+      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      const large = await encode(bitmap, SIZES.large), small = await encode(bitmap, SIZES.small);
+      bitmap.close?.();
+      const id = crypto.randomUUID();
+      const [pLarge, pSmall] = pathsOf(id);
+      for (const [path, blob] of [[pLarge, large.blob], [pSmall, small.blob]]) {
+        const { error } = await client.storage.from(BUCKET).upload(path, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
+        if (error) throw new Error(`envoi de ${file.name} impossible : ${error.message}`);
+      }
+      previews.set(id, URL.createObjectURL(small.blob));
+      return { id, width: large.width, height: large.height, smallWidth: small.width, smallHeight: small.height };
+    };
     // Aperçu : le fichier est lu par fetch puis affiché en blob: (la politique de sécurité n'autorise pas
     // d'image venant directement de Supabase, et le site public n'en a pas besoin).
     const preview = (img, id) => {
@@ -46,6 +56,20 @@
         const url = URL.createObjectURL(blob); previews.set(id, url); img.src = url;
       }).catch(() => { img.alt = 'Aperçu indisponible'; });
     };
+    const remove = async ids => { const paths = ids.flatMap(pathsOf); if (paths.length) await client.storage.from(BUCKET).remove(paths); ids.forEach(id => { const url = previews.get(id); if (url) { URL.revokeObjectURL(url); previews.delete(id); } }); };
+    return { store, preview, remove, noDash };
+  };
+  window.NolanMedia = media;
+
+  window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty }) => {
+    const { store, preview, remove } = media(client);
+    let model = null, removed = [], busy = false, redraw = () => {};
+    const reset = () => {
+      const data = getDraft() || {};
+      model = { cover: data.cover || '', items: Array.isArray(data.items) ? structuredClone(data.items) : [] };
+      removed = [];
+    };
+    const touch = () => { setDirty(true); say('Modifications non enregistrées.', 'warn'); };
     const visibleCount = () => model.items.filter(p => p.visible && String(p.alt || '').trim()).length;
 
     const upload = async files => {
@@ -56,20 +80,10 @@
       try {
         for (const file of list) {
           say(`Préparation de ${file.name} (${done + 1}/${list.length})…`);
-          if (file.size > MAX_SOURCE) throw new Error(`${file.name} dépasse 40 Mo`);
-          const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-          const large = await encode(bitmap, SIZES.large), small = await encode(bitmap, SIZES.small);
-          bitmap.close?.();
-          const id = crypto.randomUUID();
-          const [pLarge, pSmall] = pathsOf(id);
-          for (const [path, blob] of [[pLarge, large.blob], [pSmall, small.blob]]) {
-            const { error } = await client.storage.from(BUCKET).upload(path, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
-            if (error) throw new Error(`envoi de ${file.name} impossible : ${error.message}`);
-          }
-          previews.set(id, URL.createObjectURL(small.blob));
+          const image = await store(file);
           const last = model.items[model.items.length - 1];
           // Masquée tant que le texte alternatif n'est pas écrit ; série et année reprises de la photo précédente.
-          model.items.push({ id, width: large.width, height: large.height, smallWidth: small.width, smallHeight: small.height, series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false });
+          model.items.push({ ...image, series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false });
           done++;
         }
       } catch (err) {
@@ -104,7 +118,7 @@
       say('Enregistrement…');
       const { error } = await saveDraft({ cover: model.cover, items: model.items });
       if (error) { say(`Enregistrement impossible : ${error.message}`, 'error'); redraw(); return false; }
-      if (removed.length) { await client.storage.from(BUCKET).remove(removed); removed.forEach(path => { const id = path.replace(/(-s)?\.webp$/, ''); const url = previews.get(id); if (url) { URL.revokeObjectURL(url); previews.delete(id); } }); }
+      if (removed.length) await remove(removed);
       setDirty(false); reset(); redraw();
       say('Photos enregistrées. Clique sur « Enregistrer et publier » pour les mettre en ligne.', 'ok');
       return true;
@@ -160,7 +174,7 @@
       const tool = (text, label, key, action, disabled) => { const b = button(text, 'admin-mini', action, label); b.dataset.focusKey = `${item.id}-${key}`; b.disabled = Boolean(disabled); return b; };
       const del = tool('Supprimer', `Supprimer la photo ${n}`, 'del', () => {
         if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmer la suppression'; return say('La photo sera supprimée définitivement à l’enregistrement. Clique encore pour confirmer.', 'warn'); }
-        model.items.splice(index, 1); removed.push(...pathsOf(item.id));
+        model.items.splice(index, 1); removed.push(item.id);
         if (model.cover === item.id) model.cover = '';
         touch(); redraw();
       });

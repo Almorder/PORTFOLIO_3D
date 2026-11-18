@@ -1,7 +1,8 @@
-name: Photos publiées depuis l'admin
+name: Publication depuis l'admin
 
-# Toutes les heures : si une nouvelle version des photos a été publiée dans l'admin (/admin/), relance le
-# déploiement du site, qui copie les photos sur nolanarc.com (tools/fetch-photos.mjs). Sinon, ne fait rien.
+# Toutes les heures : si une nouvelle version (photos, projets de « Ma sélection ») a été publiée dans l'admin
+# (/admin/), relance le déploiement du site, qui la copie sur nolanarc.com (tools/fetch-published.mjs).
+# Sinon, ne fait rien.
 # Aucun secret : la version publiée se lit avec la clé publique, et le jeton GitHub fourni à chaque exécution
 # sert uniquement à lancer le déploiement.
 on:
@@ -31,9 +32,9 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Compare published photos with the live site
+      - name: Compare the published version with the live site
         id: photos
-        run: node tools/fetch-photos.mjs --check
+        run: node tools/fetch-published.mjs --check
       - name: Deploy the site
         if: steps.photos.outputs.changed == 'true'
         env:
