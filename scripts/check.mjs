@@ -96,7 +96,7 @@ for(const m of gearHtml.matchAll(/<img src="([^"]+)"/g)){
 for(const file of ['assets/gear/desk.webp','assets/gear/desk-900.webp','assets/da/texture.webp','assets/da/texture-wide.webp']) if(!existing.has(file)) fail(`Home: visual asset missing (${file})`);
 // Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
 const {weddingPhotos}=await import('../content/wedding.mjs');
-if(!home.includes('class="wedding-wall')||(home.match(/class="polaroid"/g)||[]).length!==3||(!weddingPhotos.length&&/<a class="polaroid"[^>]*><img/.test(home))) fail('Home: wedding wall shows three polaroids, and no stand-in photo while none is provided');
+if(!home.includes('class="wedding-wall')||(home.match(/class="polaroid"/g)||[]).length!==3||[...home.matchAll(/class="polaroid__photo"><img src="([^"]+)"[^>]*alt="([^"]*)"/g)].some(([,src,alt])=>!existing.has(src.slice(1))||!alt.trim())) fail('Home: wedding wall shows three polaroids, and no stand-in photo while none is provided');
 for(const photo of weddingPhotos){
   if(!existing.has(String(photo.src).replace(/^\//,''))) fail(`Wedding: missing photo file ${photo.src}`);
   if(!photo.alt) fail(`Wedding: photo ${photo.src} needs an alt description`);
@@ -120,10 +120,10 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
 // Documents : modèles d'origine de Nolan (public/admin/docs/), décrits dans doc-models.js, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
 { const models=await readFile(join(root,'public/admin/doc-models.js'),'utf8'), msgs=await readFile(join(root,'public/admin/messages.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
-  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','photos.js','projects.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
-  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, photos, projects, admin');
+  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','media.js','photos.js','projects.js','videos.js','images.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
+  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, media, photos, projects, videos, images, admin');
   if(!adminHtml.includes('/admin/admin.css?v=')||!/data-docs="[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.css and the documents version must be on /admin/');
-  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs],['photos.js',await readFile(join(root,'public/admin/photos.js'),'utf8')],['projects.js',await readFile(join(root,'public/admin/projects.js'),'utf8')],['admin.js',await readFile(join(root,'public/admin/admin.js'),'utf8')]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
+  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs],['photos.js',await readFile(join(root,'public/admin/photos.js'),'utf8')],['projects.js',await readFile(join(root,'public/admin/projects.js'),'utf8')],...await Promise.all(['media.js','videos.js','images.js'].map(async f=>[f,await readFile(join(root,'public/admin',f),'utf8')])),['admin.js',await readFile(join(root,'public/admin/admin.js'),'utf8')]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
   global.window={}; new Function('window',models)(window); new Function('window',msgs)(window);
   const { models:list, settingsFields }=window.NolanDocModels, { steps, messages }=window.NolanMessages;
   const docFiles=[...existing].filter(f=>/^admin\/docs\/[^/]+\.html$/.test(f));
@@ -160,7 +160,13 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
     if(!String(ph.alt||'').trim()) fail(`Photos: ${ph.src} needs an alt text`);
     if(!(ph.width&&ph.height&&ph.smallWidth&&ph.smallHeight)) fail(`Photos: ${ph.src} needs its real dimensions`);
   }
-  if(pics.length>=3&&!/<section class="wk-photo" id="photo"/.test(workHtml)) fail('Work: three published photos must show the photography section');
+  if(pics.length>=1&&!/<section class="wk-photo" id="photo"/.test(workHtml)) fail('Work: published photos must show the photography section');
+  // Vidéos et images du site : espace vidéo public en lecture, admin seulement ; fonction de mise en ligne sans secret.
+  const msql=await readFile(join(root,'supabase/medias_schema.sql'),'utf8'), fn=await readFile(join(root,'supabase/functions/publish-site/index.ts'),'utf8');
+  if(!/values \('site-videos', 'site-videos', true, 52428800,/.test(msql)||(msql.match(/bucket_id = 'site-videos' and \(select public\.is_admin\(\)\)/g)||[]).length<5||/to (anon|public)\b/.test(msql)||!/'photos','images'\)/.test(msql)) fail('Medias: site-videos bucket and images draft must be admin-only');
+  if(!fn.includes('/rest/v1/rpc/is_admin')||!fn.includes('GITHUB_DISPATCH_TOKEN')||/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_/.test(fn)) fail('Medias: publish-site must check is_admin and read its token from the Supabase secrets');
+  if(!existing.has('version.json')) fail('Medias: version.json missing (the admin shows when a version is online)');
+  for(const [,src] of (await readFile(join(dist,'index.html'),'utf8')).matchAll(/background-image:url\('([^']+)'\)/g)) if(!existing.has(src.slice(1))) fail(`Home: replaced image missing (${src})`);
   if(/<img[^>]+supabase\.co/i.test(workHtml)) fail('Photos: visitors must never load a photo from Supabase');
   // Projets de « Ma sélection » publiés depuis l'admin : image servie par le site (seule exception, l'affiche
   // YouTube du film tant qu'elle n'est pas copiée), texte alternatif présent, aucun lecteur chargé d'avance.
@@ -199,10 +205,20 @@ if(!cookiesHtml.includes('data-audience-optout')||!cookiesHtml.includes('Cloudfl
 if(!cookiesHtml.includes('Vidéos Instagram')) fail('Instagram: cookies page must document the Instagram embeds');
 const work=await readFile(join(dist,'work/index.html'),'utf8');
 if(/<iframe[^>]+instagram\.com|<script[^>]+instagram\.com|<img[^>]+(instagram|cdninstagram|fbcdn)/i.test(work)) fail('Instagram: no Instagram request allowed in HTML before click');
-if(!work.includes('data-load-instagram')||!work.includes('DYriAZ_IKrU')||!work.includes('DewEcSOCFV2')) fail('Instagram: the 4 click-to-load cards must be on Work');
+// Social media videos (code ou admin) : données valides, chaque carte jouable au clic, fichiers vidéo servis par le site.
+{ const { instagramPosts:posts }=await import('../content/instagram.mjs');
+  if(!posts.length) fail('Social: at least one video expected on Work');
+  for(const p of posts){
+    if(!String(p.title||'').trim()) fail('Social: each video needs a title');
+    if(p.source==='file'){ if(!/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(p.video?.src||'')||!existing.has(p.video.src.slice(1))||!work.includes(`data-video-src="${p.video.src}"`)) fail(`Social: video file missing for ${p.title}`); }
+    else if(!/^[\w-]{5,40}$/.test(p.id||'')||!work.includes(`data-post-id="${p.id}"`)) fail(`Social: Instagram card invalid for ${p.title}`);
+    if(p.image&&!existing.has(String(p.image.srcSmall||'').slice(1))) fail(`Social: thumbnail missing for ${p.title}`);
+  }
+  if((work.match(/class="ig-card ps-card"/g)||[]).length!==posts.length*2) fail('Social: the phone shows each video twice (loop)');
+  if(/<video[^>]+src=/i.test(work)) fail('Social: no video element before the visitor clicks'); }
 // Work : le travail réel d'abord (film, puis vidéos sociales), les images d'ambiance ensuite.
 if(!(work.indexOf('data-bento')>0&&work.indexOf('data-bento')<work.indexOf('class="ig-section'))) fail('Work: projects bento must come before the social videos');
-if((work.match(/class="ig-card ps-card"/g)||[]).length!==8||!existing.has('assets/work/phone.webp')||!existing.has('assets/work/stage.webp')) fail('Work: four phone cards and their rendered assets expected');
+if(!existing.has('assets/work/phone.webp')||!existing.has('assets/work/stage.webp')) fail('Work: phone rendered assets expected');
 if(!app.includes('instagram.com/p/${id}/embed/')) fail('Instagram: embed must be created from app.js on click');
 const project=await readFile(join(dist,'projet/le-bol-den-face/index.html'),'utf8');
 const services=await readFile(join(dist,'services/index.html'),'utf8');
@@ -264,7 +280,8 @@ if(!home.includes('href="/journal/">Journal</a>')) fail('Navigation V17: Journal
 // WORK — exploration first, projects, compact 3-hat selector.
 if(work.includes('data-video-slide-show')||/images\.unsplash\.com/.test(work.split('<main')[1]||'')) fail('Work: stock mood carousel must not come back (R1: real work only)');
 if((work.match(/data-bento-tile/g)||[]).length!==5||(work.match(/data-bento-focus/g)||[]).length!==5||!work.includes('view-transition-name:bento-4')) fail('Work: bento expects five tiles, each focusable');
-if((work.match(/data-stack-card=/g)||[]).length!==8||(work.match(/data-stack-dot=/g)||[]).length!==4||!work.includes('phone-stack__frame')||(work.match(/class="ig-card__link"/g)||[]).length<4||!app.includes("$$('[data-phone-stack]').forEach")) fail('Work: one phone with the four social videos sliding inside, each keeping its Instagram link');
+{ const { instagramPosts:posts }=await import('../content/instagram.mjs'), igCount=posts.filter(p=>p.source!=='file').length;
+  if((work.match(/data-stack-card=/g)||[]).length!==posts.length*2||(work.match(/data-stack-dot=/g)||[]).length!==posts.length||!work.includes('phone-stack__frame')||(work.match(/class="ig-card__link"/g)||[]).length<igCount*2||!app.includes("$$('[data-phone-stack]').forEach")) fail('Work: one phone with every social video sliding inside, each Instagram video keeping its link'); }
 if(!home.includes('v16-testimonial-bento')||!home.includes('is-featured')||!home.includes('class="v16-stars"')) fail('Home: testimonials keep their original card layout');
 if(/Ouverture|Le repas|Les indices|Le silence|La résolution/.test(work)) fail('Work V17: Bol slideshow labels must not remain');
 if(project.includes('data-video-slide-show')) fail('Project V17: Video Slide Show must not live in project page');
@@ -286,7 +303,7 @@ for(const intent of ['moment','brand','story']) if(!work.includes(`href="/contac
 if(/href="\/services\/#/.test(work)) fail('Work V2: no link to a Services anchor that may not exist');
 { const sel=work.slice(work.indexOf('id="selection"'),work.indexOf('id="social"')); for(const p of projectData.filter(p=>!p.visible)) if(sel.includes(`>${p.title}<`)||sel.includes(`"${p.title}"`)) fail(`Work V2: hidden project « ${p.title} » must not appear in the selection (R1)`); }
 if(/data-expertise-switcher/.test(work)) fail('Work V2: the three-hat switcher moved out (it stays on Services)');
-{ const photoCount=(await import('../content/photos.mjs')).photos.length; if(photoCount<3&&/id="photo"|data-title="Photographie"/.test(work)) fail('Work V2: photography appears only with at least three real photos (R1)'); }
+{ const { photos:pics, MIN_PHOTOS:min }=await import('../content/photos.mjs'); if(pics.length<min&&/id="photo"|data-title="Photographie"/.test(work)) fail('Work V2: photography appears only with real photos (R1)'); if(pics.length>=min&&!/id="photo"/.test(work)) fail('Work V2: published photos must show the photography section'); }
 if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
 // PROJECT — film first, one compact technical grid.

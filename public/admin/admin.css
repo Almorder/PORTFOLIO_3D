@@ -192,3 +192,21 @@ a.admin-button{display:inline-flex;align-items:center;text-decoration:none}
 .pj-media__tools{align-items:center}
 .pj-more{margin:4px 0}
 .pj-more>summary{cursor:pointer;font-size:14px}
+
+/* ---------- Médias : optimisation, destination, images du site, mise en ligne ---------- */
+.md-badge{display:inline-block;margin:0;padding:4px 10px;border-radius:99px;background:#e6f1e4;color:#1f5a1b;font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.md-dest{display:flex;flex-wrap:wrap;gap:6px 18px}
+.md-dest legend{font-weight:600}
+.im-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:12px}
+.im-slot{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;padding:12px;border:1px solid var(--ad-line);border-radius:14px;background:#fff}
+.im-figure .ph-thumb{max-height:200px}
+.im-blank{display:grid;place-items:center;min-height:120px;padding:10px;border-radius:10px;background:linear-gradient(135deg,#2a0b05,#cc460c);color:#f0ebe2;font-size:12px;text-align:center}
+.im-body{display:grid;gap:8px;min-width:0}
+.vd-thumb{max-width:160px}
+.vd-tags{display:flex;flex-wrap:wrap;gap:6px 18px}
+.admin-live{margin:0;padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.35;background:rgba(255,255,255,.08);color:#f0ebe2}
+.admin-live:empty{display:none}
+.admin-live[data-kind="warn"]{background:rgba(204,70,12,.35)}
+@media(max-width:860px){.im-slot{grid-template-columns:minmax(0,1fr)}}
+.im-body .admin-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
+.im-body .admin-tools .admin-mini{height:auto}

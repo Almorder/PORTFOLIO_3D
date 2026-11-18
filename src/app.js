@@ -557,6 +557,25 @@ $$('[data-instagram-post]').forEach(card=>{
   });
 });
 
+// Social media videos hébergées sur le site (envoyées depuis l'admin) : le lecteur n'est créé qu'au clic,
+// aucune requête vers un tiers. La vidéo s'arrête et redevient miniature quand elle quitte le téléphone.
+$$('[data-video-file]').forEach(card=>{
+  $('[data-load-file]',card)?.addEventListener('click',()=>{
+    if(card.classList.contains('is-playing')) return;
+    const src=card.dataset.videoSrc||'';
+    if(!/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(src)) return;
+    const video=document.createElement('video');
+    video.src=src; video.controls=true; video.playsInline=true; video.preload='auto';
+    video.setAttribute('aria-label',card.dataset.postTitle||'Vidéo');
+    const cover=$('.ig-card__cover',card);
+    card.savedCover=[...cover.childNodes];
+    card.classList.add('is-playing');
+    cover.replaceChildren(video);
+    video.play().catch(()=>{});
+    video.focus({preventScroll:true});
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Composants vitrine : effets écrits sans dépendance.
 // ---------------------------------------------------------------------------
@@ -909,7 +928,7 @@ $$('[data-phone-stack]').forEach(stack=>{
   let active=0;
   const stop=card=>{ // une vidéo qui quitte le téléphone redevient une miniature
     if(!card.classList.contains('is-playing')||!card.savedCover) return;
-    const cover=$('.ig-card__cover',card);cover.replaceChildren(...card.savedCover);cover.style.removeProperty('--ig-s');card.classList.remove('is-playing');
+    const cover=$('.ig-card__cover',card);$('video',cover)?.pause();cover.replaceChildren(...card.savedCover);cover.style.removeProperty('--ig-s');card.classList.remove('is-playing');
   };
   const layout=()=>{
     const n=cards.length;
@@ -920,7 +939,7 @@ $$('[data-phone-stack]').forEach(stack=>{
       card.classList.toggle('is-active',d===0);
       card.toggleAttribute('inert',a>2);
       if(card.hasAttribute('data-stack-copy')) card.setAttribute('aria-hidden',String(d!==0));
-      $('[data-load-instagram]',card)?.setAttribute('tabindex',d===0?'0':'-1');
+      $('[data-load-instagram],[data-load-file]',card)?.setAttribute('tabindex',d===0?'0':'-1');
       if(d!==0) stop(card);
     });
     dots.forEach((dot,i)=>dot.setAttribute('aria-current',String(i===active%dots.length)));
@@ -934,7 +953,7 @@ $$('[data-phone-stack]').forEach(stack=>{
   stack.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();go(active-1);}else if(event.key==='ArrowRight'){event.preventDefault();go(active+1);}});
   // Glisser au doigt ou à la souris : au-delà de 40 px, on passe à la vidéo voisine.
   let x0=null, moved=false;
-  stage.addEventListener('pointerdown',event=>{if(event.target.closest('iframe,a,button'))return;x0=event.clientX;moved=false;});
+  stage.addEventListener('pointerdown',event=>{if(event.target.closest('iframe,video,a,button'))return;x0=event.clientX;moved=false;});
   stage.addEventListener('pointermove',event=>{if(x0===null)return;const dx=event.clientX-x0;stack.style.setProperty('--drag',`${Math.max(-80,Math.min(80,dx))}px`);if(Math.abs(dx)>6)moved=true;});
   const end=event=>{if(x0===null)return;const dx=(event.clientX??x0)-x0;x0=null;stack.style.setProperty('--drag','0px');if(Math.abs(dx)>40) go(active+(dx<0?1:-1));};
   stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);stage.addEventListener('pointerleave',end);

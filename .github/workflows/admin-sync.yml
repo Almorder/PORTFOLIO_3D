@@ -1,13 +1,14 @@
 name: Publication depuis l'admin
 
-# Toutes les heures : si une nouvelle version (photos, projets de « Ma sélection ») a été publiée dans l'admin
+# Toutes les 10 minutes, filet de sécurité si le lancement immédiat depuis l'admin n'a pas fonctionné : si une
+# nouvelle version (photos, projets, vidéos, images du site) a été publiée dans l'admin
 # (/admin/), relance le déploiement du site, qui la copie sur nolanarc.com (tools/fetch-published.mjs).
 # Sinon, ne fait rien.
 # Aucun secret : la version publiée se lit avec la clé publique, et le jeton GitHub fourni à chaque exécution
 # sert uniquement à lancer le déploiement.
 on:
   schedule:
-    - cron: '23 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
