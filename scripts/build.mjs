@@ -75,23 +75,23 @@ const redirects = {
   'ma-demarche.html':'/a-propos/',
   'journal.html':'/journal/',
   'mentions-legales.html':'/mentions-legales/',
-  'film-entreprise.html':'/services/#marques',
-  'video-mariage-haut-de-gamme.html':'/services/#moments',
+  'film-entreprise.html':'/services/?expertise=realisation',
+  'video-mariage-haut-de-gamme.html':'/services/#mariage',
   'realisateur-paris.html':'/a-propos/',
   'court-metrage-independant.html':'/projet/le-bol-den-face/',
-  'services/marques/index.html':'/services/#marques',
-  'services/moments/index.html':'/services/#moments',
-  'projet/film-de-marque/index.html':'/services/#marques',
-  'projet/film-institutionnel/index.html':'/services/#marques',
-  'projet/direction-artistique/index.html':'/services/#marques',
-  'projet/contenu-social/index.html':'/services/#marques',
-  'projet/strategie-visuelle/index.html':'/services/#marques',
-  'projet/mariage/index.html':'/services/#moments',
-  'projet/demande-en-mariage/index.html':'/services/#moments'
+  'services/marques/index.html':'/services/?expertise=direction',
+  'services/moments/index.html':'/services/#mariage',
+  'projet/film-de-marque/index.html':'/services/?expertise=realisation',
+  'projet/film-institutionnel/index.html':'/services/?expertise=realisation',
+  'projet/direction-artistique/index.html':'/services/?expertise=direction',
+  'projet/contenu-social/index.html':'/services/?expertise=strategie',
+  'projet/strategie-visuelle/index.html':'/services/?expertise=strategie',
+  'projet/mariage/index.html':'/services/#mariage',
+  'projet/demande-en-mariage/index.html':'/services/#demande-en-mariage'
 };
 for(const [file,target] of Object.entries(redirects)){
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true});
-  const canonicalTarget=target.split('#')[0] || '/services/';
+  const canonicalTarget=target.split(/[?#]/)[0] || '/services/';
   await writeFile(dest,`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${target}"><link rel="canonical" href="${site.domain}${canonicalTarget}"><title>Redirection | Nolan Arc</title></head><body><p>Cette page a changé. <a href="${target}">Continuer vers Nolan Arc</a>.</p></body></html>`,'utf8');
 }
 

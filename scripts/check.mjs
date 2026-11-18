@@ -250,7 +250,16 @@ if(!app.includes('[data-gradient-motion]')||!app.includes("getContext('webgl'")|
 if((home.match(/<a class="fab-project-card[\s"]/g)||[]).length!==visibleCards) fail(`Home: ${visibleCards} carte(s) projet attendue(s) (projets visibles), trouvé autre chose`);
 for(const p of projectData){ if(p.visible&&p.slug!=='le-bol-den-face'&&!(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))) fail(`Projet « ${p.title} » visible sans média réel (R1) : mettre card.image réel ou visible:false`); }
 for(const file of htmls){ if(/Illustration temporaire/i.test(await readFile(file,'utf8'))) fail(`Placeholder « Illustration temporaire » visible (${relative(dist,file)}) — R1`); }
-if(!work.includes('data-expertise-switcher')||(work.match(/data-expertise-tab=/g)||[]).length!==3||(work.match(/data-expertise-panel=/g)||[]).length!==3) fail('Work V17: compact three-expertise switcher incomplete');
+// WORK V2 : « Ma sélection » (grille par défaut, liste filtrable), fiche, avis de l'accueil, accès direct au contact.
+if(!work.includes('data-work-views')||!/data-work-view="grid" aria-pressed="true"/.test(work)||!/data-work-panel="list" hidden/.test(work)||!work.includes('data-work-filter="tout"')||!work.includes('data-fiche')) fail('Work V2: grid/list toggle (grid by default), filters and project sheet expected');
+if(!app.includes("$$('[data-work-views]').forEach")||!app.includes("'bento:focus'")||!app.includes('[data-stack-goto]')) fail('Work V2: toggle, filters, sheet sync and phone targeting handlers missing in app.js');
+if(work.indexOf('id="social"')<work.indexOf('id="selection"')||work.indexOf('id="social"')>work.indexOf('id="retours"')) fail('Work V2: social videos must sit right under « Ma sélection »');
+if(!work.includes('data-morph-list')||(work.match(/data-morph-open=/g)||[]).length!==siteData.testimonials.length||(work.match(/<dialog class="morph-panel"/g)||[]).length!==siteData.testimonials.length) fail('Work V2: same testimonials component as Home, each with its panel');
+for(const intent of ['moment','brand','story']) if(!work.includes(`href="/contact/?intent=${intent}"`)) fail(`Work V2: contact entry ${intent} missing`);
+if(/href="\/services\/#/.test(work)) fail('Work V2: no link to a Services anchor that may not exist');
+{ const sel=work.slice(work.indexOf('id="selection"'),work.indexOf('id="social"')); for(const p of projectData.filter(p=>!p.visible)) if(sel.includes(`>${p.title}<`)||sel.includes(`"${p.title}"`)) fail(`Work V2: hidden project « ${p.title} » must not appear in the selection (R1)`); }
+if(/data-expertise-switcher/.test(work)) fail('Work V2: the three-hat switcher moved out (it stays on Services)');
+{ const photoCount=(await import('../content/photos.mjs')).photos.length; if(photoCount<3&&/id="photo"|data-title="Photographie"/.test(work)) fail('Work V2: photography appears only with at least three real photos (R1)'); }
 if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
 // PROJECT — film first, one compact technical grid.
