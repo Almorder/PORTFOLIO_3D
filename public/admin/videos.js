@@ -169,7 +169,7 @@
     };
 
     const render = () => {
-      const head = el('div', { className: 'admin-bar' }, [heading('Social media videos', 'Le téléphone de la page Work, dans cet ordre. Vidéos Instagram ou tes propres fichiers vidéo, servis par nolanarc.com.')]);
+      const head = el('div', { className: 'admin-bar' }, [heading('Vidéos', 'Le téléphone de la page Work, dans cet ordre.')]);
       if (!model) {
         const start = button('Partir des vidéos actuelles du site', 'admin-button', async () => {
           start.disabled = true;

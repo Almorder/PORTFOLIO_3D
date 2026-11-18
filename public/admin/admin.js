@@ -23,19 +23,18 @@
   status.setAttribute('role', 'status');
   const say = (text, kind = '') => { status.textContent = text; status.dataset.kind = kind; };
 
-  // Menu : chaque rubrique dit en une ligne ce qu'elle pilote. Le groupe « Site » est rangé page par page,
-  // dans l'ordre où les sections apparaissent sur nolanarc.com.
+  // Menu : titres seuls, rangés par groupe. « Site » = tout ce que « Enregistrer et publier » met en ligne.
   const SECTIONS = [
-    { id: 'projects', label: 'Projets', group: 'Site · page Work', hint: 'Section « Ma sélection » : tuiles, liste, pages projet et leurs médias.' },
-    { id: 'instagram', label: 'Vidéos réseaux', group: 'Site · page Work', hint: 'Section « Social media videos » : le téléphone et ses vidéos.' },
-    { id: 'photos', label: 'Photographie', group: 'Site · page Work', hint: 'Section « Photographie » et photo de sa tuile.' },
-    { id: 'images', label: 'Images des pages', group: 'Site · accueil et Work', hint: 'Accueil : dossiers, polaroïds, cartes des tarifs. Work : couvertures.' },
-    { id: 'publish', label: 'Mise en ligne', group: 'Site · publier', hint: 'Publier une version, voir ce qui est en ligne, historique.' },
-    { id: 'testimonials', label: 'Témoignages', group: 'Pas encore relié au site', hint: 'Brouillon seulement : le site affiche encore les avis écrits dans le code.' },
-    { id: 'site', label: 'Textes et chiffres', group: 'Pas encore relié au site', hint: 'Brouillon seulement : signature, chiffres, marques, questions, liens.' },
-    { id: 'legal', label: 'Informations légales', group: 'Pas encore relié au site', hint: 'Brouillon seulement : coordonnées, médiateur, conditions.' }
+    { id: 'projects', label: 'Projets', group: 'Site' },
+    { id: 'photos', label: 'Photos', group: 'Site' },
+    { id: 'instagram', label: 'Vidéos', group: 'Site' },
+    { id: 'testimonials', label: 'Avis', group: 'Site' },
+    { id: 'images', label: 'Images', group: 'Site' },
+    { id: 'publish', label: 'Mise en ligne', group: 'Site' },
+    { id: 'site', label: 'Textes et chiffres', group: 'Non publié' },
+    { id: 'legal', label: 'Infos légales', group: 'Non publié' }
   ];
-  const HINTS = { pilotage: 'Ce qui est à faire aujourd’hui, en un coup d’œil.', clients: 'Fiches clients et leur historique.', demandes: 'Demandes reçues et projets en cours, étape par étape.', documents: 'Devis, factures, contrats, droits à l’image.', messages: 'Modèles de messages et relances à envoyer.', agenda: 'Tournages, rendez-vous et échéances.', finances: 'Recettes, cotisations, objectif annuel.', reglages: 'Tes informations d’entreprise et préférences.' };
+  const RENAME = { demandes: 'Demandes' };
   const labelOf = id => SECTIONS.find(s => s.id === id)?.label || id;
   const state = { email: '', view: 'publish', drafts: {}, snapshots: [], audit: [], dirty: false, armed: '' };
 
@@ -121,13 +120,9 @@
     let group = '';
     SECTIONS.forEach(section => {
       if (section.group && section.group !== group) { group = section.group; nav.append(el('small', { textContent: group })); }
-      const item = button('', 'admin-nav__item', () => go(section.id));
-      const hint = section.hint || HINTS[section.id];
-      item.append(el('span', { className: 'admin-nav__label', textContent: section.label }));
-      if (hint) item.append(el('span', { className: 'admin-nav__hint', textContent: hint }));
+      const item = button(RENAME[section.id] || section.label, 'admin-nav__item', () => go(section.id));
       if (section.id === state.view || cockpit?.parent[state.view] === section.id) item.setAttribute('aria-current', 'page');
-      if (section.group.startsWith('Site') || section.group.startsWith('Pas encore')) item.classList.add('admin-nav__item--site');
-      if (section.group.startsWith('Pas encore')) item.classList.add('admin-nav__item--draft');
+      if (section.group === 'Site' || section.group === 'Non publié') item.classList.add('admin-nav__item--site');
       const count = cockpit?.badge(section.id) || 0;
       if (count) item.append(el('span', { className: 'admin-badge', textContent: String(count) }));
       if (section.id === 'publish' && pending().length) item.append(el('span', { className: 'admin-badge', textContent: String(pending().length) }));
@@ -151,7 +146,7 @@
   const card = (title, children, className = '') => el('article', { className: `admin-card ${className}` }, [el('h3', { textContent: title }), ...children]);
   // Cockpit d'activité (public/admin/cockpit.js) : ses rubriques passent avant celles du contenu du site.
   const cockpit = window.NolanCockpit ? window.NolanCockpit({ client, root, el, button, link, say, heading, card, go: view => go(view), setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
-  if (cockpit) { SECTIONS.unshift(...cockpit.sections); SECTIONS.push(...(cockpit.footer || [])); }
+  if (cockpit) SECTIONS.unshift(...cockpit.sections, ...(cockpit.footer || []).map(s => ({ ...s, group: 'Activité' })));
 
   // ---------------------------------------------------------------- Mise en ligne
   // 1. publish_snapshot fige les brouillons dans une version (content_snapshots).
@@ -208,7 +203,9 @@
   // Social media videos (public/admin/videos.js) et Images du site (public/admin/images.js).
   const videosEditor = window.NolanVideos ? window.NolanVideos({ ...shared, getDraft: () => state.drafts.instagram?.data, saveDraft: data => saveKey('instagram', data) }) : null;
   const imagesView = window.NolanImages ? window.NolanImages({ ...shared, getDraft: key => state.drafts[key]?.data, saveDraft: (key, data) => saveKey(key, data).then(res => { if (key === 'projects') projectsEditor?.reset(); if (key === 'instagram') videosEditor?.reset(); return res; }), go: view => go(view) }) : null;
-  const resetEditors = () => { photos?.reset(); projectsEditor?.reset(); videosEditor?.reset(); };
+  const resetEditors = () => { photos?.reset(); projectsEditor?.reset(); videosEditor?.reset(); testimonialsEditor?.reset(); };
+  // Avis (public/admin/testimonials.js) : éditeur dédié, images envoyées seulement.
+  const testimonialsEditor = window.NolanTestimonials ? window.NolanTestimonials({ ...shared, getDraft: () => state.drafts.testimonials?.data, saveDraft: data => saveKey('testimonials', data) }) : null;
   // Projets de « Ma sélection » (public/admin/projects.js) : éditeur dédié du bloc « projects ».
   const projectsEditor = window.NolanProjects ? window.NolanProjects({ client, el, button, say, heading, card,
     getDraft: () => state.drafts.projects?.data,
@@ -228,10 +225,11 @@
   if (projectsEditor) VIEWS.projects = projectsEditor.view;
   if (videosEditor) VIEWS.instagram = videosEditor.view;
   if (imagesView) VIEWS.images = imagesView.view;
+  if (testimonialsEditor) VIEWS.testimonials = testimonialsEditor.view;
   VIEWS.overview = () => VIEWS.publish();
   // ---------------------------------------------------------------- Éditeur (formulaire généré depuis les données)
   const FIELD_LABELS = { image: 'Image du projet (adresse de l’image)', link: 'Lien (adresse, facultatif)', linkLabel: 'Texte du lien', manifesto: 'Phrase de l’accueil (lue mot à mot)', title: 'Titre', type: 'Type', role: 'Rôle', year: 'Année', context: 'Contexte', location: 'Lieu', format: 'Format', camera: 'Caméra', visible: 'Visible sur le site', videoId: 'Identifiant vidéo YouTube', poster: 'Image d’affiche (adresse)', summary: 'Résumé', contextText: 'Texte de contexte', intent: 'Intention', decisions: 'Décisions', text: 'Texte', quote: 'Citation', name: 'Nom', territory: 'Territoire', id: 'Identifiant de la publication', kind: 'Précision', ratio: 'Format (ex. 9/16)', label: 'Libellé', value: 'Valeur', suffix: 'Suffixe', question: 'Question', answer: 'Réponse', clients: 'Marques accompagnées', proofStats: 'Chiffres clés', faqs: 'Questions fréquentes', home: 'Accueil', services: 'Services', contact: 'Contact', legalName: 'Nom légal', principle: 'Signature', email: 'Email', responseTime: 'Délai de réponse', calendly: 'Lien Calendly', instagram: 'Lien Instagram', youtube: 'Lien YouTube', professionalAddress: 'Adresse professionnelle', professionalPhone: 'Téléphone professionnel', mediator: 'Médiateur de la consommation', host: 'Hébergeur', address: 'Adresse', website: 'Site web', phone: 'Téléphone', card: 'Carte', image: 'Image', alt: 'Description de l’image', slug: 'Identifiant (non modifiable)', href: 'Adresse de la page (non modifiable)' };
-  const EXTRA_FIELDS = { testimonials: { image: '', link: '', linkLabel: '' } };
+  const EXTRA_FIELDS = {};
   const HIDDEN = new Set(['supabaseUrl', 'supabasePublishableKey', 'analyticsToken', 'domain', 'nav', 'status']);
   const READONLY = new Set(['slug', 'href']);
   const blank = value => Array.isArray(value) ? [] : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([k, v]) => [k, blank(v)])) : typeof value === 'boolean' ? false : typeof value === 'number' ? 0 : '';
@@ -353,12 +351,12 @@
       : `Version n° ${last.id} publiée le ${date(last.created_at)}, pas encore en ligne (en ligne : n° ${on || 'aucune'}). La mise en ligne passe par le webhook Supabase s’il est en place, sinon par la vérification automatique (toutes les 10 minutes, parfois plus).`;
     const ACTIONS = { publish: 'Version enregistrée', draft_insert: 'Bloc importé', draft_update: 'Bloc modifié', draft_delete: 'Bloc supprimé' };
     return el('div', {}, [
-      heading('Mise en ligne', 'Une version fige tous les brouillons et part sur nolanarc.com. Sont publiés : projets, photographie, vidéos réseaux et images des pages. Les rubriques « Pas encore relié au site » restent des brouillons.'),
+      heading('Mise en ligne'),
       el('div', { className: 'admin-stats' }, [
         stat(`${projects.filter(p => p.visible).length}/${projects.length}`, 'projets visibles', 'projects'),
-        stat((d('instagram') || []).length, 'vidéos réseaux', 'instagram'),
+        stat((d('instagram') || []).length, 'vidéos', 'instagram'),
+        stat((d('testimonials') || []).filter(t => t.visible !== false).length, 'avis', 'testimonials'),
         stat((d('photos')?.items || []).filter(p => p.visible).length, 'photos visibles', 'photos'),
-        stat((site.clients || []).length, 'marques (brouillon)', 'site')
       ]),
       el('div', { className: 'admin-grid' }, [
         card('Nouvelle version', [

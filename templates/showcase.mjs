@@ -14,11 +14,12 @@ export function focusText(text){
 }
 
 const initial=name=>esc((String(name).trim()[0]||'·').toUpperCase());
-const media=(t,cls)=>t.image
-  ? `<span class="${cls}"><img src="${esc(t.image)}" alt="" loading="lazy" decoding="async"></span>`
+// Image d'un avis : seulement une image envoyée depuis l'admin et copiée sur le site (srcSmall), avec son texte alternatif.
+const media=(t,cls)=>t.image&&t.image.srcSmall
+  ? `<span class="${cls}"><img src="${esc(t.image.srcSmall)}" srcset="${esc(t.image.srcSmall)} ${t.image.smallWidth}w, ${esc(t.image.src)} ${t.image.width}w" sizes="(max-width: 760px) 90vw, 420px" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
-/** Panneau d'un avis (dialog natif) : partagé par l'accueil et la page Contact, ouvert par [data-morph-open]. */
+/** Panneau d'un avis (dialog natif) : partagé par l'accueil, Work et Contact, ouvert par [data-morph-open]. */
 export const morphPanel=(t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
         <div class="morph-panel__inner">
           ${media(t,'morph-panel__media')}
@@ -31,15 +32,35 @@ export const morphPanel=(t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}
         </div>
       </dialog>`;
 
-/** Avis en cartes (forme d'origine) : un clic ouvre la carte en grand panneau (image du projet, phrase entière, lien). */
-export function morphTestimonials(items=[]){
-  return `<div class="v16-testimonial-bento" data-morph-list>${items.map((t,i)=>`<article class="motion-reveal ${i===0?'is-featured':''}">
-      <div class="v16-stars" aria-label="Retour client positif">★★★★★</div>
+// Grille des avis : la section garde la même hauteur quel que soit le nombre d'avis ; ce sont les cartes qui
+// rétrécissent. Une grande carte à gauche (le premier avis), les autres en lignes et colonnes à droite.
+// Au-delà de TM_DESK avis (TM_MOB sur téléphone), « Voir plus d'avis » agrandit la section (src/app.js).
+export const TM_DESK=10, TM_MOB=6;
+// Nombre d'avis à droite de la grande carte -> [lignes, colonnes].
+const DESK_GRID={0:[1,0],1:[1,1],2:[2,1],3:[3,1],4:[2,2],5:[3,2],6:[3,2],7:[3,3],8:[3,3],9:[3,3]};
+const tmLayout=n=>{
+  const k=Math.min(n,TM_DESK), m=k-1, [r,c]=DESK_GRID[m], f=c===0?1:c===1?1.67:c===2?1.25:1.35;
+  const km=Math.min(n,TM_MOB), mm=km-1, single=km<=3;
+  return { k, r, c, span:1+(r*c-m), tpl:c?`minmax(0,${f}fr) repeat(${c},minmax(0,1fr))`:'minmax(0,1fr)', km, single, mrows:single?km:1+Math.ceil(mm/2), modd:!single&&mm%2===1,
+    size: k<=3?'l':k<=6?'m':'s', msize: km<=3?'l':'s' };
+};
+const tmCard=(t,i,L)=>`<article class="motion-reveal${i===0?' is-featured':''}${i>0&&i===L.k-1&&L.span>1?' tm-span':''}${i>=L.km&&i<L.k?' tm-m-extra':''}${!L.single&&L.modd&&i===L.km-1?' tm-m-span':''}"${i>0&&i===L.k-1&&L.span>1?` style="--tm-span:${L.span}"`:''}>
+      <div class="v16-stars" aria-hidden="true">★★★★★</div>
       <blockquote>« ${esc(t.quote)} »</blockquote>
       <footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
-      <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(t.name)}"></button>
-    </article>`).join('')}</div>
-    ${items.map((t,i)=>morphPanel(t,i)).join('')}`;
+      <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Lire l’avis de ${esc(t.name)}"></button>
+    </article>`;
+
+/** Avis en cartes : un clic ouvre la carte en grand panneau (phrase entière, image, lien). */
+export function morphTestimonials(items=[], id='avis'){
+  if(!items.length) return '';
+  const L=tmLayout(items.length), extra=items.slice(L.k), more=items.length>L.km;
+  return `<div class="tm-wrap" data-tm>
+    <div class="v16-testimonial-bento tm-grid" data-morph-list data-count="${items.length}" data-size="${L.size}" data-msize="${L.msize}" style="--tm-tpl:${L.tpl};--tm-rows:${L.r};--tm-mrows:${L.mrows};--tm-mcols:${L.single?1:2}">${items.slice(0,L.k).map((t,i)=>tmCard(t,i,L)).join('')}</div>
+    ${extra.length?`<div class="v16-testimonial-bento tm-extra" id="${esc(id)}-plus" data-tm-extra hidden>${extra.map((t,j)=>tmCard(t,L.k+j,{...L,k:Infinity,km:Infinity,single:true})).join('')}</div>`:''}
+    ${more?`<button type="button" class="tm-toggle${extra.length?'':' tm-toggle--mobile'}" data-tm-toggle aria-expanded="false" aria-controls="${esc(id)}-grille${extra.length?` ${esc(id)}-plus`:''}"><span data-tm-label>Voir plus d’avis</span> <b aria-hidden="true">+</b></button>`:''}
+  </div>
+    ${items.map((t,i)=>morphPanel(t,i)).join('')}`.replace('data-morph-list data-count',`id="${esc(id)}-grille" data-morph-list data-count`);
 }
 
 // Une image du bento : dimensions déclarées quand on les connaît (pas de saut de mise en page).
