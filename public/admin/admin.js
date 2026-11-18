@@ -25,12 +25,12 @@
 
   const SECTIONS = [
     { id: 'overview', label: 'État du site', group: 'Site' },
-    { id: 'projects', label: 'Projets', group: 'Contenu', hint: 'Fiches projet et visibilité sur le site.' },
-    { id: 'testimonials', label: 'Témoignages', group: 'Contenu', hint: 'Avis clients affichés sur le site.' },
-    { id: 'instagram', label: 'Social media videos', group: 'Contenu', hint: 'Vidéos Instagram de la page Work.' },
-    { id: 'site', label: 'Textes et chiffres', group: 'Contenu', hint: 'Signature, chiffres clés, marques, questions fréquentes, liens.' },
-    { id: 'legal', label: 'Informations légales', group: 'Contenu', hint: 'Coordonnées, médiateur, conditions.' },
-    { id: 'publish', label: 'Publication', group: 'Mise en ligne' }
+    { id: 'projects', label: 'Projets du portfolio', group: 'Site', hint: 'Fiches projet et visibilité sur le site.' },
+    { id: 'testimonials', label: 'Témoignages', group: 'Site', hint: 'Avis clients affichés sur le site.' },
+    { id: 'instagram', label: 'Social media videos', group: 'Site', hint: 'Vidéos Instagram de la page Work.' },
+    { id: 'site', label: 'Textes et chiffres', group: 'Site', hint: 'Signature, chiffres clés, marques, questions fréquentes, liens.' },
+    { id: 'legal', label: 'Informations légales', group: 'Site', hint: 'Coordonnées, médiateur, conditions.' },
+    { id: 'publish', label: 'Publication', group: 'Site' }
   ];
   const labelOf = id => SECTIONS.find(s => s.id === id)?.label || id;
   const state = { email: '', view: 'overview', drafts: {}, snapshots: [], audit: [], dirty: false, armed: '' };
@@ -72,6 +72,39 @@
     draw();
     root.querySelector('.admin-main')?.focus();
   };
+  // Recherche globale : client, projet, document ou numéro, ouvert directement (Entrée ou clic).
+  const searchBox = () => {
+    const wrap = el('div', { className: 'admin-search' });
+    const input = el('input', { type: 'search', className: 'admin-search__input', placeholder: 'Rechercher un client, un projet, un n°…', autocomplete: 'off', value: state.query || '' });
+    input.setAttribute('aria-label', 'Recherche globale');
+    input.setAttribute('role', 'combobox'); input.setAttribute('aria-expanded', 'false'); input.setAttribute('aria-controls', 'admin-search-results'); input.setAttribute('aria-autocomplete', 'list');
+    const list = el('ul', { className: 'admin-search__results', id: 'admin-search-results', hidden: true });
+    list.setAttribute('role', 'listbox');
+    let hits = [], active = -1;
+    const pick = i => { const h = hits[i]; if (!h) return; state.query = ''; h.go(); };
+    const paint = () => {
+      list.replaceChildren(...hits.map((h, i) => {
+        const opt = el('li', { className: `admin-search__hit${i === active ? ' is-active' : ''}`, id: `admin-hit-${i}` }, [el('small', { textContent: h.kind }), el('strong', { textContent: h.label }), h.sub ? el('span', { textContent: h.sub }) : null]);
+        opt.setAttribute('role', 'option'); opt.setAttribute('aria-selected', String(i === active));
+        opt.addEventListener('mousedown', e => { e.preventDefault(); pick(i); });
+        return opt;
+      }));
+      if (input.value.trim().length >= 2 && !hits.length) list.append(el('li', { className: 'admin-search__none', textContent: 'Aucun résultat.' }));
+      list.hidden = input.value.trim().length < 2;
+      input.setAttribute('aria-expanded', String(!list.hidden));
+      if (active >= 0) input.setAttribute('aria-activedescendant', `admin-hit-${active}`); else input.removeAttribute('aria-activedescendant');
+    };
+    input.addEventListener('input', () => { state.query = input.value; hits = cockpit ? cockpit.search(input.value) : []; active = hits.length ? 0 : -1; paint(); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(hits.length - 1, active + 1); paint(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(0, active - 1); paint(); }
+      else if (e.key === 'Enter') { e.preventDefault(); pick(active < 0 ? 0 : active); }
+      else if (e.key === 'Escape') { input.value = ''; state.query = ''; hits = []; paint(); }
+    });
+    input.addEventListener('blur', () => setTimeout(() => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); }, 150));
+    wrap.append(input, list);
+    return wrap;
+  };
   const draw = () => {
     const nav = el('nav', { className: 'admin-nav' });
     nav.setAttribute('aria-label', 'Sections du tableau de bord');
@@ -80,6 +113,7 @@
       if (section.group && section.group !== group) { group = section.group; nav.append(el('small', { textContent: group })); }
       const item = button(section.label, 'admin-nav__item', () => go(section.id));
       if (section.id === state.view || cockpit?.parent[state.view] === section.id) item.setAttribute('aria-current', 'page');
+      if (section.group === 'Site') item.classList.add('admin-nav__item--site');
       const count = cockpit?.badge(section.id) || 0;
       if (count) item.append(el('span', { className: 'admin-badge', textContent: String(count) }));
       if (section.id === 'publish' && pending().length) item.append(el('span', { className: 'admin-badge', textContent: String(pending().length) }));
@@ -87,6 +121,7 @@
     });
     const side = el('aside', { className: 'admin-side' }, [
       el('div', { className: 'admin-brand' }, [el('strong', { textContent: 'Nolan.Arc' }), el('span', { textContent: 'Tableau de bord' })]),
+      cockpit ? searchBox() : null,
       nav,
       el('div', { className: 'admin-account' }, [
         el('span', { textContent: state.email }),
@@ -100,8 +135,8 @@
   const heading = (title, intro) => el('header', { className: 'admin-head' }, [el('h2', { textContent: title }), intro && el('p', { textContent: intro })]);
   const card = (title, children, className = '') => el('article', { className: `admin-card ${className}` }, [el('h3', { textContent: title }), ...children]);
   // Cockpit d'activité (public/admin/cockpit.js) : ses rubriques passent avant celles du contenu du site.
-  const cockpit = window.NolanCockpit ? window.NolanCockpit({ client, root, el, button, link, say, heading, card, go: view => go(view) }) : null;
-  if (cockpit) SECTIONS.unshift(...cockpit.sections);
+  const cockpit = window.NolanCockpit ? window.NolanCockpit({ client, root, el, button, link, say, heading, card, go: view => go(view), setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
+  if (cockpit) { SECTIONS.unshift(...cockpit.sections); SECTIONS.push(...(cockpit.footer || [])); }
 
   // ---------------------------------------------------------------- Vue d'ensemble
   const VIEWS = {};

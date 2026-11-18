@@ -35,13 +35,15 @@ Rules > Overview > **Create rule** > **Response Header Transform Rule** :
 
 | Header name | Value |
 |---|---|
-| `X-Frame-Options` | `DENY` |
-| `Content-Security-Policy` | `frame-ancestors 'none'` |
+| `X-Frame-Options` | `SAMEORIGIN` |
+| `Content-Security-Policy` | `frame-ancestors 'self'` |
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()` |
 
 - **Deploy**.
+
+`SAMEORIGIN` et `'self'` (et non `DENY` / `'none'`) : l'admin affiche l'aperçu des devis, contrats et factures (public/admin/docs/) dans un cadre du site lui-même. Aucun autre site ne peut afficher nolanarc.com dans un cadre. Si la règle a déjà été créée avec `DENY`, remplacer ces deux valeurs.
 
 Ne pas activer la règle gérée « Add security headers » (Managed Transforms) : elle impose `Referrer-Policy: same-origin`, ce qui empêche les vidéos YouTube intégrées de se lancer.
 
