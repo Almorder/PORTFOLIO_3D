@@ -1,4 +1,5 @@
-// Copie sur le site l'affiche YouTube de chaque film (champ posterFile de content/projects.mjs).
+// Copie sur le site l'affiche YouTube de chaque film (champ posterFile de content/projects.mjs) et de chaque
+// vidéo YouTube de la galerie d'un projet (/assets/work/yt-<identifiant>.jpg).
 // Lancé au déploiement, avant le build : la page charge ensuite l'affiche depuis nolanarc.com
 // (plus rapide, dimensions connues, aucune requête vers YouTube). En cas d'échec, rien ne casse :
 // le build garde l'affiche YouTube.
@@ -7,7 +8,9 @@ import { dirname, join } from 'node:path';
 import { projects } from '../content/projects.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
-for (const p of projects.filter(p => p.videoId && p.posterFile)) {
+const targets = new Map(projects.filter(p => p.videoId && p.posterFile).map(p => [p.posterFile, { slug: p.slug, videoId: p.videoId, posterFile: p.posterFile }]));
+for (const p of projects.filter(p => p.visible)) for (const m of p.media || []) if (m.kind === 'youtube' && m.videoId && !m.image) { const file = `/assets/work/yt-${m.videoId}.jpg`; if (!targets.has(file)) targets.set(file, { slug: p.slug, videoId: m.videoId, posterFile: file }); }
+for (const p of targets.values()) {
   const url = `https://i.ytimg.com/vi/${p.videoId}/maxresdefault.jpg`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(20000) });

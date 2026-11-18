@@ -4,6 +4,7 @@
 // elle remplace alors cette liste, dans son ordre. Les champs techniques (slug, href, affiche, statut, card)
 // restent ceux d'ici pour les projets déjà connus, et Le bol d'en face (page dédiée) existe toujours.
 import { readFileSync } from 'node:fs';
+import { legacyMedia } from '../tools/fetch-published.mjs';
 
 const codeProjects = [
   {
@@ -103,9 +104,15 @@ const merge = p => {
   const out = { ...base, ...p };
   for (const k of CODE_ONLY) if (k in base) out[k] = base[k]; else delete out[k];
   // Un projet déjà connu sans média publié garde sa vidéo du code (le film, son affiche).
-  if (!out.videoId && base.videoId && p.mediaKind !== 'photo' && p.mediaKind !== 'instagram') out.videoId = base.videoId;
+  if (!out.videoId && base.videoId && p.mediaKind !== 'photo' && p.mediaKind !== 'instagram') {
+    out.videoId = base.videoId;
+    if (!out.media?.length) { out.media = legacyMedia({ ...base, mediaKind: 'youtube' }); out.cover = out.media[0]?.key || ''; out.mediaKind = 'youtube'; }
+  }
   return out;
 };
-export const projects = Array.isArray(published)
+// Projets du code (avant toute publication) : un seul média, au format de l'admin.
+const withMedia = p => p.media ? p : { ...p, media: legacyMedia(p), cover: 'm-1', pageMode: p.pageMode || 'auto', pageSlug: p.slug };
+const list = Array.isArray(published)
   ? [...published.map(merge), ...codeProjects.filter(p => p.slug === 'le-bol-den-face' && !published.some(x => x.slug === p.slug)).map(p => ({ ...p, visible: false }))]
   : codeProjects;
+export const projects = list.map(withMedia);

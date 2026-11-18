@@ -19,6 +19,7 @@ import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { appendFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { site } from '../content/site.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
@@ -51,13 +52,46 @@ export function normalizePhotos(draft) {
     seen.add(image.id);
     list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year) });
   }
-  return { cover: list.some(p => p.id === draft?.cover) ? draft.cover : (list[0]?.id || ''), items: list };
+  // cover vide = « Automatique » (choisi dans l'admin) : le site prend alors la première photo.
+  return { cover: list.some(p => p.id === draft?.cover) ? draft.cover : '', items: list };
 }
 
 // Projets : seuls les champs éditables passent. Les champs techniques (adresse de la page, affiche, statut)
 // restent ceux du code (content/projects.mjs) et ne peuvent pas venir de la base.
 const TERRITORIES = ['Récits', 'Marques', 'Moments', 'Réseaux', 'Photographie'];
 const link = value => { const v = String(value || '').trim(); return /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v) ? v.slice(0, 300) : ''; };
+const VIDEO_EXT = { mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' };
+const MAX_VIDEO = 50 * 1024 * 1024;
+const VIDEO_PATH = '/assets/video/site/';
+const videoFileOf = v => {
+  const ext = String(v?.ext || ''), width = dim(v?.width), height = dim(v?.height);
+  if (!validId(v?.id) || !VIDEO_EXT[ext] || !width || !height || (Number(v?.bytes) || 0) > MAX_VIDEO) return null;
+  return { id: v.id, ext, type: VIDEO_EXT[ext], src: `${VIDEO_PATH}${v.id}.${ext}`, width, height, duration: Math.max(0, Math.min(3600, Math.round(Number(v.duration) || 0))) };
+};
+// Un média de projet : photo envoyée, vidéo YouTube (affiche copiée au déploiement), publication Instagram
+// (avec son image) ou fichier vidéo envoyé (avec sa miniature). Un média incomplet est écarté (jamais de faux média).
+const MEDIA_KINDS = ['photo', 'youtube', 'instagram', 'file'];
+export function normalizeMedia(m) {
+  const kind = MEDIA_KINDS.includes(m?.kind) ? m.kind : '';
+  const key = /^[\w-]{2,64}$/.test(String(m?.key || '')) ? String(m.key) : '';
+  const image = imageOf(m?.image), alt = clean(m?.alt, 300);
+  const videoId = /^[\w-]{11}$/.test(m?.videoId || '') ? m.videoId : '';
+  const instagramId = /^[\w-]{5,40}$/.test(m?.instagramId || '') ? m.instagramId : '';
+  const video = kind === 'file' ? videoFileOf(m?.video) : null;
+  const ok = kind === 'photo' ? image && alt : kind === 'youtube' ? videoId && (!image || alt) : kind === 'instagram' ? instagramId && image && alt : kind === 'file' ? video && image && alt : false;
+  if (!key || !ok) return null;
+  return { key, kind, image: image || null, alt, caption: clean(m?.caption, 160), videoId: kind === 'youtube' ? videoId : '', instagramId: kind === 'instagram' ? instagramId : '', video };
+}
+// Ancien format (un seul média par projet : mediaKind, image, alt, videoId, instagramId) -> liste d'un média.
+// Rien n'est perdu : un projet déjà publié garde exactement son média.
+export function legacyMedia(p) {
+  const kind = ['photo', 'youtube', 'instagram'].includes(p?.mediaKind) ? p.mediaKind : (/^[\w-]{11}$/.test(p?.videoId || '') ? 'youtube' : p?.image ? 'photo' : '');
+  if (!kind) return [];
+  return [{ key: 'm-1', kind, image: p.image || null, alt: p.alt || '', videoId: kind === 'youtube' ? p.videoId : '', instagramId: kind === 'instagram' ? p.instagramId : '' }];
+}
+const PAGE_MODES = ['auto', 'page', 'link'];
+// Adresse de la page projet (/projet/<adresse>/) : choisie dans l'admin, sinon tirée du titre.
+export const slugify = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '');
 export function normalizeProjects(list) {
   if (!Array.isArray(list)) return null;
   const seen = new Set(), out = [];
@@ -66,20 +100,26 @@ export function normalizeProjects(list) {
     const title = clean(p?.title, 120);
     if (!/^[a-z0-9-]{2,60}$/.test(slug) || seen.has(slug) || !title) continue;
     seen.add(slug);
-    const mediaKind = ['photo', 'youtube', 'instagram'].includes(p.mediaKind) ? p.mediaKind : (/^[\w-]{11}$/.test(p.videoId || '') ? 'youtube' : '');
-    const image = imageOf(p.image);
+    const keys = new Set();
+    const media = (Array.isArray(p.media) ? p.media : legacyMedia(p)).slice(0, 24).map(normalizeMedia).filter(m => m && !keys.has(m.key) && keys.add(m.key));
+    const cover = media.find(m => m.key === p.cover) || media[0] || null;
     out.push({
       slug, title, visible: p.visible === true,
       territory: TERRITORIES.includes(p.territory) ? p.territory : '',
       type: clean(p.type, 80), role: clean(p.role, 80), context: clean(p.context, 120), client: clean(p.client, 80),
       year: yearOf(p.year), result: clean(p.result, 200), link: link(p.link), summary: clean(p.summary, 400),
-      mediaKind,
-      videoId: /^[\w-]{11}$/.test(p.videoId || '') ? p.videoId : '',
-      instagramId: /^[\w-]{5,40}$/.test(p.instagramId || '') ? p.instagramId : '',
-      image, alt: clean(p.alt, 300),
+      // Tuile : « auto » = page projet dès qu'il y a plusieurs médias (sinon non cliquable), « page » = toujours
+      // une page projet, « link » = le lien ci-dessus.
+      // Ancien projet sans réglage : son lien s'il en a un ; une vidéo seule garde une page (sinon elle ne se regarderait plus).
+      pageMode: PAGE_MODES.includes(p.pageMode) ? p.pageMode : link(p.link) ? 'link' : !Array.isArray(p.media) && ['youtube', 'instagram'].includes(media[0]?.kind) && slug !== 'le-bol-den-face' ? 'page' : 'auto',
+      pageSlug: /^[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$/.test(p.pageSlug || '') ? p.pageSlug : (slugify(title) || slug),
+      media, cover: cover?.key || '',
+      // Champs de l'ancien format, tirés de la couverture (lus par le reste du site) :
+      mediaKind: cover?.kind || '', videoId: cover?.videoId || '', instagramId: cover?.instagramId || '',
+      image: cover?.image || null, alt: cover?.alt || '',
       uploadDate: /^\d{4}-\d{2}-\d{2}$/.test(p.uploadDate || '') ? p.uploadDate : '',
       duration: /^PT(\d+H)?(\d+M)?(\d+S)?$/.test(p.duration || '') && p.duration !== 'PT' ? p.duration : '',
-      // Page projet (Le bol d'en face) :
+      // Page projet :
       location: clean(p.location, 80), format: clean(p.format, 80), camera: clean(p.camera, 80),
       contextText: clean(p.contextText, 1500), intent: clean(p.intent, 300),
       decisions: (Array.isArray(p.decisions) ? p.decisions : []).slice(0, 8).map(d => ({ title: clean(d?.title, 160), text: clean(d?.text, 800) })).filter(d => d.title || d.text)
@@ -91,9 +131,6 @@ export function normalizeProjects(list) {
 // Social media videos : vidéo Instagram (lecteur chargé au clic) ou fichier vidéo envoyé depuis l'admin
 // (copié sur le site). Miniature : image envoyée, sinon image tirée de la vidéo à l'import.
 const TAGS = ['recits', 'marques', 'moments', 'reseaux', 'photo'];
-const VIDEO_EXT = { mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' };
-const MAX_VIDEO = 50 * 1024 * 1024;
-const VIDEO_PATH = '/assets/video/site/';
 const ratioOf = (w, h) => { const g = (a, b) => b ? g(b, a % b) : a; const k = g(w, h) || 1; return `${w / k}/${h / k}`; };
 export function normalizeSocial(list) {
   if (!Array.isArray(list)) return null;
@@ -179,6 +216,8 @@ async function download(url, kind = 'webp', max = MAX_BYTES) {
   return body;
 }
 
+// Les fonctions de normalisation s'importent sans rien lancer (tests) ; le script ne tourne que lancé directement.
+async function main() {
 const check = process.argv.includes('--check');
 let published = null, source = '';
 try { published = await latestSnapshot(); source = 'supabase'; }
@@ -191,7 +230,7 @@ if (check) {
   const changed = Boolean(published && published.hash !== (live.published || live.hash));
   console.log(`Publication : ${changed ? 'nouvelle version à mettre en ligne' : 'rien de nouveau'} (publié ${published?.hash || 'inconnu'}, en ligne ${live.published || live.hash}).`);
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
-  process.exit(0);
+  return;
 }
 
 let base = `${supabaseUrl}/storage/v1/object/public/${BUCKET}/`, videoBase = `${supabaseUrl}/storage/v1/object/public/site-videos/`;
@@ -214,25 +253,33 @@ const copy = async (image, label) => {
 };
 const keptPhotos = [];
 for (const photo of published.items) if (await copy(photo, 'Photo')) keptPhotos.push(photo);
+// Vidéos : 600 Mo au total au maximum (vidéos sociales et vidéos des projets).
+let videoBytes = 0;
+const copyVideo = async (video, label) => {
+  try {
+    const body = await download(`${videoBase}${video.id}.${video.ext}`, video.ext === 'webm' ? 'webm' : 'mp4', MAX_VIDEO);
+    if (videoBytes + body.length > 600 * 1024 * 1024) throw new Error('limite de 600 Mo de vidéos atteinte');
+    await writeFile(join(videoDir, `${video.id}.${video.ext}`), body);
+    videoBytes += body.length; return true;
+  } catch (error) { console.warn(`Vidéo ${label} non copiée (${error.message}) : elle n'apparaîtra pas sur le site.`); return false; }
+};
 const keptProjects = published.projects && [];
 for (const project of published.projects || []) {
-  // Image d'un projet masqué : gardée dans la liste mais pas copiée. Image manquante : le projet perd son image (masqué s'il n'a pas d'autre média).
-  const image = !project.image ? null : !project.visible ? project.image : await copy(project.image, `Image du projet ${project.slug}`) ? project.image : null;
-  keptProjects.push({ ...project, image });
+  // Projet masqué : ses médias restent dans la liste sans être copiés. Un média dont un fichier manque est retiré
+  // (le projet reste masqué s'il n'a plus aucun média réel).
+  const media = [];
+  for (const m of project.media || []) {
+    if (!project.visible) { media.push(m); continue; }
+    if (m.image && !await copy(m.image, `Image du projet ${project.slug}`)) { if (m.kind !== 'youtube') continue; media.push({ ...m, image: null }); continue; }
+    if (m.video && !await copyVideo(m.video, `du projet ${project.slug}`)) continue;
+    media.push(m);
+  }
+  keptProjects.push(normalizeProjects([{ ...project, media }])[0] || { ...project, media, image: null });
 }
-// Vidéos : 600 Mo au total au maximum (GitHub Pages limite le site à 1 Go).
 const keptSocial = published.social && [];
-let videoBytes = 0;
 for (const post of published.social || []) {
   const image = post.image && await copy(post.image, `Miniature de ${post.title}`) ? post.image : null;
-  if (post.video) {
-    try {
-      const body = await download(`${videoBase}${post.video.id}.${post.video.ext}`, post.video.ext === 'webm' ? 'webm' : 'mp4', MAX_VIDEO);
-      if (videoBytes + body.length > 600 * 1024 * 1024) throw new Error('limite de 600 Mo de vidéos atteinte');
-      await writeFile(join(videoDir, `${post.video.id}.${post.video.ext}`), body);
-      videoBytes += body.length;
-    } catch (error) { console.warn(`Vidéo ${post.title} non copiée (${error.message}) : elle n'apparaîtra pas sur le site.`); continue; }
-  }
+  if (post.video && !await copyVideo(post.video, post.title)) continue;
   keptSocial.push({ ...post, image });
 }
 const keptImages = published.images && {};
@@ -248,3 +295,5 @@ await write('images.published.json', { images: keptImages });
 await write('published.json', { published: manifest.published });
 await writeFile(join(outDir, 'manifest.json'), JSON.stringify(manifest) + '\n');
 console.log(`Publication copiée (source : ${source}${manifest.snapshot ? `, version n° ${manifest.snapshot}` : ''}) : ${photos.items.length} photo(s), ${keptProjects ? `${keptProjects.length} projet(s)` : 'projets du code'}, ${keptSocial ? `${keptSocial.length} vidéo(s) sociale(s) dont ${keptSocial.filter(p => p.video).length} fichier(s) (${Math.round(videoBytes / 1048576)} Mo)` : 'vidéos sociales du code'}, ${keptImages ? Object.keys(keptImages).length : 0} image(s) du site remplacée(s).`);
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

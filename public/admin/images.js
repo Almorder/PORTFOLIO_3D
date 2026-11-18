@@ -97,27 +97,29 @@
       })))], 'admin-card--wide');
     });
 
-    const projectRows = projects => card('Work · Miniatures des projets (Ma sélection)', [
-      el('p', { className: 'ph-help', textContent: 'Image de la tuile de chaque projet visible. Le reste du projet se modifie dans « Projets du portfolio ».' }),
-      el('ul', { className: 'im-list' }, projects.map((p, index) => ({ p, index })).filter(({ p }) => p.visible).map(({ p, index }) => {
-        const kind = p.mediaKind || (p.videoId ? 'youtube' : 'photo');
-        const poster = p.posterFile || (p.videoId ? `/assets/work/yt-${p.videoId}.jpg` : '');
+    // Miniature d'un projet = son média principal (couverture). Les autres médias se gèrent dans « Projets ».
+    const P = window.NolanProjects || {};
+    const coverOf = p => { P.migrate?.(p); return (p.media || []).find(m => m.key === p.cover) || (p.media || [])[0] || null; };
+    const editCover = async (index, change) => { const list = await read('projects'); const p = list[index]; P.migrate?.(p); const c = coverOf(p); if (!c) throw new Error('ce projet n’a pas encore de média'); const old = change(c); P.syncLegacy?.(p); await save('projects', list, old); };
+    const projectRows = projects => card('Work · Couvertures des projets', [
+      el('p', { className: 'ph-help', textContent: 'Image de la tuile de chaque projet visible (son média principal). Les autres médias, l’ordre et la page projet se règlent dans « Projets ».' }),
+      el('ul', { className: 'im-list' }, projects.map((p, index) => ({ p, index, c: coverOf(p) })).filter(({ p, c }) => p.visible && c).map(({ p, index, c }) => {
+        const poster = c.kind === 'youtube' && c.videoId ? (p.posterFile && p.slug === 'le-bol-den-face' ? p.posterFile : `/assets/work/yt-${c.videoId}.jpg`) : '';
         return slotRow({
           key: `project-${p.slug}`, label: p.title || 'Projet sans titre', format: 'Horizontal 16:9 ou vertical 4:5, au moins 1600 px.',
-          current: p.image, origin: kind === 'youtube' ? poster : '', originLabel: kind === 'youtube' ? 'Affiche de la vidéo YouTube' : 'Aucune image : projet masqué sur le site', report: reports.get(`project-${p.slug}`),
-          note: kind === 'photo' ? 'Projet photo : la photo est le média du projet (pas d’image d’origine).' : null,
-          alt: p.alt || '',
+          current: c.image, origin: poster, originLabel: c.kind === 'youtube' ? 'Affiche de la vidéo YouTube' : 'Aucune image : projet masqué sur le site', report: reports.get(`project-${p.slug}`),
+          note: c.kind === 'photo' ? 'Couverture photo : la photo est le média (pas d’image d’origine).' : null,
+          alt: c.alt || '',
           onFile: async file => {
             const { image, report } = await media.store(file, 'photo');
-            const list = await read('projects'); const target = list[index]; const old = target.image?.id;
-            target.image = plain(image); await save('projects', list, old); reports.set(`project-${p.slug}`, report);
+            await editCover(index, m => { const old = m.image?.id; m.image = plain(image); return old; }); reports.set(`project-${p.slug}`, report);
             say(`${report}. Vérifie le texte alternatif puis publie.`, 'ok');
           },
-          onRevert: kind === 'youtube' ? async () => { const list = await read('projects'); const old = list[index].image?.id; list[index].image = null; await save('projects', list, old); say('Affiche YouTube rétablie. Publie pour mettre en ligne.', 'ok'); } : null,
-          onAlt: async value => { const list = await read('projects'); list[index].alt = value; await save('projects', list); say('Texte alternatif enregistré.', 'ok'); }
+          onRevert: c.kind === 'youtube' ? async () => { await editCover(index, m => { const old = m.image?.id; m.image = null; return old; }); say('Affiche YouTube rétablie. Publie pour mettre en ligne.', 'ok'); } : null,
+          onAlt: async value => { await editCover(index, m => { m.alt = value; return null; }); say('Texte alternatif enregistré.', 'ok'); }
         });
       })),
-      button('Ouvrir « Projets du portfolio »', 'admin-mini', () => go('projects'))
+      button('Ouvrir « Projets »', 'admin-mini', () => go('projects'))
     ], 'admin-card--wide');
 
     const socialRows = posts => card('Work · Miniatures des Social media videos', [

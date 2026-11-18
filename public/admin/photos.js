@@ -8,7 +8,7 @@
   const MIN = 1;
   const imageFields = it => ({ id: it.id, width: it.width, height: it.height, smallWidth: it.smallWidth, smallHeight: it.smallHeight });
   // Projet photo de « Ma sélection » créé depuis une photo : masqué tant que Nolan n'a pas relu le titre.
-  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
+  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', media: [{ key: 'm-1', kind: 'photo', image, alt, caption: '', videoId: '', instagramId: '' }], cover: 'm-1', pageMode: 'auto', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
   const DESTS = [['photo', 'Section Photographie'], ['project', 'Ma sélection (projet photo du bento)'], ['both', 'Les deux']];
 
   window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty, inUse, addProjects }) => {
@@ -124,13 +124,14 @@
     let dragFrom = -1;
     const photoCard = (item, index) => {
       const n = index + 1;
-      const isCover = model.cover ? model.cover === item.id : index === 0;
+      const autoCover = !model.cover && item.id === (model.items.find(p => p.visible && String(p.alt || '').trim()) || {}).id;
+      const isCover = model.cover ? model.cover === item.id : autoCover;
       const img = el('img', { className: 'ph-thumb', alt: item.alt ? `Aperçu : ${item.alt}` : `Aperçu de la photo ${n}`, width: item.smallWidth || 0, height: item.smallHeight || 0 });
       preview(img, item.id);
       const visible = el('input', { type: 'checkbox', checked: Boolean(item.visible) });
       visible.dataset.focusKey = `${item.id}-visible`;
       visible.addEventListener('change', () => { item.visible = visible.checked; touch(); redraw(); });
-      const cover = el('input', { type: 'radio', name: 'ph-cover', checked: isCover });
+      const cover = el('input', { type: 'radio', name: 'ph-cover', checked: model.cover === item.id });
       cover.dataset.focusKey = `${item.id}-cover`;
       cover.addEventListener('change', () => { model.cover = item.id; touch(); redraw(); });
       const tool = (text, label, key, action, disabled) => { const b = button(text, 'admin-mini', action, label); b.dataset.focusKey = `${item.id}-${key}`; b.disabled = Boolean(disabled); return b; };
@@ -149,7 +150,7 @@
         say('Projet photo créé, masqué, en bas de « Projets du portfolio » : relis son titre puis rends-le visible.', 'ok');
       });
       const node = el('li', { className: `ph-card${item.visible ? '' : ' is-hidden'}`, draggable: true }, [
-        el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), isCover ? el('span', { className: 'ph-card__cover', textContent: 'Tuile' }) : null]),
+        el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), isCover ? el('span', { className: 'ph-card__cover', textContent: model.cover ? 'Tuile' : 'Tuile (auto)' }) : null]),
         el('div', { className: 'ph-card__body' }, [
           el('p', { className: `ph-card__status${item.visible ? '' : ' is-off'}`, textContent: `Photo ${n} · ${status}` }),
           reports.has(item.id) ? el('p', { className: 'md-badge', textContent: reports.get(item.id) }) : null,
@@ -178,6 +179,21 @@
       node.addEventListener('dragleave', () => node.classList.remove('is-over'));
       node.addEventListener('drop', e => { if (dragFrom < 0) return; e.preventDefault(); const from = dragFrom; dragFrom = -1; move(from, index); });
       return node;
+    };
+
+    // Photo de la tuile Work : une photo choisie, ou « Automatique » (la première photo visible). Revenir à
+    // « Automatique » désélectionne la photo choisie.
+    const tileCard = () => {
+      const auto = el('input', { type: 'radio', name: 'ph-cover', checked: !model.cover });
+      auto.dataset.focusKey = 'cover-auto';
+      auto.addEventListener('change', () => { model.cover = ''; touch(); redraw(); });
+      const chosen = model.items.find(p => p.id === model.cover);
+      return card('Photo de la tuile Work', [
+        el('p', { className: 'ph-help', textContent: 'La tuile Photographie de la page Work montre d’abord cette photo. Coche « Photo de la tuile Work » sur une photo pour la choisir.' }),
+        el('label', { className: 'admin-field admin-field--check' }, [auto, el('span', { textContent: 'Automatique (aucune photo choisie) : la première photo visible de la liste' })]),
+        el('p', { className: chosen ? 'admin-ok' : 'ph-help', textContent: chosen ? `Choisie : photo ${model.items.indexOf(chosen) + 1}${chosen.series ? ` (${chosen.series})` : ''}.` : 'Aucune photo choisie : la tuile suit l’ordre de la liste.' }),
+        chosen ? button('Retirer ce choix', 'admin-mini', () => { model.cover = ''; touch(); redraw(); say('Tuile en automatique. Enregistre pour garder ce réglage.', 'warn'); }, 'Retirer la photo choisie pour la tuile Work') : null
+      ], 'admin-card--wide');
     };
 
     const render = () => {
@@ -211,6 +227,7 @@
         : 'Aucune photo visible : la section Photographie reste masquée sur le site. Une seule photo suffit pour l’afficher.' });
       return [
         el('div', { className: 'admin-bar' }, [heading('Photos de la page Work', 'Section Photographie et tuile du bento. L’ordre ici est l’ordre sur le site.'), el('div', { className: 'admin-row' }, [save, live])]),
+        tileCard(),
         card('Ajouter', [where, drop, summary, el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », le site se met à jour en quelques minutes (l’état s’affiche en bas de l’écran).' })], 'admin-card--wide'),
         model.items.length
           ? Object.assign(el('ol', { className: 'ph-list' }, model.items.map(photoCard)), { ariaLabel: 'Photos, dans l’ordre du site' })

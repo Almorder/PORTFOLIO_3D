@@ -2,7 +2,7 @@ import { rm, mkdir, writeFile, cp, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { homePage, workPage, projectPage, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage, adminPage } from '../templates/pages.mjs';
+import { homePage, workPage, projectPage, projectPages, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage, adminPage } from '../templates/pages.mjs';
 import { site } from '../content/site.mjs';
 
 const root=new URL('../',import.meta.url).pathname;
@@ -30,6 +30,9 @@ const pages = new Map([
   ['404/index.html',notFoundPage()],
   ['404.html',notFoundPage()]
 ]);
+// Pages projet générées depuis l'admin (plusieurs médias ou réglage « page projet ») : /projet/<adresse>/.
+const generated=projectPages();
+for(const [file,html] of generated) if(!pages.has(file)) pages.set(file,html);
 const cssSource=await readFile(join(root,'src/styles.css'),'utf8');
 const jsSource=await readFile(join(root,'src/app.js'),'utf8');
 const cssHash=createHash('sha256').update(cssSource).digest('hex').slice(0,10);
@@ -102,7 +105,7 @@ for(const [file,target] of Object.entries(redirects)){
   await writeFile(dest,`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${target}"><link rel="canonical" href="${site.domain}${canonicalTarget}"><title>Redirection | Nolan Arc</title></head><body><p>Cette page a changé. <a href="${target}">Continuer vers Nolan Arc</a>.</p></body></html>`,'utf8');
 }
 
-const routes=['/','/work/','/projet/le-bol-den-face/','/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
+const routes=['/','/work/','/projet/le-bol-den-face/',...generated.map(([,,path])=>path),'/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
 const today=new Date().toISOString().slice(0,10);
 // Icône du site (onglet, résultats Google, écran d'accueil du téléphone).
 await writeFile(join(out,'site.webmanifest'),JSON.stringify({name:'Nolan Arc',short_name:'Nolan Arc',start_url:'/',display:'browser',background_color:'#080706',theme_color:'#080706',icons:[{src:'/assets/icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'/assets/icons/icon-512.png',sizes:'512x512',type:'image/png'}]})+'\n');

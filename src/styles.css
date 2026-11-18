@@ -32,7 +32,8 @@ body.menu-open{overflow:hidden}
 a{color:inherit;text-decoration:none}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
-img,video{display:block;max-width:100%}
+/* height:auto : une image qui déclare width/height garde son ratio quand le CSS change sa largeur (sinon la hauteur de l'attribut reste et l'image s'étire). */
+img,video{display:block;max-width:100%;height:auto}
 ::selection{background:var(--ember);color:#fff}
 :where(a,button,input,textarea,select):focus-visible{outline:2px solid var(--ember-soft);outline-offset:4px}
 [hidden]{display:none!important}
@@ -1893,7 +1894,9 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .polaroid::after{content:"";position:absolute;inset:0;z-index:2;background:url(/assets/da/grain.png) 0 0/160px;mix-blend-mode:multiply;opacity:.18;pointer-events:none}
 /* photo : bord en creux + vernis brillant qui accroche la lumière */
 .polaroid__photo{position:relative;display:block}
-.polaroid__photo img,.polaroid__photo .polaroid__blank{display:block;width:100%}
+/* Cadre du tirage toujours 4:5, quelle que soit la photo envoyée depuis l'admin (verticale, horizontale, carrée) :
+   height:auto annule la hauteur de l'attribut height (cause de l'étirement sur mobile), object-fit recadre sans déformer. */
+.polaroid__photo img,.polaroid__photo .polaroid__blank{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
 .polaroid__photo::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:linear-gradient(118deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.22) 42%,rgba(255,255,255,.05) 50%,rgba(255,255,255,0) 62%),
     linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 22%,rgba(0,0,0,0) 78%,rgba(0,0,0,.14));
@@ -1943,6 +1946,16 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
   .folder__front{position:relative;top:auto;border-radius:0 22px 0 0}
   .folder__more{margin-bottom:0}
   .folder__foot{margin-top:14px}
+}
+/* Trois dimensions, mobile et tablette : le dossier garde le ratio du bureau (4:4,75). L'image de fond (d'origine ou
+   remplacée depuis l'admin, tout ratio) est recadrée en « cover », jamais déformée ; le texte se pose en bas.
+   Si le texte est plus long que le cadre, le dossier s'allonge au lieu de couper le texte. */
+@media(max-width:980px){
+  .folder{aspect-ratio:4/4.75;display:flex;flex-direction:column;justify-content:flex-end;padding-top:64px}
+}
+@media(min-width:601px) and (max-width:980px){
+  .dims__grid{grid-template-columns:1fr 1fr}
+  .folder:last-child{grid-column:1/-1;aspect-ratio:auto;min-height:340px}
 }
 /* Mariage : bouton 25 % plus compact */
 .wedding-wall__cta{min-height:42px;gap:10px;padding:0 6px 0 19px;font-size:11px}
@@ -2627,3 +2640,30 @@ body.cx-dialog-open{overflow:hidden}
 
 /* Point orange des titres Work (accueil et page Work) */
 .title-dot{color:#CC460C}
+
+/* ================= Pages projet générées (2026-11-18) =================
+   Même gabarit que « Le bol d'en face ». Chaque média garde son ratio d'origine : la photo n'est jamais
+   recadrée ni étirée, une vidéo verticale reste verticale. Les lecteurs ne se chargent qu'au clic. */
+.pm-hero .pm-item{margin:0}
+.pm-hero .pm-item--photo img{width:100%;max-height:82svh;object-fit:contain;border-radius:18px;background:#0d0b0a}
+.pm-hero .pm-item--social{display:flex;justify-content:center}
+.pm-hero .pm-card{width:min(100%,420px)}
+.pm-item figcaption{margin-top:10px;font:650 11px/1.4 var(--body);color:var(--fab-muted,#777)}
+.pm-gallery{padding:80px var(--page) 90px;border-top:1px solid var(--fab-line)}
+.pm-grid{display:grid;grid-template-columns:repeat(var(--pm-cols,2),minmax(0,1fr));gap:18px;align-items:start;margin-top:40px}
+.pm-grid[data-count="1"]{--pm-cols:1}
+.pm-grid[data-count="3"]{--pm-cols:3}
+.pm-grid .pm-item{margin:0;min-width:0}
+.pm-grid .pm-item--photo img{width:100%;border-radius:16px;background:#0d0b0a}
+.pm-grid .project-player{aspect-ratio:16/9;border-radius:16px}
+.pm-grid .external-media__gate h2{font-size:clamp(24px,2.4vw,38px)}
+.pm-card .ig-card__cover{background-size:cover;background-position:center}
+@media(max-width:980px){.pm-grid[data-count="3"]{--pm-cols:2}}
+@media(max-width:620px){
+  .pm-gallery{padding:56px 12px 64px}
+  .pm-grid,.pm-grid[data-count="3"]{--pm-cols:1;gap:14px;margin-top:26px}
+  .pm-hero .pm-item--photo img{border-radius:14px}
+}
+.pm-gallery .external-media__gate{color:#fff}
+.pm-gallery .hold-confirm{position:relative;min-width:150px;padding:12px 16px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:#fff;color:#090909;font:700 9px/1 var(--body)}
+.pm-gallery .external-media__privacy{font-size:10px;max-width:34ch}
