@@ -40,7 +40,7 @@ const jsAsset=`assets/app.${jsHash}.js`;
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css');
+const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js');
 // Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
 const { readdir } = await import('node:fs/promises');
 const docsHash=createHash('sha256');
@@ -58,7 +58,7 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');
@@ -68,8 +68,9 @@ await writeFile(join(out,'.nojekyll'),'','utf8');
 const { projects } = await import('../content/projects.mjs');
 const { instagramPosts } = await import('../content/instagram.mjs');
 const { legal } = await import('../content/legal.mjs');
+const { photoDraft } = await import('../content/photos.mjs');
 const { testimonials, ...siteSettings } = site;
-await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: instagramPosts, legal, site: siteSettings }),'utf8');
+await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: instagramPosts, legal, site: siteSettings, photos: photoDraft }),'utf8');
 
 const redirects = {
   'ma-demarche.html':'/a-propos/',

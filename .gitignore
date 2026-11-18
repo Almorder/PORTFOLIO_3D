@@ -5,3 +5,5 @@ dist/
 .env
 .env.*
 !.env.example
+content/photos.published.json
+public/assets/photo/site/

@@ -4,7 +4,7 @@ import { notes } from '../content/journal.mjs';
 import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
-import { photos, MIN_PHOTOS } from '../content/photos.mjs';
+import { photos, tilePhotos, MIN_PHOTOS } from '../content/photos.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus } from './showcase.mjs';
@@ -38,7 +38,7 @@ const workItems = [
   ...projects.filter(p=>p.visible&&p.slug==='le-bol-den-face').map(p=>({ title:p.title, type:p.type, tags:['recits'], role:p.role, context:p.context, year:p.year, result:p.result||'',
     label:`${p.type} · ${p.year}`, text:p.summary, image:bolPoster, width:1280, height:720, alt:'Le bol d’en face, court métrage', href:p.href, cta:'Voir le film' })),
   ...(showPhotos ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(photos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(photos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:photos.slice(0,3), href:'#photo', cta:'Voir les photos' }] : []),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height })), href:'#photo', cta:'Voir les photos' }] : []),
   ...instagramPosts.map((p,i)=>({ title:p.title, type:'Vidéo verticale', tags:p.tags||['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
     label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale publiée sur Instagram.`:'Vidéo verticale publiée sur Instagram.', image:p.cover||'', alt:p.cover?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, instagram:igUrl(p.id) })),
 ];
@@ -277,7 +277,7 @@ export function workPage(){
     </section>
     ${showPhotos ? `<section class="wk-photo" id="photo" aria-labelledby="wk-photo-title">
       <header class="fab-section-heading motion-reveal"><div><h2 id="wk-photo-title">Photographie.</h2></div></header>
-      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.src)}" alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
+      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.srcSmall||ph.src)}"${ph.srcSmall?` srcset="${esc(ph.srcSmall)} ${ph.smallWidth}w, ${esc(ph.src)} ${ph.width}w" sizes="(max-width: 700px) 100vw, 33vw"`:''} alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
     </section>` : ''}
     <section class="v16-testimonials wk-voices" id="retours">
       <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
@@ -580,7 +580,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

@@ -30,6 +30,8 @@ jobs:
           package-manager-cache: false
       - name: Copy film posters to the site
         run: node tools/fetch-posters.mjs
+      - name: Copy published photos to the site
+        run: node tools/fetch-photos.mjs
       - name: Check and build
         run: npm run check
       - name: Configure GitHub Pages

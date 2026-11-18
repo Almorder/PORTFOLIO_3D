@@ -120,10 +120,10 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   if(!sql.includes('crm_protect_invoice')) fail('Cockpit: issued invoices must not be deletable'); }
 // Documents : modèles d'origine de Nolan (public/admin/docs/), décrits dans doc-models.js, aucune coordonnée bancaire ni téléphone en dur (dépôt public), stockage privé.
 { const models=await readFile(join(root,'public/admin/doc-models.js'),'utf8'), msgs=await readFile(join(root,'public/admin/messages.js'),'utf8'), dsql=await readFile(join(root,'supabase/documents_schema.sql'),'utf8');
-  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
-  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, admin');
+  const order=['supabase.js','doc-models.js','messages.js','cockpit.js','photos.js','admin.js'].map(f=>adminHtml.indexOf(`/admin/${f}?v=`));
+  if(order.some(i=>i<0)||order.some((i,k)=>k&&i<order[k-1])) fail('Admin: scripts must load in order supabase, doc-models, messages, cockpit, photos, admin');
   if(!adminHtml.includes('/admin/admin.css?v=')||!/data-docs="[a-f0-9]{10}"/.test(adminHtml)) fail('Admin: admin.css and the documents version must be on /admin/');
-  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
+  for(const [name,src] of [['doc-models.js',models],['messages.js',msgs],['photos.js',await readFile(join(root,'public/admin/photos.js'),'utf8')],['admin.js',await readFile(join(root,'public/admin/admin.js'),'utf8')]]) if(/innerHTML|insertAdjacentHTML|document\.write|eval\(/.test(src)) fail(`Admin: ${name} must not inject HTML`);
   global.window={}; new Function('window',models)(window); new Function('window',msgs)(window);
   const { models:list, settingsFields }=window.NolanDocModels, { steps, messages }=window.NolanMessages;
   const docFiles=[...existing].filter(f=>/^admin\/docs\/[^/]+\.html$/.test(f));
@@ -147,6 +147,21 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   const v2=await readFile(join(root,'supabase/admin_v2_schema.sql'),'utf8');
   if(!/alter table public\.crm_messages enable row level security/.test(v2)||!/using \(\(select public\.is_admin\(\)\)\) with check \(\(select public\.is_admin\(\)\)\)/.test(v2)||!/revoke all on public\.crm_messages from anon, authenticated/.test(v2)) fail('Admin v2: crm_messages must be admin-only');
   if(/\bdrop table\b|\bdelete from\b|\btruncate\b/i.test(v2)) fail('Admin v2: the migration must never delete data'); }
+// Photos de la page Work : espace de fichiers public en lecture, écriture et liste réservées à l'administrateur ;
+// sur le site, chaque photo est servie par nolanarc.com (copiée au déploiement), décrite et aux dimensions connues.
+{ const psql=await readFile(join(root,'supabase/photos_schema.sql'),'utf8');
+  if(!/values \('site-photos', 'site-photos', true, \d+, array\['image\/webp'\]\)/.test(psql)) fail('Photos: site-photos bucket must be public read, WebP only, with a size limit');
+  if((psql.match(/bucket_id = 'site-photos' and \(select public\.is_admin\(\)\)/g)||[]).length<5||/to (anon|public)\b/.test(psql)) fail('Photos: storage policies must be admin-only (no anon policy, no public listing)');
+  if(!/content_drafts_key_check[\s\S]+'photos'/.test(psql)) fail('Photos: the photos draft key must be allowed');
+  if(/\bdrop table\b|\bdelete from\b|\btruncate\b/i.test(psql)) fail('Photos: the migration must never delete data');
+  const { photos:pics }=await import('../content/photos.mjs'), workHtml=await readFile(join(dist,'work/index.html'),'utf8');
+  for(const ph of pics){
+    for(const src of [ph.src,ph.srcSmall]) if(!/^\/assets\/photo\/site\/[a-z0-9-]+(-s)?\.webp$/.test(src||'')||!existing.has(src.slice(1))) fail(`Photos: file missing or outside the site (${src})`);
+    if(!String(ph.alt||'').trim()) fail(`Photos: ${ph.src} needs an alt text`);
+    if(!(ph.width&&ph.height&&ph.smallWidth&&ph.smallHeight)) fail(`Photos: ${ph.src} needs its real dimensions`);
+  }
+  if(pics.length>=3&&!/<section class="wk-photo" id="photo"/.test(workHtml)) fail('Work: three published photos must show the photography section');
+  if(/<img[^>]+supabase\.co/i.test(workHtml)) fail('Photos: visitors must never load a photo from Supabase'); }
 // Sécurité : politique de contenu sur chaque page, aucun script tiers importé à la volée, actions figées.
 for(const f of ['index.html','404.html','admin/index.html','contact/index.html','work/index.html']){
   const h=await readFile(join(dist,f),'utf8');
@@ -160,7 +175,7 @@ for(const f of ['index.html','404.html','admin/index.html','contact/index.html',
 }
 { const js=await readFile(join(root,'src/app.js'),'utf8');
   if(/import\(\s*['"]https?:/.test(js)) fail('Security: no third-party module import from a CDN');
-  const wf=await readFile(join(root,'.github/workflows/pages.yml'),'utf8');
+  const wf=(await Promise.all((await readdir(join(root,'.github/workflows'))).map(f=>readFile(join(root,'.github/workflows',f),'utf8')))).join('\n');
   for(const m of wf.matchAll(/uses:\s*([^\s#]+)/g)) if(!/@[0-9a-f]{40}$/.test(m[1])) fail(`Security: action not pinned by SHA: ${m[1]}`);
   if(!/persist-credentials:\s*false/.test(wf)) fail('Security: checkout must not persist credentials');
   const sec=await readFile(join(dist,'.well-known/security.txt'),'utf8').catch(()=>'');
