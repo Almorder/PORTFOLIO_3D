@@ -4,7 +4,7 @@ import { notes } from '../content/journal.mjs';
 import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
-import { photos, MIN_PHOTOS } from '../content/photos.mjs';
+import { photos, tilePhotos, MIN_PHOTOS } from '../content/photos.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus } from './showcase.mjs';
@@ -34,15 +34,36 @@ const showPhotos = photos.length >= MIN_PHOTOS;
 // Page Work : un projet = une tuile de la sélection, une ligne de la liste et une fiche.
 // Seul ce qui est renseigné s'affiche ; un projet masqué (visible:false) n'apparaît nulle part.
 const igUrl = id => `https://www.instagram.com/p/${id}/`;
+// Projets mis en avant (admin, rubrique « Projets du portfolio ») : photo envoyée, ou vidéo YouTube / Instagram.
+// Aucun lecteur n'est chargé dans le bento : la tuile montre une image servie par le site et renvoie vers le
+// projet, la page du film ou la vidéo (YouTube et Instagram restent derrière le clic, comme ailleurs).
+// Un projet sans média réel (image envoyée ou affiche copiée au déploiement) n'apparaît pas (règle R1).
+const publicFile = src => typeof src==='string' && /^\/(?!\/)/.test(src) && existsSync(new URL(`../public${src}`, import.meta.url));
+const mediaKind = p => p.mediaKind || (p.videoId ? 'youtube' : '');
+const videoUrl = p => mediaKind(p)==='youtube'&&p.videoId ? `https://www.youtube.com/watch?v=${p.videoId}` : mediaKind(p)==='instagram'&&p.instagramId ? igUrl(p.instagramId) : '';
+const projectMedia = (p,large) => {
+  if (p.image && publicFile(p.image.srcSmall) && String(p.alt||'').trim()) return { image:large?p.image.src:p.image.srcSmall, width:large?p.image.width:p.image.smallWidth, height:large?p.image.height:p.image.smallHeight, alt:p.alt, full:p.image.src };
+  if (mediaKind(p)==='youtube' && publicFile(p.posterFile)) return { image:p.posterFile, width:1280, height:720, alt:p.alt||`${p.title}, image de la vidéo` };
+  if (p.slug==='le-bol-den-face' && mediaKind(p)==='youtube') return { image:bolPoster, width:1280, height:720, alt:p.alt||'Le bol d’en face, court métrage' };
+  return null;
+};
+const territoryTag = { 'Récits':'recits', 'Marques':'marques', 'Moments':'moments', 'Réseaux':'reseaux', 'Photographie':'photo' };
+const featured = projects.filter(p=>p.visible&&projectMedia(p,false));
+const projectItem = (p,i) => {
+  const m = projectMedia(p,i===0), kind = mediaKind(p), own = p.href || p.link;
+  return { title:p.title, type:p.type||'', tags:[territoryTag[p.territory]||(kind==='photo'?'photo':'recits')], role:p.role||'', context:p.context||'', client:p.client||'', year:p.year||'', result:p.result||'',
+    label:[p.type,p.year].filter(Boolean).join(' · ')||p.title, text:p.summary||'', image:m.image, width:m.width, height:m.height, alt:m.alt,
+    href: own || videoUrl(p) || m.full || '#selection', cta: p.slug==='le-bol-den-face' ? 'Voir le film' : own ? 'Voir le projet' : kind==='photo' ? 'Voir la photo' : 'Voir la vidéo',
+    ...(kind==='instagram'&&p.instagramId ? { instagram:igUrl(p.instagramId) } : {}), project:p };
+};
 const workItems = [
-  ...projects.filter(p=>p.visible&&p.slug==='le-bol-den-face').map(p=>({ title:p.title, type:p.type, tags:['recits'], role:p.role, context:p.context, year:p.year, result:p.result||'',
-    label:`${p.type} · ${p.year}`, text:p.summary, image:bolPoster, width:1280, height:720, alt:'Le bol d’en face, court métrage', href:p.href, cta:'Voir le film' })),
+  ...featured.map(projectItem),
   ...(showPhotos ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(photos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(photos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:photos.slice(0,3), href:'#photo', cta:'Voir les photos' }] : []),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height })), href:'#photo', cta:'Voir les photos' }] : []),
   ...instagramPosts.map((p,i)=>({ title:p.title, type:'Vidéo verticale', tags:p.tags||['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
     label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale publiée sur Instagram.`:'Vidéo verticale publiée sur Instagram.', image:p.cover||'', alt:p.cover?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, instagram:igUrl(p.id) })),
 ];
-const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['year','Année'],['result','Résultat']];
+const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat']];
 const bentoTiles = workItems.slice(0,5).map(item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) }));
 const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Marques'],['moments','Mariages & moments'],['reseaux','Réseaux'],['photo','Photographie']]
   .map(([key,label])=>({ key, label, count: key==='tout' ? workItems.length : workItems.filter(it=>it.tags.includes(key)).length }))
@@ -50,6 +71,8 @@ const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Ma
 // VideoObject : publié seulement quand la date de mise en ligne et une vignette existent (exigence de Google).
 const videoSchema = ({ name, description, thumbnail, uploadDate, duration, embedUrl, url }) => (uploadDate && thumbnail) ? { '@type':'VideoObject', name, description, thumbnailUrl:[thumbnail], uploadDate, ...(duration?{duration}:{}), embedUrl, url } : null;
 const bolVideo = () => videoSchema({ name:bol.title, description:bol.summary, thumbnail:bolPosterAbs, uploadDate:bol.uploadDate, duration:bol.duration, embedUrl:`https://www.youtube-nocookie.com/embed/${bol.videoId}`, url:`https://www.youtube.com/watch?v=${bol.videoId}` });
+// Vidéos des projets mis en avant (Le bol d'en face compris) : publiées seulement avec date et vignette.
+const projectVideos = () => workItems.filter(it=>it.project&&mediaKind(it.project)!=='photo').map(({project:p,image})=>videoSchema({ name:p.title, description:p.summary||`${p.title}, vidéo de Nolan Ribeiro.`, thumbnail:/^https?:/.test(image)?image:`${site.domain}${image}`, uploadDate:p.uploadDate, duration:p.duration, embedUrl:mediaKind(p)==='youtube'?`https://www.youtube-nocookie.com/embed/${p.videoId}`:`${igUrl(p.instagramId)}embed/`, url:videoUrl(p) })).filter(Boolean);
 const igVideos = () => instagramPosts.map(p=>videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:p.cover?`${site.domain}${p.cover}`:'', uploadDate:p.uploadDate, embedUrl:`${igUrl(p.id)}embed/`, url:igUrl(p.id) })).filter(Boolean);
 
 const visuals = {
@@ -234,12 +257,12 @@ export function workPage(){
     { intent:'story', title:'Film / récit', text:'Film de marque, court métrage', price:fromPrice(priceOf('film')) },
   ];
   const listed = [
-    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
+    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: /^https?:/.test(it.href) ? it.href : it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
   ].map((it,i)=>({ ...it, position:i+1 }));
   const cell = (cls,v) => `<span class="${cls}">${v?esc(v):''}</span>`;
   const icon = { grid:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.4"/></svg>', list:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="6.7" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="10.9" width="13" height="2.6" rx="1.3"/></svg>' };
   const first = bentoTiles[0];
-  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : le court métrage « Le bol d’en face » et des vidéos courtes pour les réseaux sociaux.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...[bolVideo(), ...igVideos()].filter(Boolean)], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
+  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : le court métrage « Le bol d’en face » et des vidéos courtes pour les réseaux sociaux.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...projectVideos(), ...igVideos()], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
     <section class="wk-title motion-reveal"><div><h1>Work<span class="title-dot">.</span></h1><small>Mes réalisations et projets</small></div></section>
     <section class="wk-selection" id="selection" aria-labelledby="wk-selection-title" data-work-views>
       <header class="wk-selection__head motion-reveal"><h2 id="wk-selection-title">Ma sélection.</h2>
@@ -277,7 +300,7 @@ export function workPage(){
     </section>
     ${showPhotos ? `<section class="wk-photo" id="photo" aria-labelledby="wk-photo-title">
       <header class="fab-section-heading motion-reveal"><div><h2 id="wk-photo-title">Photographie.</h2></div></header>
-      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.src)}" alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
+      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.srcSmall||ph.src)}"${ph.srcSmall?` srcset="${esc(ph.srcSmall)} ${ph.smallWidth}w, ${esc(ph.src)} ${ph.width}w" sizes="(max-width: 700px) 100vw, 33vw"`:''} alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
     </section>` : ''}
     <section class="v16-testimonials wk-voices" id="retours">
       <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
@@ -580,7 +603,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

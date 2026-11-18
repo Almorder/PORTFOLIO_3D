@@ -1,4 +1,11 @@
-export const projects = [
+// Projets du portfolio. Ce fichier est la version de départ ; depuis l'admin (rubrique « Projets du portfolio »),
+// Nolan ajoute, modifie, ordonne et masque les projets de « Ma sélection » (page Work). Au déploiement,
+// tools/fetch-published.mjs écrit la version publiée dans content/projects.published.json (non versionné) :
+// elle remplace alors cette liste, dans son ordre. Les champs techniques (slug, href, affiche, statut, card)
+// restent ceux d'ici pour les projets déjà connus, et Le bol d'en face (page dédiée) existe toujours.
+import { readFileSync } from 'node:fs';
+
+const codeProjects = [
   {
     slug: 'le-bol-den-face',
     title: "Le bol d’en face",
@@ -85,3 +92,20 @@ card: { href: '/services/?expertise=realisation', label: 'Réalisation', image: 
     summary: 'Préparer les moments clés, capter sans interrompre et construire un film cohérent à partir de ce qui s’est réellement passé.'
   }
 ];
+
+let published = null;
+try { published = JSON.parse(readFileSync(new URL('./projects.published.json', import.meta.url), 'utf8')).projects; } catch {}
+const CODE_ONLY = ['slug', 'href', 'poster', 'posterFile', 'status', 'card'];
+const bySlug = new Map(codeProjects.map(p => [p.slug, p]));
+const merge = p => {
+  const base = bySlug.get(p.slug);
+  if (!base) return { ...p, href: '', posterFile: p.videoId ? `/assets/work/yt-${p.videoId}.jpg` : '' };
+  const out = { ...base, ...p };
+  for (const k of CODE_ONLY) if (k in base) out[k] = base[k]; else delete out[k];
+  // Un projet déjà connu sans média publié garde sa vidéo du code (le film, son affiche).
+  if (!out.videoId && base.videoId && p.mediaKind !== 'photo' && p.mediaKind !== 'instagram') out.videoId = base.videoId;
+  return out;
+};
+export const projects = Array.isArray(published)
+  ? [...published.map(merge), ...codeProjects.filter(p => p.slug === 'le-bol-den-face' && !published.some(x => x.slug === p.slug)).map(p => ({ ...p, visible: false }))]
+  : codeProjects;

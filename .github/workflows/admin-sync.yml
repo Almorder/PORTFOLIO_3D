@@ -1,0 +1,42 @@
+name: Publication depuis l'admin
+
+# Toutes les heures : si une nouvelle version (photos, projets de « Ma sélection ») a été publiée dans l'admin
+# (/admin/), relance le déploiement du site, qui la copie sur nolanarc.com (tools/fetch-published.mjs).
+# Sinon, ne fait rien.
+# Aucun secret : la version publiée se lit avec la clé publique, et le jeton GitHub fourni à chaque exécution
+# sert uniquement à lancer le déploiement.
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: photos-sync
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Compare the published version with the live site
+        id: photos
+        run: node tools/fetch-published.mjs --check
+      - name: Deploy the site
+        if: steps.photos.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
