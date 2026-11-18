@@ -206,3 +206,23 @@ export function pageViewCounter(){
 
 /** FAQ en données structurées : les réponses restent lisibles par les robots même repliées à l'écran. */
 export const faqSchema = (items=[], path='/') => items.length ? [{ '@type':'FAQPage', '@id':`${site.domain}${path}#faq`, mainEntity:items.map(item=>({ '@type':'Question', name:item.question, acceptedAnswer:{ '@type':'Answer', text:item.answer } })) }] : [];
+
+/** Confirmation d'envoi du formulaire : carte vitrée, courbe lumineuse, délai de réponse. Ouverte par src/app.js. */
+export function contactDialog(){
+  return `<div class="cx-dialog" data-contact-dialog hidden>
+  <div class="cx-dialog__backdrop" data-dialog-close></div>
+  <div class="cx-dialog__card" role="dialog" aria-modal="true" aria-labelledby="cx-dialog-state" aria-describedby="cx-dialog-label cx-dialog-title cx-dialog-sub cx-dialog-text" tabindex="-1">
+    <div class="cx-dialog__grid" aria-hidden="true"></div>
+    <div class="cx-dialog__top"><span>Nolan Arc · contact</span><span class="cx-dialog__pill" id="cx-dialog-state"><i aria-hidden="true"></i>Message reçu</span></div>
+    <svg class="cx-dialog__curve" viewBox="0 0 400 170" aria-hidden="true" preserveAspectRatio="none"><defs><linearGradient id="cx-curve-grad" x1="0" x2="1"><stop offset="0" stop-color="#F0C7A5" stop-opacity="0"/><stop offset=".45" stop-color="#F09A62"/><stop offset="1" stop-color="#F0C7A5" stop-opacity=".15"/></linearGradient></defs><path class="cx-dialog__path" pathLength="1" d="M0 140 C60 128 120 150 160 120 C190 96 190 30 222 26 C252 22 258 96 290 122 C320 146 360 132 400 118"/><circle class="cx-dialog__dot" cx="222" cy="26" r="7"/></svg>
+    <div class="cx-dialog__body">
+      <p class="cx-dialog__label" id="cx-dialog-label">Je vous réponds sous</p>
+      <h2 id="cx-dialog-title"><span>48 h</span></h2>
+      <p class="cx-dialog__sub" id="cx-dialog-sub">ouvrées, au plus tard.</p>
+      <p id="cx-dialog-text" class="cx-dialog__text">Votre message est bien arrivé. Je le lis moi-même, puis je reviens vers vous avec les premières questions utiles.</p>
+      <div class="cx-dialog__actions"><a href="/work/">Voir les réalisations <span aria-hidden="true">↗</span></a><button type="button" data-dialog-close>Fermer</button></div>
+    </div>
+    <button class="cx-dialog__x" type="button" data-dialog-close aria-label="Fermer la confirmation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+</div>`;
+}

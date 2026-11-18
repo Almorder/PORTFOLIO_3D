@@ -10,7 +10,7 @@ import { focusText, morphTestimonials, bentoFocus } from './showcase.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
 import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
-import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema } from './components.mjs';
+import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema, contactDialog } from './components.mjs';
 
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
@@ -199,7 +199,7 @@ export function homePage(){
       </form>
       <div class="final-cta__copy motion-reveal"><h2>Parlons de votre projet.</h2><p>Un brief précis ou simplement une idée : les deux me vont.</p><ul><li><strong>Réponse généralement sous 48 h</strong><span>Je reviens avec les premières questions utiles.</span></li><li><strong>Une suite claire</strong><span>Si le projet colle, on définit ce qu’il faut faire et dans quel ordre.</span></li></ul><p class="final-cta__alt">Ou par e-mail : <a href="mailto:${site.email}">${site.email}</a></p></div>
     </section>
-  </main>` + footer();
+  </main>${contactDialog()}` + footer();
 }
 
 export function workPage(){
@@ -289,28 +289,76 @@ export function journalPage(){
   </main>` + footer();
 }
 
+// Contact : quatre portes d'entrée (formulaire, email, Instagram, appel) et une réassurance tirée des faits publiés ailleurs.
+const contactIcons = {
+  form: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="3.5"/><path d="M8 8.5h8M8 12h8M8 15.5h4.5"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="3"/><path d="m4.5 7.5 6.3 5a2 2 0 0 0 2.4 0l6.3-5"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle class="is-dot" cx="17.1" cy="6.9" r=".9"/></svg>',
+  call: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M12 12.5v2.6l1.8 1.1"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+};
+const igHandle = site.instagram.split('/').filter(Boolean).pop();
+const contactIntents = [
+  { key:'moment', label:'Mariage / moment', hint:'Mariage, demande en mariage' },
+  { key:'brand', label:'Marque', hint:'Contenu, direction artistique, stratégie' },
+  { key:'story', label:'Film / récit', hint:'Film de marque, court métrage' },
+  { key:'other', label:'Autre', hint:'Une idée à cadrer' },
+];
+
 export function contactPage(){
-  return head({title:'Contacter Nolan Ribeiro, vidéaste et photographe | Nolan Arc',description:'Écrire à Nolan Ribeiro, vidéaste et photographe, pour un film de mariage, un film de marque, une direction artistique ou une stratégie. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page">
-    <section class="contact-composer motion-gradient" data-gradient-host>
+  const offers = Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,price:o.price?`${o.from?'à partir de ':''}${o.price}`:'',message:pricingMessage(o)}]));
+  const priceMarks = pricing.filter(o=>/€/.test(o.price)).slice(0,4).map(o=>`<li><span>${esc(o.tag)}</span><b>${o.from?'dès ':''}${esc(o.price)}</b></li>`).join('');
+  const quote = site.testimonials[0];
+  const igMessage = 'Salut Nolan, je viens de ton site nolanarc.com. Je voudrais te parler d’un projet : ';
+  const mailSubject = encodeURIComponent('Un projet | nolanarc.com');
+  return head({title:'Contacter Nolan Ribeiro, vidéaste et photographe | Nolan Arc',description:'Écrire à Nolan Ribeiro, vidéaste et photographe, pour un film de mariage, un film de marque, une direction artistique ou une stratégie. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page cx-page">
+    <section class="contact-composer cx-composer motion-gradient" data-gradient-host aria-labelledby="cx-title">
       ${gradientMotionBackground({style:'diamond',speed:19,blur:82,opacity:.46,size:130,colors:['#E97736','#F0C7A5','#CC460C','#7D4A34']})}
-      <div class="contact-composer__intro motion-reveal">
+      <div class="contact-composer__intro cx-intro motion-reveal">
         <span class="eyebrow">Contact</span>
-        <h1>Dites-moi simplement<br><em>ce que vous préparez.</em></h1>
-        <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer. Je vous réponds généralement sous 48 h ouvrées.</p>
-        <div class="contact-direct-mini"><a href="mailto:${site.email}">${site.email}</a><span>ou</span><a href="${site.calendly}" target="_blank" rel="noreferrer">30 min ensemble ↗</a></div>
+        <h1 id="cx-title">Dites-moi simplement <em>ce que vous préparez.</em></h1>
+        <p>Pas besoin d’un brief parfait. Une idée, une date ou un problème à résoudre suffisent pour commencer.</p>
+        <ul class="cx-promise" aria-label="Ce qui se passe ensuite">
+          <li><b>48 h</b><span>ouvrées pour vous répondre</span></li>
+          <li><b>1</b><span>seul interlocuteur, moi</span></li>
+          <li><b>0</b><span>brief à préparer</span></li>
+        </ul>
       </div>
-      <form class="contact-form contact-form--composer motion-reveal" data-contact-form data-offers="${esc(JSON.stringify(Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,message:pricingMessage(o)}]))))}" action="https://formsubmit.co/ajax/${site.email}" method="POST">
+      <nav class="cx-channels motion-reveal" aria-label="Autres moyens de me contacter">
+        <p class="cx-channels__label">Pas envie d’un formulaire ?</p>
+        <a class="cx-channel" href="mailto:${site.email}?subject=${mailSubject}" data-copy-email="${esc(site.email)}"><i>${contactIcons.mail}</i><span><strong>Email</strong><small data-channel-note>${esc(site.email)}</small></span><em>${contactIcons.arrow}</em></a>
+        <a class="cx-channel" href="https://ig.me/m/${esc(igHandle)}" target="_blank" rel="noreferrer" data-copy-ig="${esc(igMessage)}"><i>${contactIcons.instagram}</i><span><strong>Instagram</strong><small data-channel-note>Message privé à @${esc(igHandle)}</small></span><em>${contactIcons.arrow}</em></a>
+        <a class="cx-channel" href="${site.calendly}" target="_blank" rel="noreferrer"><i>${contactIcons.call}</i><span><strong>Appel<span class="cx-long"> de</span> 30 min</strong><small>Choisir un créneau</small></span><em>${contactIcons.arrow}</em></a>
+        <p class="cx-channels__status" role="status" aria-live="polite" data-channel-status></p>
+      </nav>
+      <form class="contact-form contact-form--composer cx-form motion-reveal" data-contact-form data-offers="${esc(JSON.stringify(offers))}" action="https://formsubmit.co/ajax/${site.email}" method="POST" aria-labelledby="cx-form-title">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot">
         <input type="hidden" name="_subject" value="Nouveau projet | nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
-        <fieldset class="contact-intent-card"><legend>Ça concerne quoi ?</legend><div class="form-intent form-intent--pills"><button type="button" data-form-intent="brand">Marque</button><button type="button" data-form-intent="story">Film / récit</button><button type="button" data-form-intent="moment">Mariage / moment</button><button type="button" data-form-intent="other">Autre</button><input type="hidden" name="type_de_projet" data-intent-input value="Autre"><input type="hidden" name="offre" data-offer-input value=""></div></fieldset>
-        <label class="contact-message contact-message--composer"><span>Votre message</span><textarea required name="message" rows="5" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
-        <div class="contact-fields contact-fields--identity"><label><span>Nom</span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email</span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
-        <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 à 3 000 €</option><option>3 000 à 7 500 €</option><option>7 500 € +</option></select></label></div></details>
-        <div class="contact-submit contact-submit--composer"><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><button class="button button--light" type="submit" data-submit>Envoyer le projet <span>↗</span></button><p class="form-status" role="status" data-form-status></p></div>
+        <header class="cx-form__head"><i>${contactIcons.form}</i><div><h2 id="cx-form-title">Le formulaire</h2><p>Trois étapes courtes. Seul le message compte vraiment.</p></div></header>
+        <fieldset class="cx-step contact-intent-card"><legend><b>01</b> Ça concerne quoi ?</legend>
+          <div class="form-intent cx-intents">${contactIntents.map(i=>`<button type="button" data-form-intent="${i.key}" aria-pressed="false"><strong>${esc(i.label)}</strong><small>${esc(i.hint)}</small></button>`).join('')}</div>
+          <input type="hidden" name="type_de_projet" data-intent-input value="Autre"><input type="hidden" name="offre" data-offer-input value="">
+          <p class="cx-offer" data-offer-chip hidden></p>
+        </fieldset>
+        <fieldset class="cx-step"><legend><b>02</b> Votre projet <span class="cx-req">obligatoire</span></legend>
+          <label class="contact-message contact-message--composer"><span class="cx-visually-hidden">Votre message (obligatoire)</span><textarea required name="message" rows="4" aria-describedby="cx-message-hint" placeholder="L’idée, la date si elle existe, le lieu et ce que vous attendez de moi."></textarea></label>
+          <p class="cx-hint" id="cx-message-hint" data-message-hint>Quelques lignes suffisent. On précise le reste ensemble.</p>
+        </fieldset>
+        <fieldset class="cx-step"><legend><b>03</b> Pour vous répondre</legend>
+          <div class="contact-fields contact-fields--identity"><label><span>Nom <i>obligatoire</i></span><input required name="nom" autocomplete="name" placeholder="Votre nom"></label><label><span>Email <i>obligatoire</i></span><input required type="email" name="email" autocomplete="email" placeholder="vous@exemple.com"></label></div>
+          <details class="contact-more contact-more--composer"><summary>Budget / entreprise <span>optionnel</span></summary><div class="contact-fields"><label><span>Entreprise</span><input name="entreprise" autocomplete="organization" placeholder="Nom de l’entreprise"></label><label><span>Budget</span><select name="budget"><option value="">Pas encore défini</option><option>&lt; 1 500 €</option><option>1 500 à 3 000 €</option><option>3 000 à 7 500 €</option><option>7 500 € +</option></select></label></div></details>
+        </fieldset>
+        <div class="contact-submit contact-submit--composer cx-submit"><button class="button button--light" type="submit" data-submit>Envoyer le projet <span aria-hidden="true">↗</span></button><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><div class="form-status" role="status" aria-live="polite" data-form-status></div></div>
       </form>
     </section>
+    <section class="cx-proof motion-reveal" aria-labelledby="cx-proof-title">
+      <h2 id="cx-proof-title" class="cx-proof__title">Avant d’écrire, <em>ce qui est déjà clair.</em></h2>
+      <article class="cx-proof__card"><small>Les prix</small><p>Les repères sont publics. Le reste se fixe au devis, après un premier échange.</p><ul class="cx-prices">${priceMarks}</ul><a href="/#pricing">Voir les offres ${contactIcons.arrow}</a></article>
+      <article class="cx-proof__card cx-proof__card--dark"><small>Le délai</small><p class="cx-proof__big">48 h</p><p>Je lis chaque message moi-même et je réponds sous 48 h ouvrées, avec les premières questions utiles.</p></article>
+      <figure class="cx-proof__card cx-proof__quote"><small>Un retour</small><blockquote>« ${esc(quote.quote)} »</blockquote><figcaption>${esc(quote.name)}${quote.role?`, ${esc(quote.role)}`:''}</figcaption></figure>
+    </section>
     ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ Contact',title:'FAQ.',intro:'Ce qu’il est utile de savoir avant d’envoyer votre message.'})}
-  </main>` + footer();
+  </main>${contactDialog()}` + footer();
 }
 
 // Pages légales : une structure commune (fiche « En bref », sommaire, sections ancrées, contact) pour des textes
