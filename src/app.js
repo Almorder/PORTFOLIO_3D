@@ -652,11 +652,12 @@ $$('[data-morph-open]').forEach(row=>{
 $$('[data-bento]').forEach(bento=>{
   const tiles=$$('[data-bento-tile]',bento);
   let order=tiles.map((_,i)=>i);
-  const apply=()=>order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot;});
+  const apply=()=>{order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot;});bento.dispatchEvent(new CustomEvent('bento:focus',{detail:{tile:tiles[order[0]]}}));};
   // Double clic sur une tuile : on ouvre directement le projet. Le premier clic peut déjà déplacer la tuile
   // (et la transition masque brièvement la page), donc on retient la tuile visée au premier clic.
   let aimed=null, aimedAt=0;
-  const openTile=tile=>{const link=tile&&$('.bento__link',tile);if(link) location.assign(link.href);};
+  // Une tuile qui pointe dans la page (vidéo du téléphone) passe par le clic du lien, pour choisir la bonne vidéo.
+  const openTile=tile=>{const link=tile&&$('.bento__link',tile);if(!link) return;if(link.hasAttribute('data-stack-goto')) link.click(); else location.assign(link.href);};
   bento.addEventListener('pointerdown',event=>{
     const tile=event.target.closest('[data-bento-tile]');
     if(tile&&performance.now()-aimedAt>500){aimed=tile;aimedAt=performance.now();}
@@ -671,7 +672,8 @@ $$('[data-bento]').forEach(bento=>{
     if(index<0||order[0]===index) return;
     order=[index,...order.filter(i=>i!==index)];
     const done=()=>$('.bento__link',tiles[index])?.focus({preventScroll:true});
-    if(document.startViewTransition&&!reduced) document.startViewTransition(apply).finished.then(done,done);
+    // Une transition interrompue (double-clic rapide) est normale : on évite l'erreur « Transition was skipped ».
+    if(document.startViewTransition&&!reduced){const vt=document.startViewTransition(apply);vt.ready.catch(()=>{});vt.finished.then(done,done);}
     else{apply();done();}
   });
 });
@@ -937,7 +939,34 @@ $$('[data-phone-stack]').forEach(stack=>{
   const end=event=>{if(x0===null)return;const dx=(event.clientX??x0)-x0;x0=null;stack.style.setProperty('--drag','0px');if(Math.abs(dx)>40) go(active+(dx<0?1:-1));};
   stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);stage.addEventListener('pointerleave',end);
   stage.addEventListener('click',event=>{if(moved){event.stopPropagation();event.preventDefault();moved=false;}},true);
+  // Un lien de la page (tuile du bento, ligne de la liste) peut demander une vidéo précise.
+  document.addEventListener('click',event=>{const link=event.target.closest('[data-stack-goto]');const dot=link&&dots[Number(link.dataset.stackGoto)];if(dot) dot.click();});
   layout();
+});
+
+// Work, « Ma sélection » : bascule Grille / Liste, filtres de la liste, fiche du projet mis en avant.
+$$('[data-work-views]').forEach(section=>{
+  const buttons=$$('[data-work-view]',section), panels=$$('[data-work-panel]',section);
+  buttons.forEach(button=>button.addEventListener('click',()=>{
+    const view=button.dataset.workView;
+    buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+    panels.forEach(panel=>{panel.hidden=panel.dataset.workPanel!==view;});
+  }));
+  const filters=$$('[data-work-filter]',section), rows=$$('[data-work-rows] > li',section);
+  filters.forEach(button=>button.addEventListener('click',()=>{
+    const key=button.dataset.workFilter;
+    filters.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+    rows.forEach(row=>{row.hidden=key!=='tout'&&!row.dataset.tags.split(' ').includes(key);});
+  }));
+  const fiche=$('[data-fiche]',section), bento=$('[data-bento]',section);
+  if(fiche&&bento) bento.addEventListener('bento:focus',event=>{
+    const tile=event.detail.tile;
+    $$('[data-fiche-field]',fiche).forEach(field=>{
+      const value=tile.dataset[field.dataset.ficheField]||'';
+      field.textContent=value;
+      const row=field.closest('[data-fiche-row]'); if(row) row.hidden=!value;
+    });
+  });
 });
 
 // Page 404 : une galaxie spirale vue de biais, des dizaines de milliers d'étoiles en lumière additive,

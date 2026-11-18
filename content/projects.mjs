@@ -15,6 +15,15 @@ visible: true,
     href: '/projet/le-bol-den-face/',
     videoId: 'GbeOQ-hgrtU',
     poster: 'https://img.youtube.com/vi/GbeOQ-hgrtU/maxresdefault.jpg',
+    // Affiche hébergée sur le site : récupérée au déploiement (.github/workflows/pages.yml), utilisée dès qu'elle existe.
+    posterFile: '/assets/work/le-bol-den-face.jpg',
+    // Champs facultatifs, affichés seulement s'ils sont remplis (page Work, fiche du projet) :
+    // result : sélection, diffusion ou chiffre réel et vérifié (jamais une promesse) ;
+    // uploadDate (AAAA-MM-JJ) et duration (ex. PT1M) : date de mise en ligne et durée du film,
+    // nécessaires aux données VideoObject lues par Google.
+    result: '',
+    uploadDate: '',
+    duration: '',
     summary: "Un court métrage sur le deuil, raconté par un repas, des gestes, des objets et une place qui reste vide.",
     contextText: "Réalisé dans le cadre de 1minute2court, le film suit un repas de Nouvel An lunaire marqué par une absence. Je voulais que le spectateur la comprenne avant qu’on la lui explique : par une place, un bol, des gestes qui se répètent et des silences.",
     intent: "Faire sentir l’absence avant de l’expliquer.",
@@ -44,7 +53,7 @@ visible: true,
     status: 'partial',
 visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
 card: { href: '/services/?expertise=direction', label: 'Direction artistique', image: '', alt: '' },
-    href: '/services/#ouilove-proof',
+    href: '/services/?expertise=direction',
     summary: 'Direction artistique pour Ouilove Proposal : cadrer le message et maintenir une cohérence visuelle jusqu’au rendu.'
   },
   {
@@ -58,7 +67,7 @@ card: { href: '/services/?expertise=direction', label: 'Direction artistique', i
     status: 'partial',
 visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
 card: { href: '/services/?expertise=strategie', label: 'Contenu & stratégie', image: '', alt: '' },
-    href: '/services/#marques',
+    href: '/services/?expertise=strategie',
     summary: 'Création de contenus sociaux pensés pour les usages de A One Permis, de la préparation au rendu.'
   },
   {
@@ -72,7 +81,7 @@ card: { href: '/services/?expertise=strategie', label: 'Contenu & stratégie', i
     status: 'partial',
 visible: false, // masqué tant qu'il n'y a pas de média réel (règle R1) ; passer à true seulement avec card.image réel
 card: { href: '/services/?expertise=realisation', label: 'Réalisation', image: '', alt: '' },
-    href: '/services/#moments',
+    href: '/services/#mariage',
     summary: 'Préparer les moments clés, capter sans interrompre et construire un film cohérent à partir de ce qui s’est réellement passé.'
   }
 ];

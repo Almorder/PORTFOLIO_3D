@@ -4,6 +4,7 @@ import { notes } from '../content/journal.mjs';
 import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
+import { photos, MIN_PHOTOS } from '../content/photos.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus } from './showcase.mjs';
@@ -24,11 +25,33 @@ const dimNeeds = {
   direction: { need: 'J’ai un univers à rendre cohérent.', text: 'Vos images, vos vidéos et vos supports ne se ressemblent pas toujours. On cherche ensemble ce qui les relie, pour que votre univers se reconnaisse au premier regard.', price: '200 €' },
   strategie: { need: 'J’ai une marque à clarifier.', text: 'Vous savez ce que vous faites, moins comment le dire. On remet à plat ce que vous voulez transmettre, et à qui, pour savoir par quoi commencer.', price: '89 € / h' },
 };
-const bentoTiles = [
-  { title: 'Le bol d’en face', label: 'Court métrage · 2026', text: bol.summary, image: bol.poster, alt: 'Le bol d’en face, court métrage', href: '/projet/le-bol-den-face/', cta: 'Voir le film' },
-  ...projects.filter(p=>p.slug!=='le-bol-den-face').map(p=>({ title: p.title, label: p.card?.label||p.type||'', text: p.summary, image: p.card?.image||'', alt: p.card?.alt||'', href: p.href, cta: 'Voir le contexte' })),
-  { title: 'Social media', label: 'Vidéos verticales', text: 'Box, Taliri, Polestar 3, une demande en mariage : quatre formats courts, à lire juste en dessous.', image: '', href: '#social', cta: 'Voir les vidéos' },
+// Affiche du film hébergée sur le site quand le fichier existe (récupéré au déploiement), sinon celle de YouTube.
+const bolPosterLocal = existsSync(new URL(`../public${bol.posterFile}`, import.meta.url));
+const bolPoster = bolPosterLocal ? bol.posterFile : bol.poster;
+const bolPosterAbs = bolPosterLocal ? `${site.domain}${bol.posterFile}` : bol.poster;
+const showPhotos = photos.length >= MIN_PHOTOS;
+
+// Page Work : un projet = une tuile de la sélection, une ligne de la liste et une fiche.
+// Seul ce qui est renseigné s'affiche ; un projet masqué (visible:false) n'apparaît nulle part.
+const igUrl = id => `https://www.instagram.com/p/${id}/`;
+const workItems = [
+  ...projects.filter(p=>p.visible&&p.slug==='le-bol-den-face').map(p=>({ title:p.title, type:p.type, tags:['recits'], role:p.role, context:p.context, year:p.year, result:p.result||'',
+    label:`${p.type} · ${p.year}`, text:p.summary, image:bolPoster, width:1280, height:720, alt:'Le bol d’en face, court métrage', href:p.href, cta:'Voir le film' })),
+  ...(showPhotos ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(photos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(photos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
+    label:'Photographie', text:'', images:photos.slice(0,3), href:'#photo', cta:'Voir les photos' }] : []),
+  ...instagramPosts.map((p,i)=>({ title:p.title, type:'Vidéo verticale', tags:p.tags||['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
+    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale publiée sur Instagram.`:'Vidéo verticale publiée sur Instagram.', image:p.cover||'', alt:p.cover?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, instagram:igUrl(p.id) })),
 ];
+const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['year','Année'],['result','Résultat']];
+const bentoTiles = workItems.slice(0,5).map(item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) }));
+const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Marques'],['moments','Mariages & moments'],['reseaux','Réseaux'],['photo','Photographie']]
+  .map(([key,label])=>({ key, label, count: key==='tout' ? workItems.length : workItems.filter(it=>it.tags.includes(key)).length }))
+  .filter(f=>f.count>0);
+// VideoObject : publié seulement quand la date de mise en ligne et une vignette existent (exigence de Google).
+const videoSchema = ({ name, description, thumbnail, uploadDate, duration, embedUrl, url }) => (uploadDate && thumbnail) ? { '@type':'VideoObject', name, description, thumbnailUrl:[thumbnail], uploadDate, ...(duration?{duration}:{}), embedUrl, url } : null;
+const bolVideo = () => videoSchema({ name:bol.title, description:bol.summary, thumbnail:bolPosterAbs, uploadDate:bol.uploadDate, duration:bol.duration, embedUrl:`https://www.youtube-nocookie.com/embed/${bol.videoId}`, url:`https://www.youtube.com/watch?v=${bol.videoId}` });
+const igVideos = () => instagramPosts.map(p=>videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:p.cover?`${site.domain}${p.cover}`:'', uploadDate:p.uploadDate, embedUrl:`${igUrl(p.id)}embed/`, url:igUrl(p.id) })).filter(Boolean);
+
 const visuals = {
   brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
   story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
@@ -112,7 +135,7 @@ export function homePage(){
     <section class="fab-projects v16-work-preview" id="work-preview">
       <header class="fab-section-heading work-heading motion-reveal"><h2>Work.</h2><p>Mes réalisations et projets</p></header>
       <div class="fab-project-grid">
-        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bol.poster}" alt="Le bol d’en face, court métrage" loading="eager"><span>Voir le film ↗</span></figure></a>
+        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bolPoster}" alt="Le bol d’en face, court métrage" width="1280" height="720" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
       </div>
       <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
@@ -203,15 +226,48 @@ export function homePage(){
 }
 
 export function workPage(){
-  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : court métrage « Le bol d’en face », direction artistique, demande en mariage, réseaux.', path:'/work/', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Projets', itemListElement:bentoTiles.filter(t=>t.href.startsWith('/')).map((t,i)=>({ '@type':'ListItem', position:i+1, name:t.title, url:`${site.domain}${t.href}` })) }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page">
-    <section class="fab-page-title motion-reveal"><div><h1>Work.</h1><small>sélection</small></div><p>Le projet passe avant le discours. Ouvrez ce qui vous intéresse ; les fiches gardent seulement le contexte utile.</p></section>
-    <section class="bento-section motion-reveal" aria-label="Projets">${bentoFocus(bentoTiles)}</section>
+  const priceOf = key => pricing.find(o=>o.key===key);
+  const fromPrice = o => o ? (o.from ? `dès ${o.price}` : o.price.toLowerCase()) : '';
+  const intents = [
+    { intent:'moment', title:'Mariage / moment', text:`Demande ${fromPrice(priceOf('demande'))}, mariage ${fromPrice(priceOf('mariage'))}`, price:fromPrice(priceOf('demande')) },
+    { intent:'brand', title:'Marque', text:'Contenu, direction artistique, stratégie', price:fromPrice(priceOf('contenu')) },
+    { intent:'story', title:'Film / récit', text:'Film de marque, court métrage', price:fromPrice(priceOf('film')) },
+  ];
+  const listed = [
+    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
+  ].map((it,i)=>({ ...it, position:i+1 }));
+  const cell = (cls,v) => `<span class="${cls}">${v?esc(v):''}</span>`;
+  const icon = { grid:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.4"/></svg>', list:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="6.7" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="10.9" width="13" height="2.6" rx="1.3"/></svg>' };
+  const first = bentoTiles[0];
+  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : le court métrage « Le bol d’en face » et des vidéos courtes pour les réseaux sociaux.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...[bolVideo(), ...igVideos()].filter(Boolean)], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
+    <section class="wk-title motion-reveal"><div><h1>Work.</h1><small>Mes réalisations et projets</small></div></section>
+    <section class="wk-selection" id="selection" aria-labelledby="wk-selection-title" data-work-views>
+      <header class="wk-selection__head motion-reveal"><h2 id="wk-selection-title">Ma sélection.</h2>
+        <div class="wk-view" role="group" aria-label="Affichage des projets"><button type="button" data-work-view="grid" aria-pressed="true" aria-controls="wk-grid">${icon.grid}<span>Grille</span></button><button type="button" data-work-view="list" aria-pressed="false" aria-controls="wk-list">${icon.list}<span>Liste</span></button></div>
+      </header>
+      <div class="wk-panel" id="wk-grid" data-work-panel="grid">
+        <div class="bento-section">${bentoFocus(bentoTiles)}</div>
+        <dl class="wk-fiche" data-fiche aria-live="polite" aria-label="Fiche du projet mis en avant">
+          <div class="wk-fiche__title"><dt>Projet</dt><dd data-fiche-field="title">${esc(first.title)}</dd></div>
+          ${ficheFields.map(([k,l])=>`<div data-fiche-row="${k}"${first[k]?'':' hidden'}><dt>${l}</dt><dd data-fiche-field="${k}">${esc(first[k]||'')}</dd></div>`).join('')}
+        </dl>
+      </div>
+      <div class="wk-panel" id="wk-list" data-work-panel="list" hidden>
+        <div class="wk-filters" role="group" aria-label="Filtrer les projets">${workFilters.map((f,i)=>`<button type="button" data-work-filter="${f.key}" aria-pressed="${i?'false':'true'}">${esc(f.label)}<sup>${f.count}</sup></button>`).join('')}</div>
+        <ol class="wk-rows" data-work-rows>${workItems.map((it,i)=>`<li class="wk-row" data-tags="${esc(it.tags.join(' '))}">
+          <span class="wk-row__n" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
+          <strong class="wk-row__title">${esc(it.title)}</strong>
+          <span class="wk-row__meta">${cell('wk-row__year',it.year)}${cell('wk-row__type',it.type)}${cell('wk-row__role',it.role)}${cell('wk-row__ctx',it.context)}</span>
+          <span class="wk-row__act"><a class="wk-row__go" href="${esc(it.href)}"${Number.isInteger(it.stack)?` data-stack-goto="${it.stack}"`:''}>${esc(it.cta)} <span aria-hidden="true">↗</span></a>${it.instagram?`<a class="wk-row__ext" href="${esc(it.instagram)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(it.title)} sur Instagram (nouvel onglet)">Instagram <span aria-hidden="true">↗</span></a>`:''}</span>
+        </li>`).join('')}</ol>
+      </div>
+    </section>
     <section class="ig-section ig-stage motion-reveal" id="social" aria-labelledby="ig-title">
       <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
       <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
         <div class="phone-stack__stage" data-stack-stage>
           <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>`<li class="ig-card ps-card" data-instagram-post data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
-            <div class="ps-card__screen"><div class="ig-card__cover"><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div>
+            <div class="ps-card__screen"><div class="ig-card__cover"${p.cover?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(p.cover)}')"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div>
             <a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
           </li>`).join('')}</ul>
           <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
@@ -219,19 +275,29 @@ export function workPage(){
         <div class="phone-stack__nav"><button type="button" data-stack-prev aria-label="Vidéo précédente">←</button><span class="phone-stack__dots">${instagramPosts.map((p,i)=>`<button type="button" data-stack-dot="${i}" aria-label="Voir ${esc(p.title)}"></button>`).join('')}</span><button type="button" data-stack-next aria-label="Vidéo suivante">→</button></div>
       </div>
     </section>
-    <section class="v16-expertise-switcher motion-reveal" data-expertise-switcher>
-      <header><span class="fab-dot-label">Trois casquettes</span><h2>Choisissez celle qui vous concerne.</h2></header>
-      <div class="v16-expertise-tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="work-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="work-expertise-panel-${x.key}"><span>${x.index}</span>${x.label}</button>`).join('')}</div>
-      <div class="v16-expertise-panels">${expertiseTabs.map((x,i)=>`<div id="work-expertise-panel-${x.key}" role="tabpanel" aria-labelledby="work-expertise-tab-${x.key}" data-expertise-panel="${x.key}"${i?' hidden':''}><small>${x.label}</small><h3>${x.headline}</h3><p>${x.text}</p><strong>${x.value}</strong><a href="${x.href}">Voir comment j’interviens ↗</a></div>`).join('')}</div>
+    ${showPhotos ? `<section class="wk-photo" id="photo" aria-labelledby="wk-photo-title">
+      <header class="fab-section-heading motion-reveal"><div><h2 id="wk-photo-title">Photographie.</h2></div></header>
+      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.src)}" alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
+    </section>` : ''}
+    <section class="v16-testimonials wk-voices" id="retours">
+      <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
+      ${morphTestimonials(site.testimonials)}
+    </section>
+    <section class="wk-cta" id="contact-cta" aria-labelledby="wk-cta-title">
+      <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services et les tarifs <span aria-hidden="true">↗</span></a></div>
+      <nav class="wk-cta__card motion-reveal" aria-label="Choisir le type de projet"><p class="wk-cta__q">Ça concerne quoi&nbsp;?</p>
+        ${intents.map(x=>`<a href="/contact/?intent=${x.intent}"><strong>${esc(x.title)}</strong><small>${esc(x.text)}</small><b>${esc(x.price)}</b></a>`).join('')}
+        <a class="is-alt" href="/contact/"><strong>Autre</strong><small>Une idée à cadrer</small><b aria-hidden="true">↗</b></a>
+      </nav>
     </section>
   </main>` + footer();
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} | court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bol.poster, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }], image:bol.poster, bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
+  return head({title:`${bol.title} | court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bolPosterAbs, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }, ...[bolVideo()].filter(Boolean)], image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
-    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bol.poster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
+    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bolPoster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
     <section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div><p>${bol.contextText}</p></header><div class="fab-project-story__statement motion-reveal"><span>Problème narratif</span><h3>${bol.intent}</h3></div><div class="fab-project-decisions">${bol.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${d.title}</h3><p>${d.text}</p></article>`).join('')}</div></section>
     <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
   </main>` + footer();
@@ -243,7 +309,7 @@ export function servicesPage(){
     <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
       <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
       <div class="v16-service-switcher__panels">
-        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bol.poster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" loading="lazy"></figure></div>
+        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bolPoster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" width="1280" height="720" loading="lazy"></figure></div>
         <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
         <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
       </div>

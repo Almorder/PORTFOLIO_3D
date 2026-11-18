@@ -42,15 +42,20 @@ export function morphTestimonials(items=[]){
     ${items.map((t,i)=>morphPanel(t,i)).join('')}`;
 }
 
-/** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand. */
+// Une image du bento : dimensions déclarées quand on les connaît (pas de saut de mise en page).
+const tileImg=(src,alt,i,w,h)=>`<img src="${esc(src)}" alt="${esc(alt||'')}"${w&&h?` width="${w}" height="${h}"`:''} loading="${i?'lazy':'eager'}"${i?'':' fetchpriority="high"'} decoding="async">`;
+
+/** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand.
+ *  t.images (au moins trois) : mosaïque de photos ; t.data : attributs data-* (fiche du projet) ;
+ *  t.stack : numéro de la vidéo à afficher dans le téléphone quand on ouvre la tuile. */
 export function bentoFocus(tiles=[]){
-  return `<div class="bento" data-bento style="--bento-n:${tiles.length}">${tiles.map((t,i)=>`<article class="bento__tile${t.image?'':' is-blank'}" data-bento-tile data-slot="${i}" style="view-transition-name:bento-${i};--k:${i}">
-      ${t.image?`<img src="${esc(t.image)}" alt="${esc(t.alt||'')}" loading="${i?'lazy':'eager'}" decoding="async">`:''}
+  return `<div class="bento" data-bento style="--bento-n:${tiles.length}">${tiles.map((t,i)=>`<article class="bento__tile${t.image||t.images?'':' is-blank'}${t.images?' bento__tile--mosaic':''}" data-bento-tile data-slot="${i}"${Object.entries(t.data||{}).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')} style="view-transition-name:bento-${i};--k:${i}">
+      ${t.images?`<span class="bento__mosaic">${t.images.map(p=>tileImg(p.src,p.alt,1,p.width,p.height)).join('')}</span>`:t.image?tileImg(t.image,t.alt,i,t.width,t.height):''}
       <div class="bento__text">
         <span class="bento__label">${esc(t.label)}</span>
         <h3>${esc(t.title)}</h3>
-        <p>${esc(t.text)}</p>
-        <a class="bento__link" href="${esc(t.href)}">${esc(t.cta)} <span aria-hidden="true">↗</span></a>
+        ${t.text?`<p>${esc(t.text)}</p>`:''}
+        <a class="bento__link" href="${esc(t.href)}"${Number.isInteger(t.stack)?` data-stack-goto="${t.stack}"`:''}>${esc(t.cta)} <span aria-hidden="true">↗</span></a>
       </div>
       <button type="button" class="bento__hit" data-bento-focus aria-label="Mettre en avant : ${esc(t.title)}"></button>
     </article>`).join('')}</div>`;
