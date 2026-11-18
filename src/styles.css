@@ -2086,9 +2086,9 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .ps-card[data-stack-copy]:not(.is-active) .ig-card__link{pointer-events:none}
 
 /* Avis : la phrase sous le titre, aussi sur ordinateur */
-.page-home .v16-testimonials .fab-section-heading{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
-.page-home .v16-testimonials .fab-section-heading>div{margin:0}
-.page-home .v16-testimonials .fab-section-heading p{margin:0;max-width:none;text-align:left}
+.v16-testimonials .fab-section-heading{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.v16-testimonials .fab-section-heading>div{margin:0}
+.v16-testimonials .fab-section-heading p{margin:0;max-width:none;text-align:left}
 
 /* Social media : seules la vidéo centrale et ses voisines directes portent texte et lien */
 .ps-card:not(.is-active) .ig-card__cover strong,.ps-card:not(.is-active) .ig-card__cover small{opacity:0}
@@ -2598,3 +2598,6 @@ body.cx-dialog-open{overflow:hidden}
   .wk-cta h2{font-size:15vw}
   .wk-cta__card{grid-template-columns:1fr;padding:14px;border-radius:24px}
 }
+
+/* Point orange des titres Work (accueil et page Work) */
+.title-dot{color:#CC460C}
