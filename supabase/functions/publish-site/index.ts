@@ -45,16 +45,27 @@ export async function handle(req: Request, env: Env, fetcher: Fetch = fetch): Pr
   } catch { admin = false; }
   if (!admin) return reply(403, { error: 'forbidden' });
 
-  // 2. Déploiement GitHub.
+  // 2. Reconstruction du site. nolanarc.com est servi par Cloudflare Pages : son « deploy hook »
+  //    (secret CLOUDFLARE_DEPLOY_HOOK) reconstruit le site en ligne en 1 à 2 minutes. Le déploiement GitHub
+  //    (secret GITHUB_DISPATCH_TOKEN) reste lancé s'il est configuré. Il suffit d'un des deux.
+  const hook = env.CLOUDFLARE_DEPLOY_HOOK || '';
   const token = env.GITHUB_DISPATCH_TOKEN || '';
-  if (!token) return reply(503, { error: 'missing GITHUB_DISPATCH_TOKEN' });
-  const res = await fetcher(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json', 'x-github-api-version': '2022-11-28', 'user-agent': 'nolanarc-admin', 'content-type': 'application/json' },
-    body: JSON.stringify({ ref: 'main' })
-  });
-  if (res.status !== 204) return reply(502, { error: `github ${res.status}` });
-  return reply(202, { ok: true, at: new Date().toISOString() });
+  if (!hook && !token) return reply(503, { error: 'missing CLOUDFLARE_DEPLOY_HOOK or GITHUB_DISPATCH_TOKEN' });
+  const done: string[] = [];
+  if (/^https:\/\/api\.cloudflare\.com\/client\/v4\/pages\/webhooks\/deploy_hooks\/[\w-]+$/.test(hook)) {
+    const cf = await fetcher(hook, { method: 'POST' });
+    if (cf.ok) done.push('cloudflare');
+  }
+  if (token) {
+    const res = await fetcher(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json', 'x-github-api-version': '2022-11-28', 'user-agent': 'nolanarc-admin', 'content-type': 'application/json' },
+      body: JSON.stringify({ ref: 'main' })
+    });
+    if (res.status === 204) done.push('github');
+  }
+  if (!done.length) return reply(502, { error: 'deploy not started' });
+  return reply(202, { ok: true, started: done, at: new Date().toISOString() });
 }
 
 // Sur Supabase (Deno) : sert la fonction. Ailleurs (tests sous Node) : rien ne démarre.

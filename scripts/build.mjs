@@ -1,118 +1,15 @@
-import { rm, mkdir, writeFile, cp, access } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { homePage, workPage, projectPage, servicesPage, aboutPage, journalPage, contactPage, legalPage, privacyPage, cookiesPage, cgvPage, withdrawalPage, notFoundPage, adminPage } from '../templates/pages.mjs';
-import { site } from '../content/site.mjs';
+// Point d'entrée du build. Sur Cloudflare Pages (qui sert nolanarc.com), copie d'abord ce qui a été publié
+// depuis l'admin (photos, projets, vidéos, images du site) et les affiches de films, puis construit le site.
+// Ces deux étapes tournent avant le build pour que les contenus publiés soient lus au chargement des modules.
+// Sur GitHub Actions, le workflow les lance déjà lui-même. En local : FETCH_PUBLISHED=1 npm run build.
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
 
-const root=new URL('../',import.meta.url).pathname;
-const out=join(root,'dist');
-await rm(out,{recursive:true,force:true});
-await mkdir(join(out,'assets'),{recursive:true});
-// Copy user-owned static assets (portrait, future project media, etc.) before rendering pages.
-const publicDir=join(root,'public');
-try{ await access(publicDir); await cp(publicDir,out,{recursive:true,force:true}); }catch{}
-
-const pages = new Map([
-  ['index.html',homePage()],
-  ['work/index.html',workPage()],
-  ['projet/le-bol-den-face/index.html',projectPage()],
-  ['services/index.html',servicesPage()],
-  ['a-propos/index.html',aboutPage()],
-  ['journal/index.html',journalPage()],
-  ['contact/index.html',contactPage()],
-  ['mentions-legales/index.html',legalPage()],
-  ['confidentialite/index.html',privacyPage()],
-  ['cookies/index.html',cookiesPage()],
-  ['cgv/index.html',cgvPage()],
-  ['retractation/index.html',withdrawalPage()],
-  ['admin/index.html',adminPage()],
-  ['404/index.html',notFoundPage()],
-  ['404.html',notFoundPage()]
-]);
-const cssSource=await readFile(join(root,'src/styles.css'),'utf8');
-const jsSource=await readFile(join(root,'src/app.js'),'utf8');
-const cssHash=createHash('sha256').update(cssSource).digest('hex').slice(0,10);
-const jsHash=createHash('sha256').update(jsSource).digest('hex').slice(0,10);
-const cssAsset=`assets/site.${cssHash}.css`;
-const jsAsset=`assets/app.${jsHash}.js`;
-
-const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
-const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
-const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js');
-// Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
-const { readdir } = await import('node:fs/promises');
-const docsHash=createHash('sha256');
-for(const name of (await readdir(join(root,'public/admin/docs'),{recursive:true})).sort()){ try{ docsHash.update(name).update(await readFile(join(root,'public/admin/docs',name))); }catch{} }
-const docsVersion=docsHash.digest('hex').slice(0,10);
-// Typographie française : un montant ou une durée ne se coupe jamais en fin de ligne (« 1 500 € », « 48 h »).
-// Appliqué au seul texte visible, entre les balises ; les scripts et styles ne sont pas touchés.
-function keepUnitsTogether(html){
-  return html.replace(/(<(script|style)\b[\s\S]*?<\/\2>)|>([^<]+)</g,(match,block,_tag,text)=>{
-    if(block) return block;
-    return '>'+text
-      .replace(/(\d) (\d{3})(?!\d)/g,'$1\u202f$2')
-      .replace(/(\d) (€|h|min|%)(?=[\s.,;:!?)\/]|$)/g,'$1\u00a0$2')
-      .replace(/€ \/ h/g,'€\u00a0/\u00a0h')+'<';
-  });
+const root = new URL('../', import.meta.url).pathname;
+const run = file => execFileSync(process.execPath, [join(root, file)], { stdio: 'inherit' });
+if (process.env.CF_PAGES || process.env.FETCH_PUBLISHED) {
+  for (const tool of ['tools/fetch-published.mjs', 'tools/fetch-posters.mjs']) {
+    try { run(tool); } catch { console.warn(`Étape ignorée : ${tool} (le site garde les contenus du code).`); }
+  }
 }
-for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion));
-  const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
-}
-await writeFile(join(out,cssAsset),cssSource,'utf8');
-await writeFile(join(out,jsAsset),jsSource,'utf8');
-await writeFile(join(out,'.nojekyll'),'','utf8');
-// Version en ligne, lue par l'admin après « Enregistrer et publier » (« En ligne : version n° … »).
-{ const v=(await import('../content/site-images.mjs')).publishedVersion; await writeFile(join(out,'version.json'),JSON.stringify({ snapshot:v.snapshot||null, published:v.published||'', builtAt:new Date().toISOString(), commit:(process.env.GITHUB_SHA||'').slice(0,12) })+'\n'); }
-// Contenu actuel du site, importable dans les brouillons du dashboard (données déjà publiques).
-const { projects } = await import('../content/projects.mjs');
-const { instagramPosts } = await import('../content/instagram.mjs');
-const { legal } = await import('../content/legal.mjs');
-const { photoDraft } = await import('../content/photos.mjs');
-let imagesDraft = {};
-try { imagesDraft = JSON.parse(await readFile(join(root,'content/images.published.json'),'utf8')).images || {}; } catch {}
-// Vidéos publiées -> format du brouillon de l'admin (miniature envoyée, fichier vidéo).
-const socialDraft = instagramPosts.map(({ image, video, ...p }) => ({ ...p, coverImage: image || null, video: video ? { id: video.id, ext: video.ext, type: video.type, width: video.width, height: video.height, duration: video.duration, bytes: 0 } : null, visible: true }));
-const { testimonials, ...siteSettings } = site;
-await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: socialDraft, legal, site: siteSettings, photos: photoDraft, images: imagesDraft }),'utf8');
-
-const redirects = {
-  'ma-demarche.html':'/a-propos/',
-  'journal.html':'/journal/',
-  'mentions-legales.html':'/mentions-legales/',
-  'film-entreprise.html':'/services/?expertise=realisation',
-  'video-mariage-haut-de-gamme.html':'/services/#mariage',
-  'realisateur-paris.html':'/a-propos/',
-  'court-metrage-independant.html':'/projet/le-bol-den-face/',
-  'services/marques/index.html':'/services/?expertise=direction',
-  'services/moments/index.html':'/services/#mariage',
-  'projet/film-de-marque/index.html':'/services/?expertise=realisation',
-  'projet/film-institutionnel/index.html':'/services/?expertise=realisation',
-  'projet/direction-artistique/index.html':'/services/?expertise=direction',
-  'projet/contenu-social/index.html':'/services/?expertise=strategie',
-  'projet/strategie-visuelle/index.html':'/services/?expertise=strategie',
-  'projet/mariage/index.html':'/services/#mariage',
-  'projet/demande-en-mariage/index.html':'/services/#demande-en-mariage'
-};
-for(const [file,target] of Object.entries(redirects)){
-  const dest=join(out,file); await mkdir(dirname(dest),{recursive:true});
-  const canonicalTarget=target.split(/[?#]/)[0] || '/services/';
-  await writeFile(dest,`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${target}"><link rel="canonical" href="${site.domain}${canonicalTarget}"><title>Redirection | Nolan Arc</title></head><body><p>Cette page a changé. <a href="${target}">Continuer vers Nolan Arc</a>.</p></body></html>`,'utf8');
-}
-
-const routes=['/','/work/','/projet/le-bol-den-face/','/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
-const today=new Date().toISOString().slice(0,10);
-// Icône du site (onglet, résultats Google, écran d'accueil du téléphone).
-await writeFile(join(out,'site.webmanifest'),JSON.stringify({name:'Nolan Arc',short_name:'Nolan Arc',start_url:'/',display:'browser',background_color:'#080706',theme_color:'#080706',icons:[{src:'/assets/icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'/assets/icons/icon-512.png',sizes:'512x512',type:'image/png'}]})+'\n');
-await writeFile(join(out,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(r=>`  <url><loc>${site.domain}${r}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
-// Robots : tout est ouvert (moteurs et assistants IA), sauf l'espace d'administration.
-await writeFile(join(out,'robots.txt'),`User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: ${site.domain}/sitemap.xml\n`);
-// llms.txt (fiche courte) et llms-full.txt (version détaillée) : ce que les assistants IA (ChatGPT, Claude,
-// Perplexity, Gemini) lisent en une fois. Générés depuis les contenus publiés, voir templates/seo.mjs.
-const { llmsTxt, llmsFullTxt } = await import('../templates/seo.mjs');
-await writeFile(join(out,'llms.txt'),llmsTxt());
-await writeFile(join(out,'llms-full.txt'),llmsFullTxt());
-
-console.log(`Built ${pages.size} pages + ${Object.keys(redirects).length} legacy redirects. Assets: ${cssAsset}, ${jsAsset}`);
+run('scripts/build-site.mjs');
