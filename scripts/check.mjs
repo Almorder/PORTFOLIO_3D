@@ -451,6 +451,12 @@ for(const file of htmls){
   if(keys.length!==1) fail(`IndexNow: exactly one key file expected at the root, found ${keys.length}`);
   else if((await readFile(join(dist,keys[0]),'utf8'))!==keys[0].slice(0,-4)) fail('IndexNow: the key file must contain only its own key'); }
 
+// Miniatures des vidéos : l'outil de recadrage de l'admin suit le vrai ratio de l'écran du téléphone, et le site
+// remplit cet écran (cover, centré), comme l'aperçu.
+{ const { workAssets:wa }=await import('../content/work-assets.mjs'); const real=(wa.phone.screen[2]*wa.phone.w)/(wa.phone.screen[3]*wa.phone.h);
+  const m=(await readFile(join(root,'public/admin/cropper.js'),'utf8')).match(/PHONE_SCREEN = (\d+) \/ (\d+)/);
+  if(!m||Math.abs(m[1]/m[2]/real-1)>0.01) fail(`Videos: the admin crop ratio must match the phone screen (${real.toFixed(3)})`);
+  if(!/\.ps-card \.ig-card__cover\{background-size:cover;background-position:center/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Videos: phone thumbnails must fill the screen (cover, centered)'); }
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 if(/mediator:\s*\{[\s\S]*?name:\s*''/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — consumer mediator is not configured; complete adhesion before concluding B2C contracts.');
 if(/publicLegalContactsConfirmed:\s*false/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — public professional address and phone are not confirmed; add publishable business contact details before release.');

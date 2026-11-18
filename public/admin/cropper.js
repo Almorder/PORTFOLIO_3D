@@ -6,6 +6,9 @@
 (() => {
   const h = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); kids.filter(Boolean).forEach(k => n.append(k)); return n; };
 
+  // Écran du téléphone de la page Work (content/work-assets.mjs : 74,564 % de 574 px sur 87,407 % de 1080 px),
+  // plus étroit que 9:16. Le contrôle qualité vérifie que ce chiffre suit le visuel du téléphone.
+  const PHONE_SCREEN = 428 / 944;
   // Formats des composants du site (ratio largeur / hauteur). 0 = ratio d'origine de l'image.
   const TILE = [{ label: 'Grande tuile', ratio: 1, frame: 'tile' }, { label: 'Tuile large', ratio: 4 / 3, frame: 'tile' }, { label: 'Tuile haute', ratio: 2 / 3, frame: 'tile' }, { label: 'Téléphone', ratio: 4 / 5, frame: 'tile' }];
   const FREE = [['Format d’origine', 0], ['Paysage 3:2', 3 / 2], ['Paysage 16:9', 16 / 9], ['Carré', 1], ['Portrait 4:5', 4 / 5], ['Vertical 9:16', 9 / 16]];
@@ -17,7 +20,7 @@
     project: { title: 'Média du projet', ratios: FREE, previews: [...TILE, { label: 'Page projet', ratio: 0, frame: 'plain' }] },
     photo: { title: 'Photo', ratios: FREE, previews: [{ label: 'Section Photographie', ratio: 0, frame: 'plain' }, { label: 'Tuile Photographie', ratio: 1, frame: 'tile' }, { label: 'Tuile (téléphone)', ratio: 4 / 5, frame: 'tile' }] },
     testimonial: { title: 'Image de l’avis', ratios: [['Panneau 4:5', 4 / 5]], previews: [{ label: 'Panneau (ordinateur)', ratio: 4 / 5, frame: 'plain' }, { label: 'Panneau (téléphone)', ratio: 16 / 9, frame: 'plain' }] },
-    social: { title: 'Miniature de la vidéo', ratios: [['Vertical 9:16', 9 / 16]], previews: [{ label: 'Téléphone', ratio: 9 / 16, frame: 'phone' }] }
+    social: { title: 'Miniature de la vidéo', ratios: [['Écran du téléphone', PHONE_SCREEN]], previews: [{ label: 'Téléphone', ratio: PHONE_SCREEN, frame: 'phone' }] }
   };
 
   // Modèle : image W×H, ratio R, zoom z (1 = le plus grand cadre possible), centre (cx, cy) en pixels.
