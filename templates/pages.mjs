@@ -311,6 +311,7 @@ export function contactPage(){
   const mailSubject = encodeURIComponent('Un projet | nolanarc.com');
   return head({title:'Contacter Nolan Ribeiro, vidéaste et photographe | Nolan Arc',description:'Écrire à Nolan Ribeiro, vidéaste et photographe, pour un film de mariage, un film de marque, une direction artistique ou une stratégie. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page cx-page">
     <section class="contact-composer cx-composer" aria-labelledby="cx-title">
+      <div class="cx-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="contact-composer__intro cx-intro">
         <span class="eyebrow">Contact</span>
         <h1 id="cx-title">Dites-moi simplement <em>ce que vous préparez.</em></h1>
@@ -323,17 +324,17 @@ export function contactPage(){
       </div>
       <nav class="cx-channels" aria-label="Autres moyens de me contacter">
         <p class="cx-channels__label">Pas envie d’un formulaire ?</p>
-        <a class="cx-channel" href="mailto:${site.email}?subject=${mailSubject}" data-copy-email="${esc(site.email)}"><i>${contactIcons.mail}</i><span><strong>Email</strong><small data-channel-note>${esc(site.email)}</small></span></a>
-        <a class="cx-channel" href="https://ig.me/m/${esc(igHandle)}" target="_blank" rel="noreferrer" data-copy-ig="${esc(igMessage)}"><i>${contactIcons.instagram}</i><span><strong>Instagram</strong><small data-channel-note>Message privé à @${esc(igHandle)}</small></span></a>
-        <a class="cx-channel" href="${site.calendly}" target="_blank" rel="noreferrer"><i>${contactIcons.call}</i><span><strong>Appel<span class="cx-long"> de</span> 30 min</strong><small>Choisir un créneau</small></span></a>
+        <a class="cx-channel cx-glass" href="mailto:${site.email}?subject=${mailSubject}" data-copy-email="${esc(site.email)}"><i>${contactIcons.mail}</i><span><strong>Email</strong><small data-channel-note>${esc(site.email)}</small></span></a>
+        <a class="cx-channel cx-glass" href="https://ig.me/m/${esc(igHandle)}" target="_blank" rel="noreferrer" data-copy-ig="${esc(igMessage)}"><i>${contactIcons.instagram}</i><span><strong>Instagram</strong><small data-channel-note>Message privé à @${esc(igHandle)}</small></span></a>
+        <a class="cx-channel cx-glass" href="${site.calendly}" target="_blank" rel="noreferrer"><i>${contactIcons.call}</i><span><strong>Appel<span class="cx-long"> de</span> 30 min</strong><small>Choisir un créneau</small></span></a>
         <p class="cx-channels__status" role="status" aria-live="polite" data-channel-status></p>
       </nav>
-      <form class="contact-form contact-form--composer cx-form" data-contact-form data-offers="${esc(JSON.stringify(offers))}" action="https://formsubmit.co/ajax/${site.email}" method="POST" aria-labelledby="cx-form-title">
+      <form class="contact-form contact-form--composer cx-form cx-glass" data-contact-form data-offers="${esc(JSON.stringify(offers))}" action="https://formsubmit.co/ajax/${site.email}" method="POST" aria-labelledby="cx-form-title">
         <input type="text" name="_honey" aria-label="Ne pas remplir" tabindex="-1" autocomplete="off" class="honeypot">
         <input type="hidden" name="_subject" value="Nouveau projet | nolanarc.com"><input type="hidden" name="_url" value="https://nolanarc.com/contact/"><input type="hidden" name="_template" value="table">
         <h2 class="cx-form__hook" id="cx-form-title">Plus court qu’un générique de fin.</h2>
         <fieldset class="cx-step contact-intent-card"><legend>Ça concerne quoi ?</legend>
-          <div class="form-intent cx-intents">${contactIntents.map(i=>`<button type="button" data-form-intent="${i.key}" aria-pressed="false" title="${esc(i.hint)}">${esc(i.label)}</button>`).join('')}</div>
+          <div class="form-intent cx-intents">${contactIntents.map(i=>`<button type="button" data-form-intent="${i.key}" aria-pressed="false"><strong>${esc(i.label)}</strong><small>${esc(i.hint)}</small></button>`).join('')}</div>
           <input type="hidden" name="type_de_projet" data-intent-input value="Autre"><input type="hidden" name="offre" data-offer-input value="">
           <p class="cx-offer" data-offer-chip hidden></p>
         </fieldset>
@@ -348,8 +349,8 @@ export function contactPage(){
         <div class="contact-submit contact-submit--composer cx-submit"><button class="button button--light" type="submit" data-submit>Envoyer le projet <span aria-hidden="true">↗</span></button><p class="form-privacy">Vos informations servent uniquement à répondre à votre demande. <a href="/confidentialite/">Confidentialité</a>.</p><div class="form-status" role="status" aria-live="polite" data-form-status></div></div>
       </form>
     </section>
-    <section class="cx-proof motion-reveal" aria-labelledby="cx-proof-title">
-      <h2 id="cx-proof-title" class="cx-proof__title">Les infos utiles.</h2>
+    <section class="cx-proof" aria-labelledby="cx-proof-title">
+      <header class="cx-proof__head"><span class="eyebrow">Avant d’écrire</span><h2 id="cx-proof-title" class="cx-proof__title">Les infos utiles.</h2></header>
       <article class="cx-proof__card"><small>Les prix</small><ul class="cx-prices">${priceMarks}</ul><p>Le reste se fixe au devis, après un premier échange. <a href="/#pricing">Voir les offres</a></p></article>
       <article class="cx-proof__card"><small>Le délai</small><p class="cx-proof__big">48 h</p><p>Je lis chaque message moi-même et je réponds sous 48 h ouvrées, avec les premières questions utiles.</p></article>
       <article class="cx-proof__card cx-proof__quote"><small>Un retour</small><blockquote>« ${esc(quote.quote)} »</blockquote><footer><strong>${esc(quote.name)}</strong>${quote.role?`<span>${esc(quote.role)}</span>`:''}</footer><button type="button" class="morph-hit" data-morph-open="morph-panel-0" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(quote.name)}"></button></article>
