@@ -8,3 +8,7 @@ dist/
 content/photos.published.json
 public/assets/photo/site/
 content/projects.published.json
+content/social.published.json
+content/images.published.json
+content/published.json
+public/assets/video/site/

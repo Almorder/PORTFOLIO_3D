@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { photos, tilePhotos, MIN_PHOTOS } from '../content/photos.mjs';
+import { siteImage } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus } from './showcase.mjs';
@@ -13,6 +14,8 @@ import { weddingOffers } from '../content/wedding.mjs';
 import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema, contactDialog } from './components.mjs';
 
+// Fond d'un dossier « Trois dimensions » : image remplacée depuis l'admin (petite et grande taille), sinon texture d'origine (CSS).
+const folderArt = key => { const s=siteImage(`home.dims.${key}`); return s ? ` style="background-image:url('${esc(s.image.srcSmall)}');background-image:image-set(url('${esc(s.image.srcSmall)}') 1x,url('${esc(s.image.src)}') 2x)"` : ''; };
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
@@ -42,7 +45,7 @@ const publicFile = src => typeof src==='string' && /^\/(?!\/)/.test(src) && exis
 const mediaKind = p => p.mediaKind || (p.videoId ? 'youtube' : '');
 const videoUrl = p => mediaKind(p)==='youtube'&&p.videoId ? `https://www.youtube.com/watch?v=${p.videoId}` : mediaKind(p)==='instagram'&&p.instagramId ? igUrl(p.instagramId) : '';
 const projectMedia = (p,large) => {
-  if (p.image && publicFile(p.image.srcSmall) && String(p.alt||'').trim()) return { image:large?p.image.src:p.image.srcSmall, width:large?p.image.width:p.image.smallWidth, height:large?p.image.height:p.image.smallHeight, alt:p.alt, full:p.image.src };
+  if (p.image && publicFile(p.image.srcSmall) && String(p.alt||'').trim()) return { image:large?p.image.src:p.image.srcSmall, width:large?p.image.width:p.image.smallWidth, height:large?p.image.height:p.image.smallHeight, alt:p.alt, full:p.image.src, srcset:`${p.image.srcSmall} ${p.image.smallWidth}w, ${p.image.src} ${p.image.width}w` };
   if (mediaKind(p)==='youtube' && publicFile(p.posterFile)) return { image:p.posterFile, width:1280, height:720, alt:p.alt||`${p.title}, image de la vidéo` };
   if (p.slug==='le-bol-den-face' && mediaKind(p)==='youtube') return { image:bolPoster, width:1280, height:720, alt:p.alt||'Le bol d’en face, court métrage' };
   return null;
@@ -52,16 +55,19 @@ const featured = projects.filter(p=>p.visible&&projectMedia(p,false));
 const projectItem = (p,i) => {
   const m = projectMedia(p,i===0), kind = mediaKind(p), own = p.href || p.link;
   return { title:p.title, type:p.type||'', tags:[territoryTag[p.territory]||(kind==='photo'?'photo':'recits')], role:p.role||'', context:p.context||'', client:p.client||'', year:p.year||'', result:p.result||'',
-    label:[p.type,p.year].filter(Boolean).join(' · ')||p.title, text:p.summary||'', image:m.image, width:m.width, height:m.height, alt:m.alt,
+    label:[p.type,p.year].filter(Boolean).join(' · ')||p.title, text:p.summary||'', image:m.image, width:m.width, height:m.height, alt:m.alt, srcset:m.srcset,
     href: own || videoUrl(p) || m.full || '#selection', cta: p.slug==='le-bol-den-face' ? 'Voir le film' : own ? 'Voir le projet' : kind==='photo' ? 'Voir la photo' : 'Voir la vidéo',
     ...(kind==='instagram'&&p.instagramId ? { instagram:igUrl(p.instagramId) } : {}), project:p };
 };
+// Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
+const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
 const workItems = [
   ...featured.map(projectItem),
   ...(showPhotos ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(photos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(photos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height })), href:'#photo', cta:'Voir les photos' }] : []),
-  ...instagramPosts.map((p,i)=>({ title:p.title, type:'Vidéo verticale', tags:p.tags||['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
-    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale publiée sur Instagram.`:'Vidéo verticale publiée sur Instagram.', image:p.cover||'', alt:p.cover?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, instagram:igUrl(p.id) })),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'#photo', cta:'Voir les photos' }] : []),
+  ...instagramPosts.map((p,i)=>{ const thumb=socialThumb(p), file=p.source==='file';
+    return { title:p.title, type:'Vidéo verticale', tags:p.tags?.length?p.tags:['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
+    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
 ];
 const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat']];
 const bentoTiles = workItems.slice(0,5).map(item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) }));
@@ -73,7 +79,9 @@ const videoSchema = ({ name, description, thumbnail, uploadDate, duration, embed
 const bolVideo = () => videoSchema({ name:bol.title, description:bol.summary, thumbnail:bolPosterAbs, uploadDate:bol.uploadDate, duration:bol.duration, embedUrl:`https://www.youtube-nocookie.com/embed/${bol.videoId}`, url:`https://www.youtube.com/watch?v=${bol.videoId}` });
 // Vidéos des projets mis en avant (Le bol d'en face compris) : publiées seulement avec date et vignette.
 const projectVideos = () => workItems.filter(it=>it.project&&mediaKind(it.project)!=='photo').map(({project:p,image})=>videoSchema({ name:p.title, description:p.summary||`${p.title}, vidéo de Nolan Ribeiro.`, thumbnail:/^https?:/.test(image)?image:`${site.domain}${image}`, uploadDate:p.uploadDate, duration:p.duration, embedUrl:mediaKind(p)==='youtube'?`https://www.youtube-nocookie.com/embed/${p.videoId}`:`${igUrl(p.instagramId)}embed/`, url:videoUrl(p) })).filter(Boolean);
-const igVideos = () => instagramPosts.map(p=>videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:p.cover?`${site.domain}${p.cover}`:'', uploadDate:p.uploadDate, embedUrl:`${igUrl(p.id)}embed/`, url:igUrl(p.id) })).filter(Boolean);
+const igVideos = () => instagramPosts.map(p=>{ const thumb=socialThumb(p), file=p.source==='file';
+  const v=videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:thumb?`${site.domain}${thumb.src}`:'', uploadDate:p.uploadDate, embedUrl:file?undefined:`${igUrl(p.id)}embed/`, url:file?`${site.domain}/work/#social`:igUrl(p.id) });
+  return v&&file ? { ...v, contentUrl:`${site.domain}${p.video.src}`, ...(p.video.duration?{ duration:`PT${p.video.duration}S` }:{}) } : v; }).filter(Boolean);
 
 const visuals = {
   brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
@@ -171,7 +179,7 @@ export function homePage(){
       <header class="dims__head motion-reveal"><h2 id="dims-title">Trois dimensions.<br><em>Une seule vision.</em></h2><p>Partez de votre besoin.</p></header>
       <div class="dims__grid">
         ${expertiseTabs.map((x,i)=>`<a class="folder motion-reveal" href="${x.href}" style="--i:${i}">
-          <span class="folder__art" aria-hidden="true"></span>
+          <span class="folder__art" aria-hidden="true"${folderArt(x.key)}></span>
           <span class="folder__front">
             <span class="folder__tab">${esc(x.label)}</span>
             <span class="folder__top"><strong>${esc(dimNeeds[x.key].need)}</strong><i aria-hidden="true">↗</i></span>
@@ -289,10 +297,11 @@ export function workPage(){
       <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
       <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
         <div class="phone-stack__stage" data-stack-stage>
-          <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>`<li class="ig-card ps-card" data-instagram-post data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-id="${esc(p.id)}" data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
-            <div class="ps-card__screen"><div class="ig-card__cover"${p.cover?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(p.cover)}')"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button></div></div>
-            <a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-          </li>`).join('')}</ul>
+          <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>{ const file=p.source==='file', thumb=socialThumb(p);
+            return `<li class="ig-card ps-card" ${file?`data-video-file data-video-src="${esc(p.video.src)}" data-video-type="${esc(p.video.type)}"`:`data-instagram-post data-post-id="${esc(p.id)}"`} data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
+            <div class="ps-card__screen"><div class="ig-card__cover"${thumb?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(thumb.src)}')"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}${file?`<button type="button" class="ig-card__play" data-load-file aria-label="Lire la vidéo ${esc(p.title)}">▶</button>`:`<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button>`}</div></div>
+            ${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}
+          </li>`; }).join('')}</ul>
           <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
         </div>
         <div class="phone-stack__nav"><button type="button" data-stack-prev aria-label="Vidéo précédente">←</button><span class="phone-stack__dots">${instagramPosts.map((p,i)=>`<button type="button" data-stack-dot="${i}" aria-label="Voir ${esc(p.title)}"></button>`).join('')}</span><button type="button" data-stack-next aria-label="Vidéo suivante">→</button></div>
@@ -300,7 +309,7 @@ export function workPage(){
     </section>
     ${showPhotos ? `<section class="wk-photo" id="photo" aria-labelledby="wk-photo-title">
       <header class="fab-section-heading motion-reveal"><div><h2 id="wk-photo-title">Photographie.</h2></div></header>
-      <div class="wk-photo__grid">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.srcSmall||ph.src)}"${ph.srcSmall?` srcset="${esc(ph.srcSmall)} ${ph.smallWidth}w, ${esc(ph.src)} ${ph.width}w" sizes="(max-width: 700px) 100vw, 33vw"`:''} alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
+      <div class="wk-photo__grid" data-count="${Math.min(photos.length,3)}">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.srcSmall||ph.src)}"${ph.srcSmall?` srcset="${esc(ph.srcSmall)} ${ph.smallWidth}w, ${esc(ph.src)} ${ph.width}w" sizes="(max-width: 700px) 100vw, 33vw"`:''} alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
     </section>` : ''}
     <section class="v16-testimonials wk-voices" id="retours">
       <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
@@ -603,7 +612,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

@@ -40,7 +40,7 @@ const jsAsset=`assets/app.${jsHash}.js`;
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js');
+const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js');
 // Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
 const { readdir } = await import('node:fs/promises');
 const docsHash=createHash('sha256');
@@ -58,19 +58,25 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');
 await writeFile(join(out,jsAsset),jsSource,'utf8');
 await writeFile(join(out,'.nojekyll'),'','utf8');
+// Version en ligne, lue par l'admin après « Enregistrer et publier » (« En ligne : version n° … »).
+{ const v=(await import('../content/site-images.mjs')).publishedVersion; await writeFile(join(out,'version.json'),JSON.stringify({ snapshot:v.snapshot||null, published:v.published||'', builtAt:new Date().toISOString(), commit:(process.env.GITHUB_SHA||'').slice(0,12) })+'\n'); }
 // Contenu actuel du site, importable dans les brouillons du dashboard (données déjà publiques).
 const { projects } = await import('../content/projects.mjs');
 const { instagramPosts } = await import('../content/instagram.mjs');
 const { legal } = await import('../content/legal.mjs');
 const { photoDraft } = await import('../content/photos.mjs');
+let imagesDraft = {};
+try { imagesDraft = JSON.parse(await readFile(join(root,'content/images.published.json'),'utf8')).images || {}; } catch {}
+// Vidéos publiées -> format du brouillon de l'admin (miniature envoyée, fichier vidéo).
+const socialDraft = instagramPosts.map(({ image, video, ...p }) => ({ ...p, coverImage: image || null, video: video ? { id: video.id, ext: video.ext, type: video.type, width: video.width, height: video.height, duration: video.duration, bytes: 0 } : null, visible: true }));
 const { testimonials, ...siteSettings } = site;
-await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: instagramPosts, legal, site: siteSettings, photos: photoDraft }),'utf8');
+await writeFile(join(out,'admin/seed.json'),JSON.stringify({ projects, testimonials, instagram: socialDraft, legal, site: siteSettings, photos: photoDraft, images: imagesDraft }),'utf8');
 
 const redirects = {
   'ma-demarche.html':'/a-propos/',

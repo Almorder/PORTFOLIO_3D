@@ -5,65 +5,16 @@
 // window.NolanMedia (réduction, envoi, aperçu) sert aussi aux images des projets (public/admin/projects.js).
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
-  const BUCKET = 'site-photos';
-  const SIZES = { large: { side: 2000, budget: 700 * 1024 }, small: { side: 1000, budget: 220 * 1024 } };
-  const MIN = 3;
-  const MAX_SOURCE = 40 * 1024 * 1024;
-  const pathsOf = id => [`${id}.webp`, `${id}-s.webp`];
-  const noDash = text => String(text || '').replace(/[\u2014\u2013]/g, '-');
+  const MIN = 1;
+  const imageFields = it => ({ id: it.id, width: it.width, height: it.height, smallWidth: it.smallWidth, smallHeight: it.smallHeight });
+  // Projet photo de « Ma sélection » créé depuis une photo : masqué tant que Nolan n'a pas relu le titre.
+  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
+  const DESTS = [['photo', 'Section Photographie'], ['project', 'Ma sélection (projet photo du bento)'], ['both', 'Les deux']];
 
-  // Redimensionne et encode en WebP ; baisse la qualité jusqu'à tenir le poids visé.
-  const encode = async (bitmap, { side, budget }) => {
-    const scale = Math.min(1, side / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale)), height = Math.max(1, Math.round(bitmap.height * scale));
-    const canvas = Object.assign(document.createElement('canvas'), { width, height });
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    let blob = null;
-    for (let q = 0.84; q >= 0.5; q -= 0.08) {
-      blob = await new Promise(done => canvas.toBlob(done, 'image/webp', q));
-      if (!blob || blob.type !== 'image/webp') throw new Error('ce navigateur ne sait pas produire d’images WebP (utilise Chrome, Edge ou Firefox)');
-      if (blob.size <= budget) break;
-    }
-    return { blob, width, height };
-  };
-
-  // Fichier choisi -> deux WebP envoyés dans l'espace « site-photos ». Renvoie l'identifiant et les dimensions.
-  const previews = new Map();
-  const media = client => {
-    const publicUrl = path => client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-    const store = async file => {
-      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(`${file.name} : formats acceptés JPEG, PNG ou WebP`);
-      if (file.size > MAX_SOURCE) throw new Error(`${file.name} dépasse 40 Mo`);
-      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      const large = await encode(bitmap, SIZES.large), small = await encode(bitmap, SIZES.small);
-      bitmap.close?.();
-      const id = crypto.randomUUID();
-      const [pLarge, pSmall] = pathsOf(id);
-      for (const [path, blob] of [[pLarge, large.blob], [pSmall, small.blob]]) {
-        const { error } = await client.storage.from(BUCKET).upload(path, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
-        if (error) throw new Error(`envoi de ${file.name} impossible : ${error.message}`);
-      }
-      previews.set(id, URL.createObjectURL(small.blob));
-      return { id, width: large.width, height: large.height, smallWidth: small.width, smallHeight: small.height };
-    };
-    // Aperçu : le fichier est lu par fetch puis affiché en blob: (la politique de sécurité n'autorise pas
-    // d'image venant directement de Supabase, et le site public n'en a pas besoin).
-    const preview = (img, id) => {
-      if (previews.has(id)) { img.src = previews.get(id); return; }
-      fetch(publicUrl(pathsOf(id)[1]), { cache: 'force-cache' }).then(r => r.ok ? r.blob() : Promise.reject(new Error(r.status))).then(blob => {
-        const url = URL.createObjectURL(blob); previews.set(id, url); img.src = url;
-      }).catch(() => { img.alt = 'Aperçu indisponible'; });
-    };
-    const remove = async ids => { const paths = ids.flatMap(pathsOf); if (paths.length) await client.storage.from(BUCKET).remove(paths); ids.forEach(id => { const url = previews.get(id); if (url) { URL.revokeObjectURL(url); previews.delete(id); } }); };
-    return { store, preview, remove, noDash };
-  };
-  window.NolanMedia = media;
-
-  window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty }) => {
-    const { store, preview, remove } = media(client);
-    let model = null, removed = [], busy = false, redraw = () => {};
+  window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty, inUse, addProjects }) => {
+    const { store, preview, remove, noDash } = window.NolanMedia(client, inUse);
+    let model = null, removed = [], busy = false, redraw = () => {}, dest = 'photo';
+    const reports = new Map();
     const reset = () => {
       const data = getDraft() || {};
       model = { cover: data.cover || '', items: Array.isArray(data.items) ? structuredClone(data.items) : [] };
@@ -76,21 +27,32 @@
       const list = [...files].filter(f => /^image\/(jpeg|png|webp)$/.test(f.type));
       if (!list.length) return say('Formats acceptés : JPEG, PNG ou WebP.', 'error');
       busy = true; redraw();
-      let done = 0;
+      let done = 0, added = 0;
+      const projects = [];
       try {
         for (const file of list) {
           say(`Préparation de ${file.name} (${done + 1}/${list.length})…`);
-          const image = await store(file);
-          const last = model.items[model.items.length - 1];
-          // Masquée tant que le texte alternatif n'est pas écrit ; série et année reprises de la photo précédente.
-          model.items.push({ ...image, series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false });
+          const { image, report } = await store(file, 'photo');
+          reports.set(image.id, report);
+          if (dest !== 'project') {
+            const last = model.items[model.items.length - 1];
+            // Masquée tant que le texte alternatif n'est pas écrit ; série et année reprises de la photo précédente.
+            model.items.push({ ...imageFields(image), series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false });
+            added++;
+          }
+          if (dest !== 'photo') projects.push(projectFrom(imageFields(image), { title: noDash(file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ')).slice(0, 120) }));
           done++;
         }
       } catch (err) {
         say(`Arrêt : ${err.message}. ${done} photo(s) envoyée(s).`, 'error');
       }
       busy = false;
-      if (done) {
+      if (projects.length) {
+        const res = await addProjects(projects);
+        if (res?.error) say(`Projets non créés : ${res.error.message}`, 'error');
+        else if (!added) { redraw(); return say(`${projects.length} projet(s) photo créé(s), masqués : ouvre « Projets du portfolio » pour relire le titre, écrire le texte alternatif et les rendre visibles.`, 'ok'); }
+      }
+      if (added) {
         // Enregistrement immédiat : une photo envoyée n'est jamais perdue, même si on quitte la page.
         const ok = await persist(false);
         if (ok) say(`${done} photo(s) ajoutée(s), masquées pour l’instant. Écris le texte alternatif, coche « Visible » puis enregistre.`, 'ok');
@@ -179,10 +141,18 @@
         touch(); redraw();
       });
       const status = !item.visible ? 'Masquée' : !String(item.alt || '').trim() ? 'Texte alternatif manquant' : 'Visible';
+      const asProject = tool('Créer un projet photo', `Créer un projet de Ma sélection avec la photo ${n}`, 'project', async () => {
+        asProject.disabled = true;
+        const res = await addProjects([projectFrom(imageFields(item), { title: item.series || '', alt: item.alt || '', year: item.year || '' })]);
+        asProject.disabled = false;
+        if (res?.error) return say(`Projet non créé : ${res.error.message}`, 'error');
+        say('Projet photo créé, masqué, en bas de « Projets du portfolio » : relis son titre puis rends-le visible.', 'ok');
+      });
       const node = el('li', { className: `ph-card${item.visible ? '' : ' is-hidden'}`, draggable: true }, [
         el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), isCover ? el('span', { className: 'ph-card__cover', textContent: 'Tuile' }) : null]),
         el('div', { className: 'ph-card__body' }, [
           el('p', { className: `ph-card__status${item.visible ? '' : ' is-off'}`, textContent: `Photo ${n} · ${status}` }),
+          reports.has(item.id) ? el('p', { className: 'md-badge', textContent: reports.get(item.id) }) : null,
           field('Texte alternatif (obligatoire)', textInput(item, 'alt', { area: true, max: 300, required: true, placeholder: 'Ce que montre la photo, en une phrase' }), 'Lu par les personnes aveugles et par Google.'),
           el('div', { className: 'ph-card__row' }, [
             field('Série', textInput(item, 'series', { max: 80, placeholder: 'Portraits' })),
@@ -196,6 +166,7 @@
           el('div', { className: 'admin-tools' }, [
             tool('↑', `Monter la photo ${n}`, 'up', () => move(index, index - 1), index === 0),
             tool('↓', `Descendre la photo ${n}`, 'down', () => move(index, index + 1), index === model.items.length - 1),
+            asProject,
             del
           ])
         ])
@@ -223,18 +194,24 @@
       const drop = el('div', { className: 'ph-drop' }, [
         input,
         el('label', { htmlFor: 'ph-file', className: 'admin-button ph-drop__btn', textContent: busy ? 'Envoi en cours…' : '+ Ajouter des photos' }),
-        el('p', { textContent: 'Ou glisse les fichiers ici. JPEG, PNG ou WebP : chaque photo est réduite dans ton navigateur (WebP, 2000 px et 1000 px), sans ses métadonnées ni sa position GPS.' })
+        el('p', { textContent: 'Ou glisse les fichiers ici. JPEG, PNG ou WebP : chaque photo est réduite dans ton navigateur aux tailles affichées (WebP 1600 px, moins de 200 Ko, et 800 px pour le téléphone, moins de 90 Ko), sans ses métadonnées ni sa position GPS.' })
       ]);
+      const where = el('fieldset', { className: 'admin-group md-dest' }, [el('legend', { textContent: 'Où vont les photos importées ?' }), ...DESTS.map(([value, label]) => {
+        const radio = el('input', { type: 'radio', name: 'ph-dest', value, checked: dest === value });
+        radio.dataset.focusKey = `dest-${value}`;
+        radio.addEventListener('change', () => { dest = value; });
+        return el('label', { className: 'admin-field admin-field--check' }, [radio, el('span', { textContent: label })]);
+      })]);
       drop.addEventListener('dragover', e => { if (e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); drop.classList.add('is-over'); } });
       drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
       drop.addEventListener('drop', e => { if (!e.dataTransfer?.files?.length) return; e.preventDefault(); drop.classList.remove('is-over'); if (!busy) upload(e.dataTransfer.files); });
       const count = visibleCount();
       const summary = el('p', { className: count >= MIN ? 'admin-ok' : 'admin-alert', textContent: count >= MIN
-        ? `${count} photo(s) visible(s) : la section Photographie et sa tuile s’afficheront sur la page Work.`
-        : `${count} photo(s) visible(s) sur ${MIN} minimum : tant qu’il en manque, la section Photographie reste masquée sur le site.` });
+        ? `${count} photo(s) visible(s) : la section Photographie et sa tuile s’affichent sur la page Work.`
+        : 'Aucune photo visible : la section Photographie reste masquée sur le site. Une seule photo suffit pour l’afficher.' });
       return [
         el('div', { className: 'admin-bar' }, [heading('Photos de la page Work', 'Section Photographie et tuile du bento. L’ordre ici est l’ordre sur le site.'), el('div', { className: 'admin-row' }, [save, live])]),
-        card('Ajouter', [drop, summary, el('p', { className: 'ph-help', textContent: 'Après publication, les photos apparaissent sur nolanarc.com dans l’heure (copie automatique au déploiement).' })], 'admin-card--wide'),
+        card('Ajouter', [where, drop, summary, el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », le site se met à jour en quelques minutes (l’état s’affiche en bas de l’écran).' })], 'admin-card--wide'),
         model.items.length
           ? Object.assign(el('ol', { className: 'ph-list' }, model.items.map(photoCard)), { ariaLabel: 'Photos, dans l’ordre du site' })
           : el('p', { className: 'ph-empty', textContent: 'Aucune photo pour l’instant.' })

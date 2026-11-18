@@ -1,15 +1,19 @@
 import { weddingPhotos, weddingOffers } from '../content/wedding.mjs';
+import { siteImage } from '../content/site-images.mjs';
 
 const esc = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tilts = [-7, 3, 8, -4, 6, -2];
 const offerHref = photo => `/services/#${(weddingOffers[photo.offer] || weddingOffers.mariage).id}`;
 
-const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}"><span class="polaroid__photo">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}</span><span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
+const polaroid = (photo, index) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${offerHref(photo)}"><span class="polaroid__photo">${photo.src ? `<img src="${esc(photo.src)}"${photo.srcset ? ` srcset="${esc(photo.srcset)}" sizes="(max-width: 700px) 60vw, 300px"` : ''}${photo.width ? ` width="${photo.width}" height="${photo.height}"` : ''} alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}</span><span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span></a></li>`;
+// Les trois polaroids de l'accueil : photo remplacée depuis l'admin (rubrique « Images du site »), sinon cadre d'origine.
+const SLOT_DEFAULTS = [{ offer: 'mariage' }, { offer: 'demande' }, { offer: 'mariage', caption: 'Le jour J' }];
+const slotPhoto = index => { const s = siteImage(`home.wedding.${index}`); return s ? { ...SLOT_DEFAULTS[index], src: s.image.srcSmall, srcset: `${s.image.srcSmall} ${s.image.smallWidth}w, ${s.image.src} ${s.image.width}w`, width: s.image.smallWidth, height: s.image.smallHeight, alt: s.alt } : null; };
 
 // Accueil : un grand titre cliquable et trois polaroids. Rien n'est rendu tant qu'aucune photo n'est fournie.
 export function weddingWall() {
   // Sans photo fournie : trois polaroids aux tons de la DA, sans fausse image, qui mènent déjà aux prestations.
-  const photos = weddingPhotos.length ? weddingPhotos.slice(0, 3) : [{ offer: 'mariage' }, { offer: 'demande' }, { offer: 'mariage', caption: 'Le jour J' }];
+  const photos = [0, 1, 2].map(i => slotPhoto(i) || weddingPhotos[i] || SLOT_DEFAULTS[i]);
   return `<section class="wedding-wall motion-reveal" aria-labelledby="wedding-wall-title">
       <h2 class="wedding-wall__title" id="wedding-wall-title"><a href="/services/#mariage">Mariage<span class="sr-only"> : voir les prestations mariage et demande en mariage</span></a></h2>
       <ul class="wedding-wall__photos">${photos.map(polaroid).join('')}</ul>

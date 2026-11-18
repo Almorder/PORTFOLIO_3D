@@ -2543,6 +2543,18 @@ body.cx-dialog-open{overflow:hidden}
 .bento__mosaic{position:absolute;inset:0;z-index:-2;display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:3px}
 .bento__mosaic img{width:100%;height:100%;object-fit:cover}
 .bento__mosaic img:first-child{grid-row:1/3}
+/* Une ou deux photos seulement : la mosaïque garde des cases pleines. */
+.bento__mosaic[data-count="1"]{grid-template-columns:1fr;grid-template-rows:1fr}
+.bento__mosaic[data-count="1"] img:first-child{grid-row:auto}
+.bento__mosaic[data-count="2"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr}
+.bento__mosaic[data-count="2"] img:first-child{grid-row:auto}
+/* Section Photographie : une photo seule est centrée et large, deux photos se partagent la ligne. */
+.wk-photo__grid[data-count="1"]{columns:auto;max-width:min(760px,100%);margin-inline:auto}
+.wk-photo__grid[data-count="2"]{columns:2 280px}
+.wk-photo__grid[data-count="1"] .wk-photo__item{width:fit-content;max-width:100%;margin-inline:auto}
+.wk-photo__grid[data-count="1"] .wk-photo__item img{width:auto;max-width:100%;max-height:82vh}
+/* Social media videos : fichier vidéo hébergé sur le site, lu dans le téléphone au clic. */
+.ig-card__cover video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
 /* Avis : même composant que l'accueil, version claire */
 .v16-testimonials.wk-voices{margin:clamp(40px,5vw,80px) 8px;padding:clamp(56px,6vw,96px) clamp(20px,3.4vw,56px);border-radius:28px;background:#f4efe7;color:var(--ink)}
 .wk-voices .v16-testimonial-bento article{border-color:rgba(8,7,6,.06);background:rgba(255,255,255,.74);box-shadow:0 8px 24px rgba(47,38,31,.03)}

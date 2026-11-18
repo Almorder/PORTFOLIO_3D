@@ -1,7 +1,7 @@
 // Photographies de Nolan affichées sur la page Work (tuile « Photographie » du bento et section dédiée).
 //
-// RÈGLE R1 : uniquement des photos réelles de Nolan, jamais d'image de stock. Tant qu'il y a moins de
-// trois photos, la tuile et la section ne sont pas affichées (jamais de cadre vide en ligne).
+// RÈGLE R1 : uniquement des photos réelles de Nolan, jamais d'image de stock. Sans aucune photo publiée,
+// la tuile et la section ne sont pas affichées (jamais de cadre vide en ligne) ; une seule photo suffit.
 //
 // Les photos se gèrent depuis l'admin (/admin/, rubrique « Photos de la page Work ») : envoi, ordre,
 // légendes, photo de la tuile. Au déploiement, tools/fetch-published.mjs copie la dernière version publiée
@@ -24,4 +24,4 @@ export const tilePhotos = [...photos.filter(p => p.id === coverId), ...photos.fi
 // Même liste, au format du brouillon de l'admin (pour « Importer le contenu actuel du site »).
 export const photoDraft = { cover: coverId, items: photos.map(({ id, width, height, smallWidth, smallHeight, alt, series, place, year }) => ({ id, width, height, smallWidth, smallHeight, alt, series, place, year, visible: true })) };
 
-export const MIN_PHOTOS = 3;
+export const MIN_PHOTOS = 1;

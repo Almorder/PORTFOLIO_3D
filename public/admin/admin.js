@@ -27,8 +27,9 @@
     { id: 'overview', label: 'État du site', group: 'Site' },
     { id: 'projects', label: 'Projets du portfolio', group: 'Site', hint: 'Section « Ma sélection » de la page Work.' },
     { id: 'testimonials', label: 'Témoignages', group: 'Site', hint: 'Avis clients affichés sur le site.' },
-    { id: 'instagram', label: 'Social media videos', group: 'Site', hint: 'Vidéos Instagram de la page Work.' },
+    { id: 'instagram', label: 'Social media videos', group: 'Site', hint: 'Vidéos Instagram ou fichiers vidéo de la page Work.' },
     { id: 'photos', label: 'Photos de la page Work', group: 'Site', hint: 'Section Photographie et tuile du bento.' },
+    { id: 'images', label: 'Images du site', group: 'Site', hint: 'Chaque emplacement photo, page par page.' },
     { id: 'site', label: 'Textes et chiffres', group: 'Site', hint: 'Signature, chiffres clés, marques, questions fréquentes, liens.' },
     { id: 'legal', label: 'Informations légales', group: 'Site', hint: 'Coordonnées, médiateur, conditions.' },
     { id: 'publish', label: 'Publication', group: 'Site' }
@@ -56,13 +57,15 @@
   };
   const importSite = async () => {
     const seed = await (await fetch('/admin/seed.json', { cache: 'no-store' })).json();
-    const rows = Object.entries(seed).filter(([key]) => key !== 'photos').map(([key, data]) => ({ key, data }));
+    const later = ['photos', 'images'];
+    const rows = Object.entries(seed).filter(([key]) => !later.includes(key)).map(([key, data]) => ({ key, data }));
     const { error } = await client.from('content_drafts').upsert(rows);
     if (error) throw error;
-    // Bloc « photos » à part : il n'existe qu'une fois supabase/photos_schema.sql exécuté, son absence ne bloque pas l'import.
+    // Blocs « photos » et « images » à part : ils n'existent qu'une fois photos_schema.sql et medias_schema.sql
+    // exécutés, leur absence ne bloque pas l'import.
     let count = rows.length;
-    if (seed.photos) { const res = await client.from('content_drafts').upsert({ key: 'photos', data: seed.photos }); if (!res.error) count++; }
-    photos?.reset(); projectsEditor?.reset();
+    for (const key of later) if (seed[key]) { const res = await client.from('content_drafts').upsert({ key, data: seed[key] }); if (!res.error) count++; }
+    resetEditors();
     await load();
     return count;
   };
@@ -132,7 +135,8 @@
         el('span', { textContent: state.email }),
         link('Voir le site ↗', '/'),
         button('Se déconnecter', 'admin-linkbutton', () => client.auth.signOut())
-      ])
+      ]),
+      liveLine
     ]);
     const main = el('section', { className: 'admin-main', tabIndex: -1 }, [VIEWS[state.view]?.() || VIEWS.editor(state.view), status]);
     root.replaceChildren(side, main);
@@ -143,33 +147,73 @@
   const cockpit = window.NolanCockpit ? window.NolanCockpit({ client, root, el, button, link, say, heading, card, go: view => go(view), setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
   if (cockpit) { SECTIONS.unshift(...cockpit.sections); SECTIONS.push(...(cockpit.footer || [])); }
 
-  // Publication : fige tous les brouillons dans une version (content_snapshots).
+  // ---------------------------------------------------------------- Mise en ligne
+  // 1. publish_snapshot fige les brouillons. 2. La fonction Supabase « publish-site » (supabase/functions/)
+  // relance tout de suite le déploiement GitHub ; sans elle, la vérification automatique (toutes les 10 min)
+  // s'en charge. 3. L'admin lit /version.json (écrit à chaque déploiement) jusqu'à voir la nouvelle version.
+  const liveLine = el('p', { className: 'admin-live' });
+  liveLine.setAttribute('role', 'status');
+  const live = { online: null, waiting: 0, timer: 0 };
+  const paintLive = () => {
+    if (live.waiting && (!live.online || live.online.snapshot < live.waiting)) liveLine.textContent = `Mise en ligne de la version n° ${live.waiting} en cours…`;
+    else if (live.online?.snapshot) liveLine.textContent = `En ligne : version n° ${live.online.snapshot}${live.online.builtAt ? `, ${date(live.online.builtAt)}` : ''}.`;
+    else liveLine.textContent = live.online ? 'En ligne : contenu du code (aucune version publiée).' : '';
+    liveLine.dataset.kind = live.waiting && (!live.online || live.online.snapshot < live.waiting) ? 'warn' : 'ok';
+  };
+  const readLive = async () => { try { const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' }); if (res.ok) live.online = await res.json(); } catch {} paintLive(); };
+  const watchLive = id => {
+    live.waiting = id; clearTimeout(live.timer); paintLive();
+    const started = Date.now();
+    const tick = async () => {
+      await readLive();
+      if (live.online?.snapshot >= id) { live.waiting = 0; paintLive(); say(`En ligne : la version n° ${id} est sur nolanarc.com.`, 'ok'); return; }
+      if (Date.now() - started < 25 * 60 * 1000) live.timer = setTimeout(tick, 15000);
+    };
+    live.timer = setTimeout(tick, 10000);
+  };
   const publishVersion = async note => {
     say('Publication…');
     const { data, error } = await client.rpc('publish_snapshot', { p_note: note || null });
     if (error) { say(`Publication impossible : ${error.message}`, 'error'); return false; }
     try { await load(); } catch {}
-    draw(); say(`Version n° ${data} enregistrée. Projets et photos seront sur le site dans l’heure.`, 'ok');
+    draw();
+    let launched = false;
+    try { const res = await client.functions.invoke('publish-site', { body: { snapshot: data } }); launched = !res.error; } catch {}
+    say(launched ? `Version n° ${data} enregistrée. Mise en ligne lancée : le site est à jour en 2 à 4 minutes.` : `Version n° ${data} enregistrée. Mise en ligne automatique dans 10 minutes au plus (lancement immédiat indisponible : voir la fonction publish-site).`, 'ok');
+    watchLive(data);
     return true;
   };
+  // Une image peut servir à plusieurs endroits (photo et projet) : on ne supprime jamais un fichier encore utilisé.
+  const inUse = id => JSON.stringify(Object.values(state.drafts).map(row => row.data)).includes(id);
+  const saveKey = async (key, data) => { const res = await client.from('content_drafts').upsert({ key, data }); if (!res.error) { try { await load(); } catch {} } return res; };
+  let seedCache = null;
+  const getSeed = async key => { seedCache = seedCache || await (await fetch('/admin/seed.json', { cache: 'no-store' })).json(); return seedCache[key]; };
+  const setDirty = value => { state.dirty = Boolean(value); state.armed = ''; };
+  const shared = { client, el, button, say, heading, card, publish: publishVersion, setDirty, inUse, getSeed };
+  // Social media videos (public/admin/videos.js) et Images du site (public/admin/images.js).
+  const videosEditor = window.NolanVideos ? window.NolanVideos({ ...shared, getDraft: () => state.drafts.instagram?.data, saveDraft: data => saveKey('instagram', data) }) : null;
+  const imagesView = window.NolanImages ? window.NolanImages({ ...shared, getDraft: key => state.drafts[key]?.data, saveDraft: (key, data) => saveKey(key, data).then(res => { if (key === 'projects') projectsEditor?.reset(); if (key === 'instagram') videosEditor?.reset(); return res; }), go: view => go(view) }) : null;
+  const resetEditors = () => { photos?.reset(); projectsEditor?.reset(); videosEditor?.reset(); };
   // Projets de « Ma sélection » (public/admin/projects.js) : éditeur dédié du bloc « projects ».
   const projectsEditor = window.NolanProjects ? window.NolanProjects({ client, el, button, say, heading, card,
     getDraft: () => state.drafts.projects?.data,
     saveDraft: async data => { const res = await client.from('content_drafts').upsert({ key: 'projects', data }); if (!res.error) { try { await load(); } catch {} } return res; },
-    publish: publishVersion,
-    setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
-  // Photos de la page Work (public/admin/photos.js) : envoi des fichiers, ordre, légendes, tuile.
-  const photos = window.NolanPhotos ? window.NolanPhotos({ client, el, button, say, heading, card,
+    publish: publishVersion, inUse,
+    setDirty }) : null;
+  // Photos de la page Work (public/admin/photos.js) : envoi des fichiers, ordre, légendes, tuile, destination.
+  const photos = window.NolanPhotos ? window.NolanPhotos({ ...shared,
     getDraft: () => state.drafts.photos?.data,
-    saveDraft: async data => { const res = await client.from('content_drafts').upsert({ key: 'photos', data }); if (!res.error) { try { await load(); } catch {} } return res; },
-    publish: publishVersion,
-    setDirty: value => { state.dirty = Boolean(value); state.armed = ''; } }) : null;
+    saveDraft: data => saveKey('photos', data),
+    // Projet photo créé depuis une photo : ajouté (masqué) à la fin des projets de « Ma sélection ».
+    addProjects: async list => { const current = state.drafts.projects?.data || await getSeed('projects') || []; const res = await saveKey('projects', [...structuredClone(current), ...list]); if (!res.error) projectsEditor?.reset(); return res; } }) : null;
 
   // ---------------------------------------------------------------- Vue d'ensemble
   const VIEWS = {};
   if (cockpit) Object.assign(VIEWS, cockpit.views);
   if (photos) VIEWS.photos = photos.view;
   if (projectsEditor) VIEWS.projects = projectsEditor.view;
+  if (videosEditor) VIEWS.instagram = videosEditor.view;
+  if (imagesView) VIEWS.images = imagesView.view;
   VIEWS.overview = () => {
     const d = key => state.drafts[key]?.data;
     if (!Object.keys(state.drafts).length) {
@@ -328,7 +372,7 @@
       catch (err) { say(`Import impossible : ${err.message}`, 'error'); reset.disabled = false; }
     });
     return el('div', {}, [
-      heading('Publication', 'Une version fige l’ensemble des brouillons. Les projets et les photos de la page Work sont mis en ligne automatiquement dans l’heure ; les autres blocs (témoignages, social media videos, textes, informations légales) ne sont pas encore relus par le site public.'),
+      heading('Publication', 'Une version fige l’ensemble des brouillons et lance la mise en ligne. Sont publiés sur le site : projets, photos, social media videos et images du site. Pas encore : témoignages, textes et chiffres, informations légales.'),
       el('div', { className: 'admin-grid' }, [
         card('Nouvelle version', [
           el('p', { className: waiting.length ? 'admin-alert' : 'admin-ok', textContent: waiting.length ? `Modifié depuis la dernière version : ${waiting.map(labelOf).join(', ')}.` : 'Aucune modification en attente.' }),
@@ -365,7 +409,7 @@
     if (error) { gate(out); return say(`Vérification impossible : ${error.message}`, 'error'); }
     if (data !== true) return gate(el('p', { textContent: `Le compte ${session.user.email} n’a pas les droits d’administration.` }), out);
     state.email = session.user.email; state.view = cockpit ? 'pilotage' : 'overview';
-    try { await load(); draw(); } catch (err) { gate(out); say(`Lecture impossible : ${err.message}`, 'error'); }
+    try { await load(); draw(); readLive(); } catch (err) { gate(out); say(`Lecture impossible : ${err.message}`, 'error'); }
   };
   addEventListener('beforeunload', event => { if (state.dirty) event.preventDefault(); });
   // setTimeout : ne jamais appeler Supabase directement dans le rappel d'authentification (risque de blocage).

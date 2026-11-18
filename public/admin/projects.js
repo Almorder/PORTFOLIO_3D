@@ -13,8 +13,8 @@
   const validLink = v => !v || /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v);
   const randomSlug = () => `projet-${crypto.randomUUID().slice(0, 8)}`;
 
-  window.NolanProjects = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty }) => {
-    const media = window.NolanMedia ? window.NolanMedia(client) : null;
+  window.NolanProjects = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty, inUse }) => {
+    const media = window.NolanMedia ? window.NolanMedia(client, inUse) : null;
     let model = null, removed = [], busy = '', redraw = () => {};
     const open = new Set();
     const reset = () => { const data = getDraft(); model = Array.isArray(data) ? structuredClone(data) : null; removed = []; };
@@ -114,7 +114,7 @@
       input.addEventListener('change', async () => {
         const file = input.files[0]; if (!file || !media) return;
         busy = p.slug; redraw(); say(`Préparation de ${file.name}…`);
-        try { const image = await media.store(file); dropImage(p); p.image = image; touch(); say('Image envoyée. Écris son texte alternatif puis enregistre.', 'warn'); }
+        try { const { image, report } = await media.store(file, 'photo'); dropImage(p); p.image = { id: image.id, width: image.width, height: image.height, smallWidth: image.smallWidth, smallHeight: image.smallHeight }; touch(); say(`${report}. Écris le texte alternatif puis enregistre.`, 'warn'); }
         catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
         busy = ''; redraw();
       });
@@ -242,7 +242,7 @@
         head,
         card('Mise en ligne', [
           el('p', { className: shown ? 'admin-ok' : 'admin-alert', textContent: `${shown} projet(s) visible(s) sur le site après publication. Un projet sans média réel reste masqué.` }),
-          el('p', { className: 'ph-help', textContent: 'Après publication, les changements apparaissent sur nolanarc.com dans l’heure (copie automatique au déploiement).' })
+          el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », le site se met à jour en quelques minutes (l’état s’affiche en bas de l’écran).' })
         ], 'admin-card--wide'),
         el('div', { className: 'pj-list' }, model.map(projectCard)),
         add
