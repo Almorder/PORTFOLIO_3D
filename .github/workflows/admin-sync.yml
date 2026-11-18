@@ -40,4 +40,8 @@ jobs:
         if: steps.photos.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        # nolanarc.com est servi par Cloudflare Pages : son deploy hook reconstruit le site en ligne.
+        run: |
+          if [ -n "$CLOUDFLARE_DEPLOY_HOOK" ]; then curl -fsS -X POST "$CLOUDFLARE_DEPLOY_HOOK" > /dev/null; fi
+          gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main

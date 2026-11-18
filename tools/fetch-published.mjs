@@ -136,7 +136,8 @@ export function normalizeImages(map) {
   const out = {};
   for (const [slot, needsAlt] of Object.entries(IMAGE_SLOTS)) {
     const image = imageOf(map[slot]?.image), alt = clean(map[slot]?.alt, 300);
-    if (image && (!needsAlt || alt)) out[slot] = { image, alt };
+    // Polaroïd sans texte alternatif : description par défaut plutôt que d'écarter l'image.
+    if (image) out[slot] = { image, alt: needsAlt ? (alt || 'Photo de mariage réalisée par Nolan Arc') : alt };
   }
   return out;
 }
