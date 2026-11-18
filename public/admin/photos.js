@@ -6,22 +6,24 @@
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const MIN = 1;
-  const imageFields = it => ({ id: it.id, width: it.width, height: it.height, smallWidth: it.smallWidth, smallHeight: it.smallHeight });
+  const imageFields = it => ({ id: it.id, width: it.width, height: it.height, smallWidth: it.smallWidth, smallHeight: it.smallHeight, ...(it.source ? { source: it.source } : {}), ...(it.crop ? { crop: it.crop } : {}) });
   // Projet photo de « Ma sélection » créé depuis une photo : masqué tant que Nolan n'a pas relu le titre.
-  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', media: [{ key: 'm-1', kind: 'photo', image, alt, caption: '', videoId: '', instagramId: '' }], cover: 'm-1', pageMode: 'auto', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
+  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', media: [{ key: 'm-1', kind: 'photo', image, alt, caption: '', videoId: '', instagramId: '' }], cover: 'm-1', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
   const DESTS = [['photo', 'Section Photographie'], ['project', 'Ma sélection (projet photo du bento)'], ['both', 'Les deux']];
 
   window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty, inUse, addProjects }) => {
-    const { store, preview, remove, noDash } = window.NolanMedia(client, inUse);
+    const { store, recrop, preview, remove, noDash } = window.NolanMedia(client, inUse);
     let model = null, removed = [], busy = false, redraw = () => {}, dest = 'photo';
     const reports = new Map();
     const reset = () => {
       const data = getDraft() || {};
-      model = { cover: data.cover || '', items: Array.isArray(data.items) ? structuredClone(data.items) : [] };
+      // inTile absent (ancien brouillon) : la photo visible restait dans la tuile, on garde ce comportement.
+      model = { items: Array.isArray(data.items) ? structuredClone(data.items).map(p => ({ ...p, inTile: typeof p.inTile === 'boolean' ? p.inTile : Boolean(p.visible) })) : [] };
       removed = [];
     };
     const touch = () => { setDirty(true); say('Modifications non enregistrées.', 'warn'); };
     const visibleCount = () => model.items.filter(p => p.visible && String(p.alt || '').trim()).length;
+    const tileCount = () => model.items.filter(p => p.inTile && String(p.alt || '').trim()).length;
 
     const upload = async files => {
       const list = [...files].filter(f => /^image\/(jpeg|png|webp)$/.test(f.type));
@@ -32,12 +34,12 @@
       try {
         for (const file of list) {
           say(`Préparation de ${file.name} (${done + 1}/${list.length})…`);
-          const { image, report } = await store(file, 'photo');
+          const { image, report } = await store(file, 'photo', 'photo');
           reports.set(image.id, report);
           if (dest !== 'project') {
             const last = model.items[model.items.length - 1];
             // Masquée tant que le texte alternatif n'est pas écrit ; série et année reprises de la photo précédente.
-            model.items.push({ ...imageFields(image), series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false });
+            model.items.push({ ...imageFields(image), series: last?.series || '', place: '', year: last?.year || '', alt: '', visible: false, inTile: false });
             added++;
           }
           if (dest !== 'photo') projects.push(projectFrom(imageFields(image), { title: noDash(file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ')).slice(0, 120) }));
@@ -62,10 +64,9 @@
     const validate = () => {
       for (const p of model.items) {
         p.series = noDash(p.series); p.place = noDash(p.place); p.alt = noDash(p.alt);
-        if (p.visible && !String(p.alt || '').trim()) return { id: p.id, field: 'alt', text: 'Une photo visible doit avoir un texte alternatif (ce que montre la photo).' };
+        if ((p.visible || p.inTile) && !String(p.alt || '').trim()) return { id: p.id, field: 'alt', text: 'Une photo affichée doit avoir un texte alternatif (ce que montre la photo).' };
         if (p.year && !/^\d{4}$/.test(String(p.year).trim())) return { id: p.id, field: 'year', text: 'L’année s’écrit avec quatre chiffres, par exemple 2026.' };
       }
-      if (model.cover && !model.items.some(p => p.id === model.cover)) model.cover = '';
       return null;
     };
     const persist = async (strict = true) => {
@@ -78,7 +79,7 @@
         say(problem.text, 'error'); return false;
       }
       say('Enregistrement…');
-      const { error } = await saveDraft({ cover: model.cover, items: model.items });
+      const { error } = await saveDraft({ items: model.items });
       if (error) { say(`Enregistrement impossible : ${error.message}`, 'error'); redraw(); return false; }
       if (removed.length) await remove(removed);
       setDirty(false); reset(); redraw();
@@ -124,24 +125,21 @@
     let dragFrom = -1;
     const photoCard = (item, index) => {
       const n = index + 1;
-      const autoCover = !model.cover && item.id === (model.items.find(p => p.visible && String(p.alt || '').trim()) || {}).id;
-      const isCover = model.cover ? model.cover === item.id : autoCover;
       const img = el('img', { className: 'ph-thumb', alt: item.alt ? `Aperçu : ${item.alt}` : `Aperçu de la photo ${n}`, width: item.smallWidth || 0, height: item.smallHeight || 0 });
       preview(img, item.id);
       const visible = el('input', { type: 'checkbox', checked: Boolean(item.visible) });
       visible.dataset.focusKey = `${item.id}-visible`;
       visible.addEventListener('change', () => { item.visible = visible.checked; touch(); redraw(); });
-      const cover = el('input', { type: 'radio', name: 'ph-cover', checked: model.cover === item.id });
-      cover.dataset.focusKey = `${item.id}-cover`;
-      cover.addEventListener('change', () => { model.cover = item.id; touch(); redraw(); });
+      const tile = el('input', { type: 'checkbox', checked: Boolean(item.inTile) });
+      tile.dataset.focusKey = `${item.id}-tile`;
+      tile.addEventListener('change', () => { item.inTile = tile.checked; touch(); redraw(); });
       const tool = (text, label, key, action, disabled) => { const b = button(text, 'admin-mini', action, label); b.dataset.focusKey = `${item.id}-${key}`; b.disabled = Boolean(disabled); return b; };
       const del = tool('Supprimer', `Supprimer la photo ${n}`, 'del', () => {
         if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmer la suppression'; return say('La photo sera supprimée définitivement à l’enregistrement. Clique encore pour confirmer.', 'warn'); }
         model.items.splice(index, 1); removed.push(item.id);
-        if (model.cover === item.id) model.cover = '';
         touch(); redraw();
       });
-      const status = !item.visible ? 'Masquée' : !String(item.alt || '').trim() ? 'Texte alternatif manquant' : 'Visible';
+      const status = (item.visible || item.inTile) && !String(item.alt || '').trim() ? 'Texte alternatif manquant' : [item.visible && 'Section', item.inTile && 'Tuile'].filter(Boolean).join(' + ') || 'Masquée';
       const asProject = tool('Créer un projet photo', `Créer un projet de Ma sélection avec la photo ${n}`, 'project', async () => {
         asProject.disabled = true;
         const res = await addProjects([projectFrom(imageFields(item), { title: item.series || '', alt: item.alt || '', year: item.year || '' })]);
@@ -149,24 +147,30 @@
         if (res?.error) return say(`Projet non créé : ${res.error.message}`, 'error');
         say('Projet photo créé, masqué, en bas de « Projets » : relis son titre puis rends-le visible.', 'ok');
       });
-      const node = el('li', { className: `ph-card${item.visible ? '' : ' is-hidden'}`, draggable: true }, [
-        el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), isCover ? el('span', { className: 'ph-card__cover', textContent: model.cover ? 'Tuile' : 'Tuile (auto)' }) : null]),
+      const node = el('li', { className: `ph-card${item.visible || item.inTile ? '' : ' is-hidden'}`, draggable: true }, [
+        el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), item.inTile ? el('span', { className: 'ph-card__cover', textContent: 'Tuile' }) : null]),
         el('div', { className: 'ph-card__body' }, [
-          el('p', { className: `ph-card__status${item.visible ? '' : ' is-off'}`, textContent: `Photo ${n} · ${status}` }),
+          el('p', { className: `ph-card__status${item.visible || item.inTile ? '' : ' is-off'}`, textContent: `Photo ${n} · ${status}` }),
           reports.has(item.id) ? el('p', { className: 'md-badge', textContent: reports.get(item.id) }) : null,
-          field('Texte alternatif (obligatoire)', textInput(item, 'alt', { area: true, max: 300, required: true, placeholder: 'Ce que montre la photo, en une phrase' }), 'Lu par les personnes aveugles et par Google.'),
+          field('Texte alternatif (obligatoire)', textInput(item, 'alt', { area: true, max: 300, required: true, placeholder: 'Ce que montre la photo, en une phrase' })),
           el('div', { className: 'ph-card__row' }, [
             field('Série', textInput(item, 'series', { max: 80, placeholder: 'Portraits' })),
             field('Lieu (facultatif)', textInput(item, 'place', { max: 80 })),
             field('Année', textInput(item, 'year', { max: 4, inputMode: 'numeric', placeholder: '2026' }))
           ]),
           el('div', { className: 'ph-card__checks' }, [
-            el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })]),
-            el('label', { className: 'admin-field admin-field--check' }, [cover, el('span', { textContent: 'Photo de la tuile Work' })])
+            el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible dans la section Photographie' })]),
+            el('label', { className: 'admin-field admin-field--check' }, [tile, el('span', { textContent: 'Dans la tuile Photographie' })])
           ]),
           el('div', { className: 'admin-tools' }, [
             tool('↑', `Monter la photo ${n}`, 'up', () => move(index, index - 1), index === 0),
             tool('↓', `Descendre la photo ${n}`, 'down', () => move(index, index + 1), index === model.items.length - 1),
+            tool('Recadrer', `Recadrer la photo ${n}`, 'crop', async () => {
+              busy = true; redraw();
+              try { const { image } = await recrop(item, 'photo', 'photo'); removed.push(item.id); Object.assign(item, imageFields(image)); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
+              catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+              busy = false; redraw();
+            }, busy),
             asProject,
             del
           ])
@@ -179,21 +183,6 @@
       node.addEventListener('dragleave', () => node.classList.remove('is-over'));
       node.addEventListener('drop', e => { if (dragFrom < 0) return; e.preventDefault(); const from = dragFrom; dragFrom = -1; move(from, index); });
       return node;
-    };
-
-    // Photo de la tuile Work : une photo choisie, ou « Automatique » (la première photo visible). Revenir à
-    // « Automatique » désélectionne la photo choisie.
-    const tileCard = () => {
-      const auto = el('input', { type: 'radio', name: 'ph-cover', checked: !model.cover });
-      auto.dataset.focusKey = 'cover-auto';
-      auto.addEventListener('change', () => { model.cover = ''; touch(); redraw(); });
-      const chosen = model.items.find(p => p.id === model.cover);
-      return card('Photo de la tuile Work', [
-        el('p', { className: 'ph-help', textContent: 'La tuile Photographie de la page Work montre d’abord cette photo. Coche « Photo de la tuile Work » sur une photo pour la choisir.' }),
-        el('label', { className: 'admin-field admin-field--check' }, [auto, el('span', { textContent: 'Automatique (aucune photo choisie) : la première photo visible de la liste' })]),
-        el('p', { className: chosen ? 'admin-ok' : 'ph-help', textContent: chosen ? `Choisie : photo ${model.items.indexOf(chosen) + 1}${chosen.series ? ` (${chosen.series})` : ''}.` : 'Aucune photo choisie : la tuile suit l’ordre de la liste.' }),
-        chosen ? button('Retirer ce choix', 'admin-mini', () => { model.cover = ''; touch(); redraw(); say('Tuile en automatique. Enregistre pour garder ce réglage.', 'warn'); }, 'Retirer la photo choisie pour la tuile Work') : null
-      ], 'admin-card--wide');
     };
 
     const render = () => {
@@ -210,7 +199,7 @@
       const drop = el('div', { className: 'ph-drop' }, [
         input,
         el('label', { htmlFor: 'ph-file', className: 'admin-button ph-drop__btn', textContent: busy ? 'Envoi en cours…' : '+ Ajouter des photos' }),
-        el('p', { textContent: 'Ou glisse les fichiers ici. JPEG, PNG ou WebP : chaque photo est réduite dans ton navigateur aux tailles affichées (WebP 1600 px, moins de 200 Ko, et 800 px pour le téléphone, moins de 90 Ko), sans ses métadonnées ni sa position GPS.' })
+        el('p', { textContent: 'Ou glisse les fichiers ici (JPEG, PNG ou WebP).' })
       ]);
       const where = el('fieldset', { className: 'admin-group md-dest' }, [el('legend', { textContent: 'Où vont les photos importées ?' }), ...DESTS.map(([value, label]) => {
         const radio = el('input', { type: 'radio', name: 'ph-dest', value, checked: dest === value });
@@ -222,13 +211,11 @@
       drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
       drop.addEventListener('drop', e => { if (!e.dataTransfer?.files?.length) return; e.preventDefault(); drop.classList.remove('is-over'); if (!busy) upload(e.dataTransfer.files); });
       const count = visibleCount();
-      const summary = el('p', { className: count >= MIN ? 'admin-ok' : 'admin-alert', textContent: count >= MIN
-        ? `${count} photo(s) visible(s) : la section Photographie et sa tuile s’affichent sur la page Work.`
-        : 'Aucune photo visible : la section Photographie reste masquée sur le site. Une seule photo suffit pour l’afficher.' });
+      const tiles = tileCount();
+      const summary = el('p', { className: 'ph-help', textContent: `Section Photographie : ${count ? `${count} photo(s)` : 'masquée'}. Tuile Photographie : ${tiles ? `${tiles} photo(s)` : 'masquée'}.` });
       return [
-        el('div', { className: 'admin-bar' }, [heading('Photos', 'L’ordre ici est l’ordre sur le site.'), el('div', { className: 'admin-row' }, [save, live])]),
-        tileCard(),
-        card('Ajouter', [where, drop, summary, el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », le site se met à jour en quelques minutes (l’état s’affiche en bas de l’écran).' })], 'admin-card--wide'),
+        el('div', { className: 'admin-bar' }, [heading('Photos'), el('div', { className: 'admin-row' }, [save, live])]),
+        card('Ajouter', [where, drop, summary], 'admin-card--wide'),
         model.items.length
           ? Object.assign(el('ol', { className: 'ph-list' }, model.items.map(photoCard)), { ariaLabel: 'Photos, dans l’ordre du site' })
           : el('p', { className: 'ph-empty', textContent: 'Aucune photo pour l’instant.' })

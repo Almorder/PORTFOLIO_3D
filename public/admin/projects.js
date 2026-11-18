@@ -9,22 +9,25 @@
   const BOL = 'le-bol-den-face';
   const CATEGORIES = [['', 'Choisir'], ['Récits', 'Films & récits'], ['Marques', 'Marques'], ['Moments', 'Mariages & moments'], ['Réseaux', 'Réseaux'], ['Photographie', 'Photographie']];
   const KIND_LABEL = { photo: 'Photo', youtube: 'Vidéo YouTube', instagram: 'Vidéo Instagram', file: 'Fichier vidéo' };
-  const PAGE_MODES = [['auto', 'Automatique : page projet dès 2 médias, sinon tuile non cliquable'], ['page', 'Toujours une page projet (même avec un seul média)'], ['link', 'Lien vers une autre adresse']];
   const youtubeId = text => { const v = String(text || '').trim(); if (/^[\w-]{11}$/.test(v)) return v; const m = v.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/); return m ? m[1] : ''; };
   const instagramId = text => { const m = String(text || '').trim().match(/instagram\.com\/(?:[\w.]+\/)?(?:p|reel|tv)\/([\w-]{5,40})/); return m ? m[1] : ''; };
   const validLink = v => !v || /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v);
   const randomSlug = () => `projet-${crypto.randomUUID().slice(0, 8)}`;
   const newKey = () => `m-${crypto.randomUUID().slice(0, 8)}`;
   const slugify = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '');
-  const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight } : null;
+  const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
   // Ancien format (un seul média : mediaKind, image, alt, videoId, instagramId) -> liste de médias. Aucune perte :
   // le média existant devient le premier, et la couverture. Une vidéo seule garde une page pour rester visible.
+  // « Page projet au clic » (page) ou non (none, ou link : lien externe facultatif). Ancien réglage « auto » :
+  // même résultat qu'avant, page dès deux médias, sinon pas de page.
+  const pageModeOf = p => p.slug === BOL ? 'page' : p.pageMode === 'auto' || !p.pageMode ? ((p.media || []).length > 1 ? 'page' : 'none') : ['page', 'none', 'link'].includes(p.pageMode) ? p.pageMode : 'none';
   const migrate = p => {
-    if (Array.isArray(p.media)) { if (!p.media.some(m => m.key === p.cover)) p.cover = p.media[0]?.key || ''; p.pageMode = p.pageMode || 'auto'; return p; }
+    if (Array.isArray(p.media)) { if (!p.media.some(m => m.key === p.cover)) p.cover = p.media[0]?.key || ''; p.pageMode = pageModeOf(p); return p; }
     const kind = ['photo', 'youtube', 'instagram'].includes(p.mediaKind) ? p.mediaKind : p.videoId ? 'youtube' : p.image ? 'photo' : '';
     p.media = kind ? [{ key: 'm-1', kind, image: p.image || null, alt: p.alt || '', caption: '', videoId: kind === 'youtube' ? p.videoId || '' : '', instagramId: kind === 'instagram' ? p.instagramId || '' : '' }] : [];
     p.cover = p.media[0]?.key || '';
-    p.pageMode = p.pageMode || (String(p.link || '').trim() ? 'link' : kind === 'youtube' || kind === 'instagram' ? 'page' : 'auto');
+    p.pageMode = p.pageMode || (String(p.link || '').trim() ? 'link' : kind === 'youtube' || kind === 'instagram' ? 'page' : 'none');
+    p.pageMode = pageModeOf(p);
     return p;
   };
   // Champs de l'ancien format recopiés depuis la couverture (lus par « Images du site » et le site).
@@ -50,12 +53,11 @@
     const pageAddress = p => `/projet/${p.pageSlug || slugify(p.title) || p.slug}/`;
     // Ce que fera la tuile une fois publiée (même règle que le site, voir templates/pages.mjs).
     const tileAction = p => {
-      if (p.slug === BOL) return 'La tuile ouvre la page du film (/projet/le-bol-den-face/).';
-      const n = ready(p).length;
-      if (!n) return 'Aucun média complet : le projet reste masqué sur le site.';
-      if (p.pageMode === 'link') return String(p.link || '').trim() ? `La tuile ouvre ${p.link.trim()}.` : 'Lien vide : la tuile ne s’ouvre pas.';
-      if (n > 1 || p.pageMode === 'page') return `La tuile ouvre la page ${pageAddress(p)} (${n} média${n > 1 ? 's' : ''}).`;
-      return 'Un seul média : la tuile s’affiche mais ne s’ouvre pas. Ajoute un média ou choisis « Toujours une page projet ».';
+      if (p.slug === BOL) return 'Page du film : /projet/le-bol-den-face/';
+      if (!ready(p).length) return 'Aucun média complet : projet masqué.';
+      if (p.pageMode === 'page') return `Page : ${pageAddress(p)}`;
+      if (p.pageMode === 'link') return `Ouvre ${String(p.link || '').trim()}`;
+      return 'Sans page : visible dans Ma sélection, fiche sous la grille.';
     };
 
     const status = p => {
@@ -70,7 +72,7 @@
       if (!String(p.title || '').trim()) return ['title', 'Chaque projet a besoin d’un titre.'];
       if (p.year && !/^\d{4}$/.test(String(p.year).trim())) return ['year', 'L’année s’écrit avec quatre chiffres, par exemple 2026.'];
       if (!validLink(String(p.link || '').trim())) return ['link', 'Le lien doit commencer par https:// ou par / (page du site).'];
-      if (p.pageMode === 'link' && !String(p.link || '').trim()) return ['link', 'Choisis « Automatique » ou écris le lien que la tuile doit ouvrir.'];
+      if (p.pageMode === 'link' && !String(p.link || '').trim()) p.pageMode = 'none';
       if (p.pageSlug && !/^[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$/.test(p.pageSlug)) return ['pageSlug', 'L’adresse de la page : lettres minuscules sans accent, chiffres et tirets (ex. mariage-lea-sam).'];
       if (p.uploadDate && !/^\d{4}-\d{2}-\d{2}$/.test(p.uploadDate)) return ['uploadDate', 'La date s’écrit AAAA-MM-JJ, par exemple 2026-03-14.'];
       if (p.duration && !/^PT(\d+H)?(\d+M)?(\d+S)?$/.test(p.duration)) return ['duration', 'La durée s’écrit comme PT1M30S (1 min 30 s).'];
@@ -149,7 +151,7 @@
             const { video, cover, report } = await media.storeVideo(file);
             p.media.push({ key: newKey(), kind: 'file', image: imageFields(cover), video, alt: '', caption: '', videoId: '', instagramId: '' }); say(report, 'warn');
           } else {
-            const { image, report } = await media.store(file, 'photo');
+            const { image, report } = await media.store(file, 'photo', 'project');
             p.media.push({ key: newKey(), kind: 'photo', image: imageFields(image), alt: '', caption: '', videoId: '', instagramId: '' }); say(report, 'warn');
           }
           done++;
@@ -183,7 +185,7 @@
         input.addEventListener('input', () => { sync(); input.removeAttribute('aria-invalid'); touch(); });
         body.append(el('label', { className: 'admin-field' }, [el('span', { textContent: yt ? 'Lien de la vidéo YouTube' : 'Lien de la publication Instagram' }), input, help]));
       }
-      if (m.image || m.kind !== 'youtube') body.append(field(m.image || m.kind === 'file' ? 'Texte alternatif (obligatoire)' : 'Texte alternatif', text(m, 'alt', { area: true, max: 300, required: true, key: fk('alt'), placeholder: 'Ce que montre l’image, en une phrase' }), 'Lu par les personnes aveugles et par Google.'));
+      if (m.image || m.kind !== 'youtube') body.append(field(m.image || m.kind === 'file' ? 'Texte alternatif (obligatoire)' : 'Texte alternatif', text(m, 'alt', { area: true, max: 300, required: true, key: fk('alt'), placeholder: 'Ce que montre l’image, en une phrase' })));
       body.append(field('Légende (facultatif, affichée sous le média sur la page projet)', text(m, 'caption', { max: 160, key: fk('caption') })));
       const fileId = `pj-img-${p.slug}-${m.key}`;
       const replace = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', className: 'ph-file', id: fileId });
@@ -191,7 +193,7 @@
       replace.addEventListener('change', async () => {
         const file = replace.files[0]; if (!file || !media) return;
         busy = p.slug; redraw(); say(`Préparation de ${file.name}…`);
-        try { const { image, report } = await media.store(file, 'photo'); if (m.image?.id) removed.push(m.image.id); m.image = imageFields(image); touch(); say(`${report}. Vérifie le texte alternatif puis enregistre.`, 'warn'); }
+        try { const { image, report } = await media.store(file, 'photo', 'project'); if (m.image?.id) removed.push(m.image.id); m.image = imageFields(image); touch(); say(`${report}. Vérifie le texte alternatif puis enregistre.`, 'warn'); }
         catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
         busy = ''; redraw();
       });
@@ -206,6 +208,12 @@
           tool('↓', `Descendre le média ${n}`, 'down', () => moveMedia(p, i, i + 1), i === p.media.length - 1),
           m.kind !== 'file' ? replace : null,
           m.kind !== 'file' ? el('label', { htmlFor: fileId, className: 'admin-mini ph-drop__btn', textContent: busy === p.slug ? 'Envoi en cours…' : m.image ? 'Remplacer l’image' : m.kind === 'photo' ? 'Envoyer la photo' : 'Ajouter une image de couverture' }) : null,
+          m.image ? tool('Recadrer', `Recadrer le média ${n}`, 'crop', async () => {
+            busy = p.slug; redraw();
+            try { const { image } = await media.recrop(m.image, 'photo', 'project'); removed.push(m.image.id); m.image = imageFields(image); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
+            catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+            busy = ''; redraw();
+          }) : null,
           m.kind === 'youtube' && m.image ? tool('Revenir à l’affiche YouTube', `Retirer l’image du média ${n}`, 'noimg', () => { removed.push(m.image.id); m.image = null; touch(); redraw(); }) : null,
           del
         ].filter(Boolean))
@@ -232,22 +240,26 @@
       list.setAttribute('aria-label', `Médias du projet ${p.title || ''}, dans l’ordre de la page`);
       return el('fieldset', { className: 'admin-group pj-media' }, [
         el('legend', { textContent: `Médias (${p.media.length})` }),
-        el('p', { className: 'ph-help', textContent: 'Autant de photos et de vidéos que tu veux. L’ordre ici est l’ordre de la page projet (glisse une carte ou utilise les flèches). Le média principal fait la tuile de la page Work.' }),
         p.media.length ? list : el('p', { className: 'ph-empty', textContent: 'Aucun média : le projet reste masqué sur le site.' }),
         el('div', { className: 'admin-tools pj-media__tools' }, [
           files, el('label', { htmlFor: `pj-files-${p.slug}`, className: 'admin-mini admin-mini--add ph-drop__btn', textContent: busy === p.slug ? 'Envoi en cours…' : '+ Photos ou fichiers vidéo' }),
           addLink('youtube'), addLink('instagram')
-        ]),
-        el('small', { className: 'ph-help', textContent: 'Photos réduites dans ton navigateur (WebP, deux tailles, sans métadonnées ni position GPS). Fichiers vidéo : MP4, MOV ou WebM, 50 Mo au plus, miniature tirée de la vidéo.' })
+        ])
       ]);
     };
     const pageBlock = p => {
       if (p.slug === BOL) return el('p', { className: 'ph-help', textContent: tileAction(p) });
-      const box = el('fieldset', { className: 'admin-group' }, [el('legend', { textContent: 'Ce que fait la tuile' })]);
-      box.append(field('Ouverture de la tuile', select(p, 'pageMode', PAGE_MODES, () => redraw())));
-      if (p.pageMode === 'link') box.append(field('Lien (obligatoire)', text(p, 'link', { max: 300, placeholder: 'https://… ou /services/' }), 'Une page du site (/services/) ou une adresse https://.'));
-      else box.append(field('Adresse de la page projet (facultatif)', text(p, 'pageSlug', { max: 60, placeholder: slugify(p.title) || 'mariage-lea-sam' }), `Vide : tirée du titre. Page : ${pageAddress(p)}`));
-      box.append(el('p', { className: ready(p).length > 1 || p.pageMode !== 'auto' ? 'admin-ok' : 'ph-help', textContent: tileAction(p) }));
+      const page = el('input', { type: 'checkbox', checked: p.pageMode === 'page' });
+      page.dataset.focusKey = `${p.slug}-page`;
+      page.addEventListener('change', () => { p.pageMode = page.checked ? 'page' : String(p.link || '').trim() ? 'link' : 'none'; touch(); redraw(); });
+      const box = el('div', { className: 'admin-group' }, [el('label', { className: 'admin-field admin-field--check' }, [page, el('span', { textContent: 'Page projet au clic' })])]);
+      if (p.pageMode === 'page') box.append(field('Adresse de la page (facultatif)', text(p, 'pageSlug', { max: 60, placeholder: slugify(p.title) || 'mariage-lea-sam' })));
+      else {
+        const linkInput = text(p, 'link', { max: 300, placeholder: 'https://…' });
+        linkInput.addEventListener('input', () => { p.pageMode = String(p.link || '').trim() ? 'link' : 'none'; });
+        box.append(field('Lien externe au clic (facultatif)', linkInput));
+      }
+      box.append(el('p', { className: 'ph-help', textContent: tileAction(p) }));
       return box;
     };
 
@@ -326,7 +338,7 @@
       head.append(el('div', { className: 'admin-row' }, [save, live]));
       const add = button('+ Ajouter un projet', 'admin-button', () => {
         const slug = randomSlug();
-        model.push({ slug, title: '', territory: '', type: '', role: '', context: '', client: '', year: '', result: '', link: '', summary: '', media: [], cover: '', pageMode: 'auto', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image: null, alt: '', uploadDate: '', duration: '', visible: false });
+        model.push({ slug, title: '', territory: '', type: '', role: '', context: '', client: '', year: '', result: '', link: '', summary: '', media: [], cover: '', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image: null, alt: '', uploadDate: '', duration: '', visible: false });
         open.add(slug); touch(); redraw();
         document.querySelector(`[data-focus-key="${slug}-title"]`)?.focus();
       });

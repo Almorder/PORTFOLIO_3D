@@ -10,7 +10,7 @@
     ...p, key: p.key || p.id || `video-${crypto.randomUUID().slice(0, 8)}`, source: p.source || (p.video ? 'file' : 'instagram'),
     visible: p.visible !== false, tags: Array.isArray(p.tags) ? p.tags : ['reseaux'], coverImage: p.coverImage || null, autoCover: p.autoCover || null, video: p.video || null
   }));
-  const plainImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight } : null;
+  const plainImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
 
   window.NolanVideos = ({ client, el, button, say, heading, card, getDraft, getSeed, saveDraft, publish, setDirty, inUse }) => {
     const media = window.NolanMedia(client, inUse);
@@ -107,15 +107,20 @@
       nodes.push(el('p', { className: 'pj-media__label', textContent: p.coverImage ? 'Miniature : image envoyée' : p.autoCover ? 'Miniature : image tirée de la vidéo (automatique)' : 'Miniature : fond aux couleurs du site' }));
       if (c) { const img = el('img', { className: 'ph-thumb vd-thumb', alt: `Miniature de ${p.title || 'la vidéo'}`, width: c.smallWidth || 0, height: c.smallHeight || 0 }); media.preview(img, c.id); nodes.push(img); }
       const { input, id } = fileInput(p, 'cover', 'image/jpeg,image/png,image/webp', async file => {
-        const { image, report } = await media.store(file, 'cover');
+        const { image, report } = await media.store(file, 'cover', 'social');
         if (p.coverImage) removedImages.push(p.coverImage.id);
         p.coverImage = plainImage(image); reports.set(p.key, report); say(report, 'ok');
       });
       nodes.push(el('div', { className: 'admin-tools pj-media__tools' }, [
         input, el('label', { htmlFor: id, className: 'admin-mini ph-drop__btn', textContent: busy === `${p.key}-cover` ? 'Envoi en cours…' : 'Remplacer la miniature' }),
+        c ? button('Recadrer', 'admin-mini', async () => {
+          busy = `${p.key}-cover`; redraw();
+          try { const { image } = await media.recrop(c, 'cover', 'social'); if (p.coverImage) removedImages.push(p.coverImage.id); p.coverImage = plainImage(image); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
+          catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+          busy = ''; redraw();
+        }, `Recadrer la miniature de ${p.title || 'la vidéo'}`) : null,
         p.coverImage ? button(p.source === 'file' ? 'Revenir à la miniature automatique' : 'Retirer la miniature', 'admin-mini', () => { removedImages.push(p.coverImage.id); p.coverImage = null; touch(); redraw(); }) : null
       ]));
-      nodes.push(el('small', { className: 'ph-help', textContent: 'Format conseillé : vertical 9:16, 1080 × 1920 px. Réduite automatiquement (moins de 160 Ko).' }));
       if (reports.has(p.key)) nodes.push(el('p', { className: 'md-badge', textContent: reports.get(p.key) }));
       return nodes;
     };

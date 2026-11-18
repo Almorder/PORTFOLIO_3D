@@ -66,7 +66,7 @@ const usedPages = new Set();
 const pageOf = new Map(projects.filter(p=>p.visible).map(p=>{
   if (p.slug==='le-bol-den-face') return [p.slug,'/projet/le-bol-den-face/'];
   const count = shownMedia(p).length;
-  if (!count || !(count>1 || p.pageMode==='page')) return [p.slug,''];
+  if (!count || !(p.pageMode==='page' || (p.pageMode==='auto' && count>1))) return [p.slug,''];
   let slug = p.pageSlug || p.slug, n = 2;
   while (RESERVED_PAGES.has(slug) || usedPages.has(slug)) slug = `${p.pageSlug||p.slug}-${n++}`;
   usedPages.add(slug);
@@ -92,13 +92,15 @@ const projectItem = (p,i) => {
 const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
 const workItems = [
   ...featured.map(projectItem),
-  ...(showPhotos ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(photos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(photos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'#photo', cta:'Voir les photos' }] : []),
+  // Tuile « Photographie » : un seul bloc avec toutes les photos cochées « Dans la tuile » (diaporama lent).
+  // Elle ouvre la section Photographie si elle existe ; sinon elle s'affiche sans s'ouvrir. Aucune photo : pas de tuile.
+  ...(tilePhotos.length ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(tilePhotos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(tilePhotos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:showPhotos?'#photo':'', cta:showPhotos?'Voir les photos':'' }] : []),
   ...instagramPosts.map((p,i)=>{ const thumb=socialThumb(p), file=p.source==='file';
     return { title:p.title, type:'Vidéo verticale', tags:p.tags?.length?p.tags:['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
     label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
 ];
-const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat']];
+const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat'],['text','Description']];
 const bentoTiles = workItems.slice(0,5).map(item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) }));
 const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Marques'],['moments','Mariages & moments'],['reseaux','Réseaux'],['photo','Photographie']]
   .map(([key,label])=>({ key, label, count: key==='tout' ? workItems.length : workItems.filter(it=>it.tags.includes(key)).length }))
@@ -701,7 +703,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/testimonials.js?v=__TESTI_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/cropper.js?v=__CROP_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/testimonials.js?v=__TESTI_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){
