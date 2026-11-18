@@ -239,14 +239,14 @@ export function homePage(){
           <div class="price-card__lift"><div class="price-card__flip">
             <div class="price-card__face price-card__face--front">
               <img class="price-card__art" ${art}width="290" height="430" alt="" loading="lazy" decoding="async">
-              <span class="price-card__tag">${esc(c.tag)}</span>
               <div class="price-card__label">
+                ${c.showTag?`<p class="price-card__tag">${esc(c.tag)}</p>`:''}
                 <h3>${esc(c.title)}</h3>
-                <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
-                <p class="price-card__text">${esc(c.text)}</p>
-                ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
-                <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
-                <span class="price-card__index${c.card.red?' is-red':''}" aria-hidden="true">${esc(c.card.rank)}<i>${c.card.suit}</i></span>
+                <div class="price-card__row">
+                  <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
+                  <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)}<span class="sr-only"> : ${esc(c.title)}</span> <span aria-hidden="true">↗</span></a>
+                </div>
+                <div class="price-card__more"><p>${c.showTag?'':`${esc(c.tag)}. `}${esc(c.text)}</p>${c.facts?`<ul>${c.facts.map(([v,l])=>`<li>${esc(v)} ${esc(l)}</li>`).join('')}</ul>`:''}</div>
               </div>
             </div>
             <div class="price-card__face price-card__face--back" aria-hidden="true"><img ${back}width="251" height="425" alt="" loading="lazy" decoding="async"></div>
