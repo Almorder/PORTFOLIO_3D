@@ -667,6 +667,25 @@ $$('[data-morph-open]').forEach(row=>{
   panel.addEventListener('click',event=>{if(event.target===panel) close();});
 });
 
+// Avis : la grille garde sa hauteur ; un texte trop long pour sa carte s'estompe (il est entier dans le panneau).
+// « Voir plus d'avis » agrandit la section en douceur et place le focus sur le premier avis ajouté.
+$$('[data-tm]').forEach(wrap=>{
+  const clip=()=>$$('blockquote',wrap).forEach(q=>q.classList.toggle('is-clipped',q.scrollHeight>q.clientHeight+2));
+  clip(); if('ResizeObserver' in window) new ResizeObserver(clip).observe(wrap);
+  const toggle=$('[data-tm-toggle]',wrap), extra=$('[data-tm-extra]',wrap); if(!toggle) return;
+  toggle.addEventListener('click',()=>{
+    const open=toggle.getAttribute('aria-expanded')!=='true';
+    const shown=()=>[...$$('article',wrap)].filter(a=>a.offsetParent);
+    const before=shown(), from=wrap.offsetHeight;
+    wrap.classList.toggle('is-expanded',open); if(extra) extra.hidden=!open;
+    toggle.setAttribute('aria-expanded',String(open));
+    $('[data-tm-label]',toggle).textContent=open?'Voir moins d’avis':'Voir plus d’avis';
+    clip();
+    if(!reduced){ const to=wrap.offsetHeight; wrap.style.height=`${from}px`; wrap.classList.add('is-animating'); requestAnimationFrame(()=>{ wrap.style.height=`${to}px`; }); setTimeout(()=>{ wrap.classList.remove('is-animating'); wrap.style.height=''; },480); }
+    if(open){ const added=shown().find(a=>!before.includes(a)); $('.morph-hit',added)?.focus({preventScroll:false}); }
+  });
+});
+
 // Bento : la tuile cliquée prend la grande place, les autres se réinstallent dans l'ordre.
 $$('[data-bento]').forEach(bento=>{
   const tiles=$$('[data-bento-tile]',bento);

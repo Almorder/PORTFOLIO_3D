@@ -311,7 +311,7 @@
     };
 
     const render = () => {
-      const head = el('div', { className: 'admin-bar' }, [heading('Projets (Work, Ma sélection)', 'Les projets de la page Work. Les cinq premiers éléments forment le bento, dans cet ordre (projets, puis la tuile Photographie, puis les vidéos sociales) ; tous apparaissent dans la vue Liste. Chaque projet a un ou plusieurs médias ; avec plusieurs médias, sa tuile ouvre une page projet.')]);
+      const head = el('div', { className: 'admin-bar' }, [heading('Projets', 'Les cinq premiers forment la grille de la page Work.')]);
       if (!model) {
         const start = button('Partir des projets actuels du site', 'admin-button', async () => {
           start.disabled = true;

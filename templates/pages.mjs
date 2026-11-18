@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { photos, tilePhotos, MIN_PHOTOS } from '../content/photos.mjs';
+import { testimonials } from '../content/testimonials.mjs';
 import { siteImage } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
@@ -238,7 +239,7 @@ export function homePage(){
 
     <section class="v16-testimonials" id="retours">
       <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
-      ${morphTestimonials(site.testimonials)}
+      ${morphTestimonials(testimonials)}
     </section>
 
     <section class="v16-proof" aria-labelledby="v16-proof-title">
@@ -356,7 +357,7 @@ export function workPage(){
     </section>` : ''}
     <section class="v16-testimonials wk-voices" id="retours">
       <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
-      ${morphTestimonials(site.testimonials)}
+      ${morphTestimonials(testimonials)}
     </section>
     <section class="wk-cta" id="contact-cta" aria-labelledby="wk-cta-title">
       <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services et les tarifs <span aria-hidden="true">↗</span></a></div>
@@ -462,7 +463,7 @@ export function aboutPage(){
 
     <section class="v17-about-workstyle motion-reveal"><span class="fab-dot-label">Travailler avec moi</span><h2>Direct quand il faut trancher.<br>Autonome quand il faut avancer.</h2><div><p>Je peux rejoindre un projet déjà lancé, travailler avec une équipe existante ou prendre davantage de responsabilités quand il faut garder une cohérence de bout en bout.</p><p>Je n’ai pas besoin qu’un projet soit parfaitement défini pour commencer à réfléchir. En revanche, une fois la direction choisie, j’aime que les décisions deviennent rapidement des actions.</p></div></section>
 
-    <section class="v17-about-proof motion-reveal"><small>Vu de l’extérieur</small><blockquote>« Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi. »</blockquote><span>Matthieu · Ouilove Proposal</span></section>
+    ${testimonials[0]?`<section class="v17-about-proof motion-reveal"><small>Vu de l’extérieur</small><blockquote>« ${esc(testimonials[0].quote)} »</blockquote><span>${esc([testimonials[0].name,testimonials[0].role].filter(Boolean).join(' · '))}</span></section>`:''}
     <section class="fab-contact-band motion-reveal"><div><small>La suite dépend de ce que vous cherchez</small><h2>Regarder ou parler.</h2></div><p>Le Work montre ce que je produis. Services précise ce que je peux prendre en charge. Le contact sert à voir ce que cela peut devenir dans votre contexte.</p><div class="fab-contact-band__actions"><a href="/work/">Voir le Work <span>↗</span></a><a href="/services/">Voir les Services <span>↗</span></a><a href="/contact/">Parler du projet <span>↗</span></a></div></section>
   </main>` + footer();
 }
@@ -492,7 +493,7 @@ const contactIntents = [
 export function contactPage(){
   const offers = Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,price:o.price?`${o.from?'à partir de ':''}${o.price}`:'',message:pricingMessage(o)}]));
   const priceMarks = pricing.filter(o=>/€/.test(o.price)).slice(0,4).map(o=>`<li><span>${esc(o.tag)}</span><b>${o.from?'dès ':''}${esc(o.price)}</b></li>`).join('');
-  const quote = site.testimonials[0];
+  const quote = testimonials[0];
   const igMessage = 'Salut Nolan, je viens de ton site nolanarc.com. Je voudrais te parler d’un projet : ';
   const mailSubject = encodeURIComponent('Un projet | nolanarc.com');
   return head({title:'Contacter Nolan Ribeiro, vidéaste et photographe | Nolan Arc',description:'Écrire à Nolan Ribeiro, vidéaste et photographe, pour un film de mariage, un film de marque, une direction artistique ou une stratégie. Réponse généralement sous 48 h.',path:'/contact/',extraSchema:[{ '@type':'ContactPage', '@id':`${site.domain}/contact/#contact`, url:`${site.domain}/contact/`, about:{ '@id':`${site.domain}/#business` } },...faqSchema(site.faqs.contact,'/contact/')],bodyClass:'page-contact page-fabrica page-v17'}) + header('/contact/') + `<main id="main-content" class="contact-page v17-contact-page cx-page">
@@ -700,7 +701,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/testimonials.js?v=__TESTI_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

@@ -50,7 +50,7 @@
       if (projects.length) {
         const res = await addProjects(projects);
         if (res?.error) say(`Projets non créés : ${res.error.message}`, 'error');
-        else if (!added) { redraw(); return say(`${projects.length} projet(s) photo créé(s), masqués : ouvre « Projets du portfolio » pour relire le titre, écrire le texte alternatif et les rendre visibles.`, 'ok'); }
+        else if (!added) { redraw(); return say(`${projects.length} projet(s) photo créé(s), masqués : ouvre « Projets » pour relire le titre, écrire le texte alternatif et les rendre visibles.`, 'ok'); }
       }
       if (added) {
         // Enregistrement immédiat : une photo envoyée n'est jamais perdue, même si on quitte la page.
@@ -147,7 +147,7 @@
         const res = await addProjects([projectFrom(imageFields(item), { title: item.series || '', alt: item.alt || '', year: item.year || '' })]);
         asProject.disabled = false;
         if (res?.error) return say(`Projet non créé : ${res.error.message}`, 'error');
-        say('Projet photo créé, masqué, en bas de « Projets du portfolio » : relis son titre puis rends-le visible.', 'ok');
+        say('Projet photo créé, masqué, en bas de « Projets » : relis son titre puis rends-le visible.', 'ok');
       });
       const node = el('li', { className: `ph-card${item.visible ? '' : ' is-hidden'}`, draggable: true }, [
         el('div', { className: 'ph-card__media' }, [img, el('span', { className: 'ph-card__n', textContent: String(n) }), isCover ? el('span', { className: 'ph-card__cover', textContent: model.cover ? 'Tuile' : 'Tuile (auto)' }) : null]),
@@ -226,7 +226,7 @@
         ? `${count} photo(s) visible(s) : la section Photographie et sa tuile s’affichent sur la page Work.`
         : 'Aucune photo visible : la section Photographie reste masquée sur le site. Une seule photo suffit pour l’afficher.' });
       return [
-        el('div', { className: 'admin-bar' }, [heading('Photos de la page Work', 'Section Photographie et tuile du bento. L’ordre ici est l’ordre sur le site.'), el('div', { className: 'admin-row' }, [save, live])]),
+        el('div', { className: 'admin-bar' }, [heading('Photos', 'L’ordre ici est l’ordre sur le site.'), el('div', { className: 'admin-row' }, [save, live])]),
         tileCard(),
         card('Ajouter', [where, drop, summary, el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », le site se met à jour en quelques minutes (l’état s’affiche en bas de l’écran).' })], 'admin-card--wide'),
         model.items.length

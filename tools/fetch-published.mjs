@@ -1,6 +1,6 @@
 // Copie sur le site ce qui a été publié depuis l'admin : photos de la page Work (section Photographie),
-// projets de « Ma sélection » (bento), social media videos (fichiers vidéo compris) et images du site
-// (accueil). Lancé au déploiement, avant le build (.github/workflows/pages.yml).
+// projets de « Ma sélection » (bento), social media videos (fichiers vidéo compris), images du site
+// (accueil) et avis clients (témoignages). Lancé au déploiement, avant le build (.github/workflows/pages.yml).
 //
 // Chemin d'une publication : l'admin envoie les images WebP dans l'espace Supabase « site-photos » et le
 // texte dans les brouillons « photos », « projects », « instagram » et « images » (les vidéos dans « site-videos »). « Enregistrer une version » fige les brouillons dans
@@ -179,10 +179,27 @@ export function normalizeImages(map) {
   return out;
 }
 
+// Avis clients : texte et nom obligatoires, nettoyés ; image facultative, seulement une image envoyée depuis l'admin
+// (WebP du stockage site-photos, copiée sur le site), avec son texte alternatif ; aucune adresse d'image libre.
+// Un avis masqué n'est jamais publié. Aucun avis n'est ajouté ni modifié ici : seulement ceux saisis dans l'admin.
+export function normalizeTestimonials(list) {
+  if (!Array.isArray(list)) return null;
+  const out = [], seen = new Set();
+  for (const t of list.slice(0, 60)) {
+    if (t?.visible === false) continue;
+    const quote = clean(t?.quote, 600), name = clean(t?.name, 80);
+    if (!quote || !name || seen.has(`${name}|${quote}`)) continue;
+    seen.add(`${name}|${quote}`);
+    const image = imageOf(t?.image), alt = clean(t?.alt, 300), href = link(t?.link);
+    out.push({ quote, name, role: clean(t?.role, 80), image: image && alt ? image : null, alt: image && alt ? alt : '', link: href, linkLabel: href ? clean(t?.linkLabel, 60) : '' });
+  }
+  return out;
+}
+
 const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex').slice(0, 16);
-const prepare = (photos, projects, social = null, images = null) => {
-  const p = normalizePhotos(photos), pr = normalizeProjects(projects), so = normalizeSocial(social), im = normalizeImages(images);
-  return { ...p, projects: pr, social: so, images: im, hash: fingerprint({ cover: p.cover, list: p.items, projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}) }) };
+const prepare = (photos, projects, social = null, images = null, testimonials = null) => {
+  const p = normalizePhotos(photos), pr = normalizeProjects(projects), so = normalizeSocial(social), im = normalizeImages(images), te = normalizeTestimonials(testimonials);
+  return { ...p, projects: pr, social: so, images: im, testimonials: te, hash: fingerprint({ cover: p.cover, list: p.items, projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}), ...(te ? { testimonials: te } : {}) }) };
 };
 
 const getJson = async (url, headers = {}) => {
@@ -193,15 +210,15 @@ const getJson = async (url, headers = {}) => {
 // Dernière version publiée depuis l'admin.
 async function latestSnapshot() {
   if (!supabaseUrl || !key) throw new Error('adresse Supabase absente');
-  const rows = await getJson(`${supabaseUrl}/rest/v1/content_snapshots?select=id,photos:content->photos,projects:content->projects,social:content->instagram,images:content->images&order=id.desc&limit=1`, { apikey: key, authorization: `Bearer ${key}` });
+  const rows = await getJson(`${supabaseUrl}/rest/v1/content_snapshots?select=id,photos:content->photos,projects:content->projects,social:content->instagram,images:content->images,testimonials:content->testimonials&order=id.desc&limit=1`, { apikey: key, authorization: `Bearer ${key}` });
   const r = rows[0] || {};
-  return { snapshot: r.id || null, ...prepare(r.photos, r.projects, r.social, r.images) };
+  return { snapshot: r.id || null, ...prepare(r.photos, r.projects, r.social, r.images, r.testimonials) };
 }
 // Version actuellement en ligne (secours, et comparaison pour --check).
 async function liveManifest() {
   const m = await getJson(`${liveUrl}${WEB_PATH}manifest.json`);
   const social = Array.isArray(m.social) ? m.social.map(p => ({ ...p, coverImage: p.image, video: p.video })) : null;
-  const live = prepare({ cover: m.cover, items: (m.items || []).map(p => ({ ...p, visible: true })) }, m.projects ?? null, social, m.images ?? null);
+  const live = prepare({ cover: m.cover, items: (m.items || []).map(p => ({ ...p, visible: true })) }, m.projects ?? null, social, m.images ?? null, m.testimonials ?? null);
   return { snapshot: m.snapshot || null, ...live, published: /^[a-f0-9]{16}$/.test(m.published || '') ? m.published : live.hash };
 }
 const signature = (body, kind) => kind === 'webp'
@@ -284,16 +301,20 @@ for (const post of published.social || []) {
 }
 const keptImages = published.images && {};
 for (const [slot, value] of Object.entries(published.images || {})) if (await copy(value.image, `Image ${slot}`)) keptImages[slot] = value;
+// Avis : une image qui ne se copie pas est retirée (l'avis reste, sans image).
+const keptTestimonials = published.testimonials && [];
+for (const t of published.testimonials || []) keptTestimonials.push(t.image && !await copy(t.image, `Image de l'avis de ${t.name}`) ? { ...t, image: null, alt: '' } : t);
 const photos = normalizePhotos({ cover: published.cover, items: keptPhotos.map(p => ({ ...p, visible: true })) });
 // published : empreinte de la version source, pour que --check ne relance pas sans fin si un fichier manque.
-const manifest = { snapshot: published.snapshot, published: published.published || published.hash, ...photos, projects: keptProjects, social: keptSocial, images: keptImages };
+const manifest = { snapshot: published.snapshot, published: published.published || published.hash, ...photos, projects: keptProjects, social: keptSocial, images: keptImages, testimonials: keptTestimonials };
 const write = (file, data) => writeFile(join(root, 'content', file), JSON.stringify({ snapshot: manifest.snapshot, ...data }, null, 1) + '\n');
 await write('photos.published.json', photos);
 await write('projects.published.json', { projects: keptProjects });
 await write('social.published.json', { social: keptSocial });
 await write('images.published.json', { images: keptImages });
+await write('testimonials.published.json', { testimonials: keptTestimonials });
 await write('published.json', { published: manifest.published });
 await writeFile(join(outDir, 'manifest.json'), JSON.stringify(manifest) + '\n');
-console.log(`Publication copiée (source : ${source}${manifest.snapshot ? `, version n° ${manifest.snapshot}` : ''}) : ${photos.items.length} photo(s), ${keptProjects ? `${keptProjects.length} projet(s)` : 'projets du code'}, ${keptSocial ? `${keptSocial.length} vidéo(s) sociale(s) dont ${keptSocial.filter(p => p.video).length} fichier(s) (${Math.round(videoBytes / 1048576)} Mo)` : 'vidéos sociales du code'}, ${keptImages ? Object.keys(keptImages).length : 0} image(s) du site remplacée(s).`);
+console.log(`Publication copiée (source : ${source}${manifest.snapshot ? `, version n° ${manifest.snapshot}` : ''}) : ${photos.items.length} photo(s), ${keptProjects ? `${keptProjects.length} projet(s)` : 'projets du code'}, ${keptSocial ? `${keptSocial.length} vidéo(s) sociale(s) dont ${keptSocial.filter(p => p.video).length} fichier(s) (${Math.round(videoBytes / 1048576)} Mo)` : 'vidéos sociales du code'}, ${keptImages ? Object.keys(keptImages).length : 0} image(s) du site remplacée(s), ${keptTestimonials ? `${keptTestimonials.length} avis` : 'avis du code'}.`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

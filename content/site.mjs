@@ -17,10 +17,11 @@ export const site = {
   // Phrase lue mot à mot à l'accueil (section Focus Text).
   manifesto: 'Avoir une vision, c’est être prêt à faire ce qu’il faut pour la réaliser.',
   testimonials: [
-    // image : visuel du projet (adresse) ; link + linkLabel : lien facultatif affiché dans le panneau de l'avis.
-    { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal', image: '', link: '', linkLabel: '' },
-    { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment', image: '', link: '', linkLabel: '' },
-    { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '', image: '', link: '', linkLabel: '' },
+    // Liste de départ, remplacée par la version publiée depuis l'admin (voir content/testimonials.mjs).
+    // link + linkLabel : lien facultatif affiché dans le panneau de l'avis. Les images s'envoient depuis l'admin.
+    { quote: 'Il ne se contente pas de filmer. Il réfléchit à ce qu’il veut raconter et pourquoi.', name: 'Matthieu', role: 'Ouilove Proposal', link: '', linkLabel: '' },
+    { quote: 'Le résultat était pile comme je l’imaginais.', name: 'Nawel & Yanis', role: 'Film de moment', link: '', linkLabel: '' },
+    { quote: 'Coucouuuu elle est vraiment super stylé !! T’es plans nous mettent grave en valeur ça fait plaisir hahaha', name: 'Lola', role: '', link: '', linkLabel: '' },
   ],
   proofStats: [
     { value: 50, suffix: '+', label: 'vidéos réalisées' },

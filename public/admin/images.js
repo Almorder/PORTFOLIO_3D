@@ -123,7 +123,7 @@
     ], 'admin-card--wide');
 
     const socialRows = posts => card('Work · Miniatures des Social media videos', [
-      el('p', { className: 'ph-help', textContent: 'Image affichée avant la lecture. Le reste se modifie dans « Social media videos ».' }),
+      el('p', { className: 'ph-help', textContent: 'Image affichée avant la lecture. Le reste se modifie dans « Vidéos ».' }),
       el('ul', { className: 'im-list' }, posts.map((p, index) => ({ p, index })).filter(({ p }) => p.visible !== false).map(({ p, index }) => slotRow({
         key: `social-${p.key || p.id}`, label: p.title || 'Vidéo sans titre', format: 'Vertical 9:16, 1080 × 1920 px.',
         current: p.coverImage || p.autoCover, currentLabel: p.coverImage ? 'Image remplacée.' : 'Miniature tirée de la vidéo.', origin: '', originLabel: 'Fond aux couleurs du site', report: reports.get(`social-${p.key || p.id}`),
@@ -135,7 +135,7 @@
         },
         onRevert: p.coverImage ? async () => { const list = await read('instagram'); const old = list[index].coverImage?.id; list[index].coverImage = null; await save('instagram', list, old); say(p.autoCover ? 'Miniature automatique rétablie.' : 'Fond d’origine rétabli.', 'ok'); } : null
       }))),
-      button('Ouvrir « Social media videos »', 'admin-mini', () => go('instagram'))
+      button('Ouvrir « Vidéos »', 'admin-mini', () => go('instagram'))
     ], 'admin-card--wide');
 
     const view = () => {
@@ -146,7 +146,7 @@
         const live = button('Publier', 'admin-button admin-button--ember', async () => { live.disabled = true; await publish('Images du site'); live.disabled = false; });
         live.disabled = Boolean(busy);
         box.replaceChildren(
-          el('div', { className: 'admin-bar' }, [heading('Images du site', 'Chaque emplacement photo, page par page. Les images sont réduites aux tailles affichées avant l’envoi. Chaque changement est enregistré tout de suite.'), el('div', { className: 'admin-row' }, [live])]),
+          el('div', { className: 'admin-bar' }, [heading('Images', 'Chaque changement est enregistré tout de suite.'), el('div', { className: 'admin-row' }, [live])]),
           ...homeRows(), projectRows(projects || []), socialRows(posts || [])
         );
         if (focusKey) box.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();

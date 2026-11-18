@@ -4,6 +4,7 @@
 import { site } from '../content/site.mjs';
 import { pricing } from '../content/pricing.mjs';
 import { projects } from '../content/projects.mjs';
+import { testimonials } from '../content/testimonials.mjs';
 import { notes } from '../content/journal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { legal } from '../content/legal.mjs';
@@ -131,7 +132,7 @@ ${notes.map(n => `- ${n.title} (${n.category.toLowerCase()}) : ${n.excerpt}`).jo
 ${url('/journal/')}
 
 ## Avis publiés sur le site
-${site.testimonials.map(t => `- « ${t.quote} » ${[t.name, t.role].filter(Boolean).join(', ')}`).join('\n')}
+${testimonials.map(t => `- « ${t.quote} » ${[t.name, t.role].filter(Boolean).join(', ')}`).join('\n')}
 
 ## Questions fréquentes
 ${faqBlock('Général', site.faqs.home)}
