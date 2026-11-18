@@ -133,7 +133,7 @@ export function homePage(){
     </section>
 
     <section class="fab-projects v16-work-preview" id="work-preview">
-      <header class="fab-section-heading work-heading motion-reveal"><h2>Work.</h2><p>Mes réalisations et projets</p></header>
+      <header class="fab-section-heading work-heading motion-reveal"><h2>Work<span class="title-dot">.</span></h2><p>Mes réalisations et projets</p></header>
       <div class="fab-project-grid">
         <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bolPoster}" alt="Le bol d’en face, court métrage" width="1280" height="720" loading="eager"><span>Voir le film ↗</span></figure></a>
         ${projectCards}
@@ -240,7 +240,7 @@ export function workPage(){
   const icon = { grid:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.4"/></svg>', list:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="6.7" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="10.9" width="13" height="2.6" rx="1.3"/></svg>' };
   const first = bentoTiles[0];
   return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : le court métrage « Le bol d’en face » et des vidéos courtes pour les réseaux sociaux.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...[bolVideo(), ...igVideos()].filter(Boolean)], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
-    <section class="wk-title motion-reveal"><div><h1>Work.</h1><small>Mes réalisations et projets</small></div></section>
+    <section class="wk-title motion-reveal"><div><h1>Work<span class="title-dot">.</span></h1><small>Mes réalisations et projets</small></div></section>
     <section class="wk-selection" id="selection" aria-labelledby="wk-selection-title" data-work-views>
       <header class="wk-selection__head motion-reveal"><h2 id="wk-selection-title">Ma sélection.</h2>
         <div class="wk-view" role="group" aria-label="Affichage des projets"><button type="button" data-work-view="grid" aria-pressed="true" aria-controls="wk-grid">${icon.grid}<span>Grille</span></button><button type="button" data-work-view="list" aria-pressed="false" aria-controls="wk-list">${icon.list}<span>Liste</span></button></div>
