@@ -14,6 +14,8 @@ import { weddingOffers } from '../content/wedding.mjs';
 import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
 import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema, contactDialog } from './components.mjs';
 
+// Cartes des tarifs : visuel remplaçable depuis l'admin (« Images du site », emplacements home.cards.*), sinon carte d'origine.
+const cardArt = key => { const s=siteImage(`home.cards.${key}`); return s ? `src="${esc(s.image.srcSmall)}" srcset="${esc(s.image.srcSmall)} ${s.image.smallWidth}w, ${esc(s.image.src)} ${s.image.width}w" sizes="(max-width: 620px) 160px, 230px" ` : `src="/assets/cards/${key}.webp" `; };
 // Fond d'un dossier « Trois dimensions » : image remplacée depuis l'admin (petite et grande taille), sinon texture d'origine (CSS).
 const folderArt = key => { const s=siteImage(`home.dims.${key}`); return s ? ` style="background-image:url('${esc(s.image.srcSmall)}');background-image:image-set(url('${esc(s.image.srcSmall)}') 1x,url('${esc(s.image.src)}') 2x)"` : ''; };
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
@@ -226,17 +228,30 @@ export function homePage(){
     <section class="price-proof" id="pricing" aria-labelledby="pricing-title" data-price-proof>
       <div class="price-proof__grid" aria-hidden="true" data-price-grid></div>
       <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>De quoi répondre à tout.</p></header>
+      <div class="price-tools" data-price-tools hidden>
+        <p class="price-tools__hint"><span class="price-tools__fine">Piochez une carte, ou faites-la glisser hors de la main.</span><span class="price-tools__touch">Touchez une carte pour la piocher. Appui long pour la déplacer.</span></p>
+        <button type="button" class="price-tools__btn" data-price-deal>Voir toutes les offres</button>
+        <button type="button" class="price-tools__btn price-tools__btn--quiet" data-price-stow hidden><span aria-hidden="true">↺</span> Ranger les cartes</button>
+      </div>
       <ul class="price-arena" data-price-arena aria-label="Offres et tarifs">
-        ${pricing.map((c,i)=>`<li class="price-card price-card--${c.theme}" data-price-card style="--i:${i}">
-          <div class="price-card__inner">
-            <span class="price-card__tag">${esc(c.tag)}</span>
-            <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
-            <h3>${esc(c.title)}</h3>
-            <p class="price-card__text">${esc(c.text)}</p>
-            ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
-            <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
-          </div>
-        </li>`).join('')}
+        ${pricing.map((c,i)=>{ const art=cardArt(c.key), back=cardArt('dos'), price=`${c.from?'à partir de ':''}${c.price}`; return `<li class="price-card" data-price-card data-key="${esc(c.key)}" style="--i:${i}">
+          <button type="button" class="price-card__draw" data-price-draw hidden aria-label="${esc(`Piocher la carte ${c.title}, ${price}`)}"></button>
+          <div class="price-card__lift"><div class="price-card__flip">
+            <div class="price-card__face price-card__face--front">
+              <img class="price-card__art" ${art}width="290" height="430" alt="" loading="lazy" decoding="async">
+              <span class="price-card__tag">${esc(c.tag)}</span>
+              <div class="price-card__label">
+                <h3>${esc(c.title)}</h3>
+                <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
+                <p class="price-card__text">${esc(c.text)}</p>
+                ${c.facts?`<ul class="price-card__facts">${c.facts.map(([v,l])=>`<li><b>${esc(v)}</b> ${esc(l)}</li>`).join('')}</ul>`:''}
+                <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)} <span aria-hidden="true">↗</span></a>
+                <span class="price-card__index${c.card.red?' is-red':''}" aria-hidden="true">${esc(c.card.rank)}<i>${c.card.suit}</i></span>
+              </div>
+            </div>
+            <div class="price-card__face price-card__face--back" aria-hidden="true"><img ${back}width="251" height="425" alt="" loading="lazy" decoding="async"></div>
+          </div></div>
+        </li>`; }).join('')}
       </ul>
     </section>
 

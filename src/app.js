@@ -819,105 +819,241 @@ $$('img[data-fallback]').forEach(img=>{
   if(img.complete) check(); else img.addEventListener('load',check,{once:true});
 });
 
-// Accueil, « Tarifs » : des cartes qui flottent sur la grille. On les attrape (clic, ou appui maintenu au doigt),
-// on les déplace, on les lance : elles gardent leur élan, rebondissent entre elles et sur les bords.
+// Accueil, « Tarifs » : six cartes à jouer tenues en éventail. On pioche une carte (clic, toucher, ou on la glisse
+// hors de la main) : elle se retourne et glisse sur la table. Sur la table, on la déplace et on la lance ; elle garde
+// son élan, tourne selon le point de saisie, rebondit sur les autres et sur les bords, puis ralentit peu à peu.
+// La boucle s'arrête dès que tout est immobile. Mouvement réduit ou sans JavaScript : une grille de rectos.
 $$('[data-price-proof]').forEach(section=>{
   const arena=$('[data-price-arena]',section), cards=$$('[data-price-card]',section), grid=$('[data-price-grid]',section);
+  const tools=$('[data-price-tools]',section), dealBtn=$('[data-price-deal]',section), stowBtn=$('[data-price-stow]',section);
   if(!arena||!cards.length) return;
   if(grid&&finePointer&&!reduced) section.addEventListener('pointermove',event=>{
     const r=section.getBoundingClientRect();
     grid.style.setProperty('--mx',`${event.clientX-r.left}px`);grid.style.setProperty('--my',`${event.clientY-r.top}px`);
   },{passive:true});
-  const bodies=cards.map((el,i)=>({el,i,x:0,y:0,vx:0,vy:0,w:0,h:0,rot:[-4,3,-2,5,-3,2][i%6],held:false}));
-  const FRICTION=.985, BOUNCE=.78, WALL=.72;
-  let W=0,H=0,raf=0,grabbed=null,lastMove=null,moved=false,pressTimer=0;
-  const place=b=>{b.el.style.transform=`translate3d(${b.x.toFixed(1)}px,${b.y.toFixed(1)}px,0) rotate(${(b.rot+(b.held?b.vx*.6:0)).toFixed(2)}deg)`;};
-  // Disposition de départ : en quinconce, comme des cartes posées sur une table.
-  const layout=()=>{
-    arena.classList.add('is-physics');
-    W=arena.clientWidth;H=arena.clientHeight;
-    const cols=W<620?2:3, rows=Math.ceil(bodies.length/cols);
-    bodies.forEach(b=>{b.w=b.el.offsetWidth;b.h=b.el.offsetHeight;});
-    const cellW=W/cols, cellH=H/rows;
+  if(reduced) return;
+  // Unités : px, px/s, degrés, degrés/s. Frottement = part proportionnelle à la vitesse (DRAG) + petit frottement sec
+  // (GRIP) qui finit le mouvement en douceur : pas de seuil d'arrêt brutal.
+  const DRAG=1.45, GRIP=70, SPIN_DRAG=2.4, SPIN_GRIP=26, CARD_E=.42, WALL_E=.5, MAX_V=2800, MAX_SPIN=540, SLIDE=.6;
+  const D2R=Math.PI/180;
+  arena.classList.add('is-physics'); if(tools) tools.hidden=false;
+  const bodies=cards.map((el,i)=>({el,i,draw:$('[data-price-draw]',el),flip:$('.price-card__flip',el),lift:$('.price-card__lift',el),link:$('.price-card__cta',el),
+    state:'hand',x:0,y:0,a:0,vx:0,vy:0,va:0,w:0,h:0,air:0,tween:null,z:i+1}));
+  let W=0,H=0,raf=0,last=0,grabbed=null,moved=false,pressTimer=0,zTop=20,fan=[],slots=[],geo=null;
+  const setHand=(b,on)=>{
+    b.el.classList.toggle('is-in-hand',on); b.draw.hidden=!on;
+    b.link.tabIndex=on?-1:0; b.flip.classList.toggle('is-down',on);
+  };
+  const place=b=>{
+    b.el.style.transform=`translate3d(${(b.x-b.w/2).toFixed(1)}px,${(b.y-b.h/2).toFixed(1)}px,0) rotate(${b.a.toFixed(2)}deg)`;
+    b.lift.style.setProperty('--air',b.air.toFixed(3)); b.el.style.zIndex=b.z;
+  };
+  const toFront=b=>{b.z=++zTop;};
+  const tools2=()=>{
+    const inHand=bodies.filter(b=>b.state==='hand').length;
+    if(dealBtn) dealBtn.hidden=inHand===0; if(stowBtn) stowBtn.hidden=inHand===bodies.length;
+  };
+  // Distance parcourue avant l'arrêt pour une vitesse v0 ; on cherche la vitesse qui pose la carte sur sa cible.
+  const reach=(v0,k,c)=>v0/k-(c/(k*k))*Math.log(1+k*v0/c);
+  const speedFor=(d,k,c)=>{let lo=0,hi=6000;for(let n=0;n<28;n++){const m=(lo+hi)/2;if(reach(m,k,c)<d) lo=m; else hi=m;}return lo;};
+  // Hauteur de la table : fixe sur grand écran ; au téléphone, elle s'agrandit avec les cartes posées pour qu'elles
+  // ne s'empilent pas. La main reste au pied de la table.
+  const sizeArena=animate=>{
+    const {narrow,w,h,R,spread,gap,per}=geo, n=bodies.length;
+    const inHand=bodies.filter(b=>b.state==='hand'||b.tween).length, onTable=n-inHand;
+    let next=Math.round(h*(narrow?2.3:1.82)+(narrow?24:40));
+    if(narrow) next=Math.max(next,Math.ceil(onTable/per)*(h+gap)+(inHand?Math.round(h*1.02)+30:40));
+    if(next===H) return;
+    H=next; arena.style.setProperty('--arena-h',`${H}px`);
+    const cy=H-h/2-10, px=W/2, py=cy+R;
+    fan=bodies.map((b,i)=>{const ang=(i-(n-1)/2)*spread;return{x:px+R*Math.sin(ang*D2R),y:py-R*Math.cos(ang*D2R)+(narrow?0:4),a:ang};});
+    const now=performance.now();
     bodies.forEach((b,i)=>{
-      const c=i%cols, r=Math.floor(i/cols), jitterX=[.0,.06,-.05,.04,-.03,.05][i%6]*cellW, jitterY=[.05,-.04,.06,-.05,.03,-.02][i%6]*cellH;
-      b.x=Math.min(W-b.w,Math.max(0,c*cellW+(cellW-b.w)/2+jitterX));
-      b.y=Math.min(H-b.h,Math.max(0,r*cellH+(cellH-b.h)/2+jitterY));
-      b.vx=b.vy=0;place(b);
+      if(b.tween) b.tween.to=fan[i];
+      else if(b.state==='hand'){ if(animate) b.tween={t0:now,dur:420,from:{x:b.x,y:b.y,a:b.a},to:fan[i]}; else Object.assign(b,fan[i]); }
     });
-    wake(); // sépare tout de suite les cartes qui se chevauchent au départ
+    if(animate) wake();
   };
-  // Choc entre deux cartes : on les sépare sur l'axe le plus court, puis on échange leur élan sur cet axe.
-  const collide=(a,b)=>{
-    const dx=(a.x+a.w/2)-(b.x+b.w/2), dy=(a.y+a.h/2)-(b.y+b.h/2);
-    const ox=(a.w+b.w)/2-Math.abs(dx), oy=(a.h+b.h)/2-Math.abs(dy);
-    if(ox<=0||oy<=0) return;
-    const ma=a.held?0:1, mb=b.held?0:1, total=(ma+mb)||1; // une carte tenue en main ne recule pas
-    const axis=ox<oy?'x':'y', overlap=Math.min(ox,oy), sign=Math.sign(axis==='x'?dx:dy)||1, v='v'+axis;
-    a[axis]+=sign*overlap*ma/total; b[axis]-=sign*overlap*mb/total;
-    if((a[v]-b[v])*sign>=0) return; // déjà en train de s'éloigner
-    if(a.held) b[v]=a[v]*1.1; else if(b.held) a[v]=b[v]*1.1;
-    else { const t=a[v]; a[v]=b[v]*BOUNCE; b[v]=t*BOUNCE; }
-  };
-  const step=()=>{
-    raf=0;let active=false;
-    for(const b of bodies){
-      if(!b.held){b.x+=b.vx;b.y+=b.vy;b.vx*=FRICTION;b.vy*=FRICTION;}
-      if(b.x<0){b.x=0;b.vx=Math.abs(b.vx)*WALL;} if(b.x+b.w>W){b.x=W-b.w;b.vx=-Math.abs(b.vx)*WALL;}
-      if(b.y<0){b.y=0;b.vy=Math.abs(b.vy)*WALL;} if(b.y+b.h>H){b.y=H-b.h;b.vy=-Math.abs(b.vy)*WALL;}
+  const layout=()=>{
+    W=arena.clientWidth;
+    const narrow=W<620;
+    bodies.forEach(b=>{b.el.style.removeProperty('--ch');});
+    arena.style.removeProperty('--ch');
+    const fronts=bodies.map(b=>$('.price-card__face--front',b.el));
+    const ch=Math.max(...fronts.map(f=>f.scrollHeight));
+    arena.style.setProperty('--ch',`${ch}px`);
+    bodies.forEach(b=>{b.w=b.el.offsetWidth;b.h=b.el.offsetHeight;});
+    const w=bodies[0].w, h=Math.max(...bodies.map(b=>b.h));
+    // Main : les cartes pivotent autour d'un point situé sous l'aire, la plus à droite par-dessus.
+    const n=bodies.length, R=h*(narrow?1.3:1.22), gap=narrow?14:22;
+    // L'éventail tient dans la largeur : on resserre l'écart entre les cartes si besoin.
+    let spread=narrow?7.5:8.4;
+    const outer=s=>{const t=(n-1)/2*s*D2R;return R*Math.sin(t)+Math.cos(t)*w/2+Math.sin(t)*h/2;};
+    while(spread>3&&outer(spread)>W/2-4) spread-=.2;
+    const per=Math.max(1,Math.min(5,Math.floor((W+gap)/(w+gap)))), rows=narrow?Math.ceil(n/per):1;
+    geo={narrow,w,h,R,spread,gap,per};
+    H=0; sizeArena(false);
+    // Places libres sur la table : rangées au-dessus de la main, puis de part et d'autre si la largeur le permet.
+    slots=[];
+    for(let r=0;r<rows;r++){
+      const row=[];for(let c=0;c<per;c++) row.push({x:W/2+(c-(per-1)/2)*(w+gap)+(r%2?w*.06:0),y:gap/2+h/2+r*(h+gap)});
+      row.sort((p,q)=>Math.abs(p.x-W/2)-Math.abs(q.x-W/2)); slots.push(...row);
     }
-    for(let k=0;k<3;k++) for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) collide(bodies[i],bodies[j]);
-    for(const b of bodies){ if(Math.abs(b.vx)>.05||Math.abs(b.vy)>.05||b.held) active=true; else {b.vx=b.vy=0;} place(b); }
-    if(active) raf=requestAnimationFrame(step);
+    const half=fan[n-1].x-W/2+w/2, cy=fan[Math.floor(n/2)].y;
+    if(W/2+half+w+30<=W) slots.push({x:W/2-half-w/2-30,y:cy},{x:W/2+half+w/2+30,y:cy});
+    bodies.forEach((b,i)=>{
+      if(b.state==='hand'){Object.assign(b,fan[i],{vx:0,vy:0,va:0,z:i+1});}
+      else{b.x=Math.min(W-b.w/2,Math.max(b.w/2,b.x));b.y=Math.min(H-b.h/2,Math.max(b.h/2,b.y));}
+      place(b);
+    });
   };
-  const wake=()=>{if(!raf) raf=requestAnimationFrame(step);};
+  const ext=b=>{const c=Math.abs(Math.cos(b.a*D2R)),s=Math.abs(Math.sin(b.a*D2R));return[c*b.w/2+s*b.h/2,s*b.w/2+c*b.h/2];};
+  // Choc entre deux cartes posées (rectangles orientés) : séparation sur l'axe de moindre recouvrement, impulsion
+  // amortie, et un peu de rotation si le choc est décentré.
+  const collide=(A,B)=>{
+    const dx=A.x-B.x, dy=A.y-B.y;
+    if(Math.abs(dx)>(A.w+A.h)/2+(B.w+B.h)/2||Math.abs(dy)>(A.w+A.h)/2+(B.w+B.h)/2) return;
+    const axes=[A.a,A.a+90,B.a,B.a+90].map(d=>[Math.cos(d*D2R),Math.sin(d*D2R)]);
+    const proj=(b,ax)=>{const c=Math.abs(Math.cos(b.a*D2R)*ax[0]+Math.sin(b.a*D2R)*ax[1]),s=Math.abs(-Math.sin(b.a*D2R)*ax[0]+Math.cos(b.a*D2R)*ax[1]);return c*b.w*.48+s*b.h*.49;};
+    let best=Infinity,nx=0,ny=0;
+    for(const ax of axes){const o=proj(A,ax)+proj(B,ax)-Math.abs(dx*ax[0]+dy*ax[1]);if(o<=0) return;if(o<best){best=o;const s=Math.sign(dx*ax[0]+dy*ax[1])||1;nx=ax[0]*s;ny=ax[1]*s;}}
+    const ia=A.state==='held'?0:1, ib=B.state==='held'?0:1, sum=ia+ib; if(!sum) return;
+    A.x+=nx*best*ia/sum;A.y+=ny*best*ia/sum;B.x-=nx*best*ib/sum;B.y-=ny*best*ib/sum;
+    const vrel=(A.vx-B.vx)*nx+(A.vy-B.vy)*ny; if(vrel>=0) return;
+    const j=-(1+CARD_E)*vrel/sum;
+    A.vx+=j*nx*ia;A.vy+=j*ny*ia;B.vx-=j*nx*ib;B.vy-=j*ny*ib;
+    const off=(-dx*ny+dy*nx)/2, I=(A.w*A.w+A.h*A.h)/12; // décalage entre les centres, perpendiculaire au choc
+    A.va+=ia*j*off/I/D2R*.12; B.va-=ib*j*off/I/D2R*.12;
+  };
+  const slow=(v,k,c,dt)=>{const s=Math.abs(v);if(!s) return 0;const n=Math.max(0,s*Math.exp(-k*dt)-c*dt);return Math.sign(v)*n;};
+  const step=now=>{
+    raf=0; const dt=Math.min(.034,Math.max(.001,(now-(last||now-16))/1000)); last=now;
+    let active=false;
+    for(const b of bodies){
+      if(b.tween){ // rangement : retour en main
+        const t=Math.min(1,(now-b.tween.t0)/b.tween.dur), e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2, f=b.tween.from, g=b.tween.to;
+        b.x=f.x+(g.x-f.x)*e;b.y=f.y+(g.y-f.y)*e;b.a=f.a+(g.a-f.a)*e;b.air=Math.sin(Math.PI*t)*.8;
+        if(t>=1){b.tween=null;b.state='hand';b.air=0;b.z=b.i+1;tools2();}
+        active=true;continue;
+      }
+      if(b.state==='hand') continue;
+      if(b.state==='held'){
+        const g=grabbed; const k=1-Math.exp(-dt*34); // la carte suit le doigt avec un très léger retard : elle a du poids
+        const gx=g.gx+(g.px-g.gx)*k, gy=g.gy+(g.py-g.gy)*k;
+        const vpx=(gx-g.gx)/dt, vpy=(gy-g.gy)/dt; g.gx=gx;g.gy=gy;
+        const sm=1-Math.exp(-dt/.05); g.svx+=(vpx-g.svx)*sm; g.svy+=(vpy-g.svy)*sm;
+        // Tenue hors du centre, elle pivote : le frottement sur la table tire son centre derrière le point de saisie.
+        const ca=Math.cos(b.a*D2R), sa=Math.sin(b.a*D2R), rx=-(g.lx*ca-g.ly*sa), ry=-(g.lx*sa+g.ly*ca), r2=rx*rx+ry*ry, I=(b.w*b.w+b.h*b.h)/12;
+        const om=b.va*D2R, cross=rx*vpy-ry*vpx;
+        const alpha=-SLIDE*4*(cross+om*r2)/(I+r2);
+        b.va=Math.max(-MAX_SPIN,Math.min(MAX_SPIN,(om+alpha*dt)/D2R));
+        b.a+=b.va*dt;
+        // Au-delà de ±32° la carte résiste (lisibilité des infos), comme retenue par les doigts.
+        if(Math.abs(b.a)>32){b.a=Math.sign(b.a)*Math.min(Math.abs(b.a),38);if(b.va*b.a>0) b.va*=Math.exp(-dt*18);b.va-=Math.sign(b.a)*(Math.abs(b.a)-32)*6*dt*60;}
+        const ca2=Math.cos(b.a*D2R), sa2=Math.sin(b.a*D2R);
+        b.x=gx-(g.lx*ca2-g.ly*sa2); b.y=gy-(g.lx*sa2+g.ly*ca2); b.vx=g.svx; b.vy=g.svy;
+        b.air+=(1-b.air)*(1-Math.exp(-dt*14)); active=true;
+      } else {
+        const s=Math.hypot(b.vx,b.vy);
+        if(s>0){const n=slow(s,DRAG,GRIP,dt);b.vx*=n/s;b.vy*=n/s;}
+        b.va=slow(b.va,SPIN_DRAG,SPIN_GRIP,dt);
+        b.x+=b.vx*dt;b.y+=b.vy*dt;b.a+=b.va*dt;
+        b.air+=(0-b.air)*(1-Math.exp(-dt*5));
+        if(b.vx||b.vy||b.va||b.air>.004) active=true; else b.air=0;
+      }
+      const [ex,ey]=ext(b), spin=b.state==='held'?0:1;
+      if(b.x<ex){b.x=ex;if(b.vx<0){b.va+=b.vy*.012*spin;b.vx=-b.vx*WALL_E;}} if(b.x>W-ex){b.x=W-ex;if(b.vx>0){b.va-=b.vy*.012*spin;b.vx=-b.vx*WALL_E;}}
+      if(b.y<ey){b.y=ey;if(b.vy<0){b.va-=b.vx*.012*spin;b.vy=-b.vy*WALL_E;}} if(b.y>H-ey){b.y=H-ey;if(b.vy>0){b.va+=b.vx*.012*spin;b.vy=-b.vy*WALL_E;}}
+    }
+    const table=bodies.filter(b=>(b.state==='table'||b.state==='held')&&!b.tween&&!(b.flyUntil>now)); // une carte encore en l'air ne heurte rien
+    for(let k=0;k<3;k++) for(let i=0;i<table.length;i++) for(let j=i+1;j<table.length;j++) collide(table[i],table[j]);
+    for(const b of table){const [ex,ey]=ext(b);b.x=Math.min(W-ex,Math.max(ex,b.x));b.y=Math.min(H-ey,Math.max(ey,b.y));b.va=Math.max(-MAX_SPIN,Math.min(MAX_SPIN,b.va));} // jamais hors de la table
+    for(const b of bodies) place(b);
+    if(active) raf=requestAnimationFrame(step); else last=0;
+  };
+  const wake=()=>{if(!raf){last=0;raf=requestAnimationFrame(step);}};
+  const leaveHand=b=>{b.tween=null;b.state='table';setHand(b,false);toFront(b);tools2();sizeArena(true);};
+  // Piocher : la carte sort de la main en se retournant, et file vers une place libre.
+  const draw=(b,focus)=>{
+    if(b.state!=='hand') return;
+    const taken=bodies.filter(o=>o!==b&&o.state!=='hand');
+    const now=performance.now(), at=o=>o.target&&now-o.drawnAt<2500?o.target:o; // une carte encore en vol compte à sa place d'arrivée
+    const free=p=>Math.min(Infinity,...taken.map(o=>Math.hypot(at(o).x-p.x,at(o).y-p.y)));
+    const target=slots.find(p=>free(p)>b.w*.9)||slots.slice().sort((p,q)=>free(q)-free(p))[0]||{x:W/2,y:b.h/2};
+    const jx=(Math.random()-.5)*b.w*(geo.narrow?.06:.16), jy=(Math.random()-.5)*b.h*.05;
+    leaveHand(b); // la table peut changer de hauteur : la carte part de sa position ramenée sur la table
+    { const [ex,ey]=ext(b); b.x=Math.min(W-ex,Math.max(ex,b.x)); b.y=Math.min(H-ey,Math.max(ey,b.y)); }
+    const dx=target.x+jx-b.x, dy=target.y+jy-b.y, d=Math.hypot(dx,dy)||1, v=speedFor(d,DRAG,GRIP);
+    b.vx=dx/d*v; b.vy=dy/d*v; b.air=1; b.flyUntil=now+600; b.target={x:target.x+jx,y:target.y+jy}; b.drawnAt=now;
+    const da=(Math.random()-.5)*(geo.narrow?7:12)-b.a; b.va=Math.sign(da)*speedFor(Math.abs(da),SPIN_DRAG,SPIN_GRIP);
+    wake();
+    if(focus) b.link.focus({preventScroll:true});
+  };
   const grab=(b,event)=>{
-    grabbed={b,dx:event.clientX-b.x,dy:event.clientY-b.y};b.held=true;b.vx=b.vy=0;
-    lastMove={x:event.clientX,y:event.clientY,t:performance.now()};
+    if(b.state==='hand') leaveHand(b);
+    b.tween=null;
+    const r=arena.getBoundingClientRect(), px=event.clientX-r.left, py=event.clientY-r.top;
+    const ca=Math.cos(-b.a*D2R), sa=Math.sin(-b.a*D2R), ox=px-b.x, oy=py-b.y;
+    grabbed={b,lx:ox*ca-oy*sa,ly:ox*sa+oy*ca,px,py,gx:px,gy:py,svx:0,svy:0};
+    b.state='held';b.vx=b.vy=0;b.target=null;toFront(b);
     b.el.classList.add('is-held');arena.classList.add('is-grabbing');
-    bodies.forEach(o=>o.el.style.zIndex=o===b?'5':'1');
     wake();
   };
   bodies.forEach(b=>{
+    b.draw.addEventListener('click',event=>{event.preventDefault();if(moved){moved=false;return;}draw(b,event.detail===0);});
     b.el.addEventListener('pointerdown',event=>{
-      if(event.button>0||event.target.closest('a')) return;
-      moved=false;
-      if(event.pointerType==='mouse'||event.pointerType==='pen'){event.preventDefault();grab(b,event);}
-      else{ // au doigt : un appui maintenu attrape la carte, un glissé rapide laisse défiler la page
-        clearTimeout(pressTimer);
-        const start={x:event.clientX,y:event.clientY};
-        pressTimer=setTimeout(()=>{grab(b,event);navigator.vibrate?.(8);},260);
+      if(event.button>0||event.target.closest('a')||b.tween) return;
+      moved=false; clearTimeout(pressTimer);
+      const start={x:event.clientX,y:event.clientY};
+      if(event.pointerType==='mouse'||event.pointerType==='pen'){
+        if(b.state!=='hand'){event.preventDefault();grab(b,event);return;}
+        // En main : un glissé de quelques pixels sort la carte de l'éventail, un simple clic la pioche.
+        const pull=e=>{if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>6){off();moved=true;grab(b,e);}};
+        const off=()=>{removeEventListener('pointermove',pull);removeEventListener('pointerup',off);};
+        addEventListener('pointermove',pull);addEventListener('pointerup',off);
+      } else { // au doigt : un toucher pioche, un appui maintenu attrape la carte, un glissé rapide fait défiler la page
+        pressTimer=setTimeout(()=>{moved=true;grab(b,event);navigator.vibrate?.(8);},260);
         const cancel=e=>{if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>10) clearTimeout(pressTimer);};
         b.el.addEventListener('pointermove',cancel,{passive:true});
-        b.el.addEventListener('pointerup',()=>{clearTimeout(pressTimer);b.el.removeEventListener('pointermove',cancel);},{once:true});
+        const up=()=>{clearTimeout(pressTimer);b.el.removeEventListener('pointermove',cancel);};
+        b.el.addEventListener('pointerup',up,{once:true});b.el.addEventListener('pointercancel',up,{once:true});
       }
     });
   });
   addEventListener('pointermove',event=>{
     if(!grabbed) return;
-    const {b}=grabbed, now=performance.now();
-    const nx=event.clientX-grabbed.dx, ny=event.clientY-grabbed.dy;
-    const dt=Math.max(8,now-lastMove.t);
-    b.vx=(event.clientX-lastMove.x)/dt*16; b.vy=(event.clientY-lastMove.y)/dt*16;
-    lastMove={x:event.clientX,y:event.clientY,t:now};
-    if(Math.abs(nx-b.x)+Math.abs(ny-b.y)>1) moved=true;
-    b.x=nx;b.y=ny;wake();
+    const r=arena.getBoundingClientRect(); grabbed.px=event.clientX-r.left; grabbed.py=event.clientY-r.top; moved=true; wake();
   });
   // Tant qu'une carte est tenue au doigt, la page ne défile pas.
   arena.addEventListener('touchmove',event=>{if(grabbed) event.preventDefault();},{passive:false});
   const release=()=>{
     if(!grabbed) return;
-    const {b}=grabbed;b.held=false;
-    if(performance.now()-lastMove.t>90){b.vx=b.vy=0;} // relâchée immobile : elle reste où on l'a posée
-    b.vx=Math.max(-40,Math.min(40,b.vx));b.vy=Math.max(-40,Math.min(40,b.vy));
-    b.el.classList.remove('is-held');arena.classList.remove('is-grabbing');grabbed=null;wake();
+    const {b}=grabbed, s=Math.hypot(b.vx,b.vy);
+    if(s>MAX_V){b.vx*=MAX_V/s;b.vy*=MAX_V/s;}
+    b.state='table';b.el.classList.remove('is-held');arena.classList.remove('is-grabbing');grabbed=null;wake();
   };
   addEventListener('pointerup',release);addEventListener('pointercancel',release);
-  arena.addEventListener('click',event=>{if(moved){event.preventDefault();event.stopPropagation();moved=false;}},true);
-  layout();
+  arena.addEventListener('click',event=>{if(moved&&!event.target.closest('[data-price-draw]')){event.preventDefault();event.stopPropagation();moved=false;}},true);
+  dealBtn?.addEventListener('click',()=>{
+    bodies.filter(b=>b.state==='hand').reverse().forEach((b,k)=>setTimeout(()=>draw(b,false),k*150));
+  });
+  stowBtn?.addEventListener('click',()=>{
+    const now=performance.now();
+    if(grabbed) release();
+    bodies.filter(b=>b.state!=='hand'&&!b.tween).forEach((b,k)=>{
+      const a=((b.a%360)+540)%360-180;
+      b.tween={t0:now+k*70,dur:680,from:{x:b.x,y:b.y,a},to:fan[b.i]}; b.vx=b.vy=b.va=0; b.state='table';
+      setHand(b,true);
+    });
+    sizeArena(false); tools2();
+    wake(); bodies[0].draw.focus({preventScroll:true});
+  });
+  bodies.forEach(b=>setHand(b,true));
+  layout();tools2();
   let lastW=arena.clientWidth;
-  addEventListener('resize',()=>{if(Math.abs(arena.clientWidth-lastW)>40){lastW=arena.clientWidth;layout();}else{W=arena.clientWidth;H=arena.clientHeight;wake();}},{passive:true});
-  document.fonts?.ready.then(()=>{bodies.forEach(b=>{b.w=b.el.offsetWidth;b.h=b.el.offsetHeight;});wake();});
+  addEventListener('resize',()=>{if(arena.clientWidth!==lastW){lastW=arena.clientWidth;layout();wake();}},{passive:true});
+  document.fonts?.ready.then(()=>{layout();wake();});
+  $$('img',arena).forEach(img=>{if(!img.complete) img.addEventListener('load',()=>{layout();},{once:true});});
 });
 
 

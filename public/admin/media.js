@@ -15,7 +15,8 @@
     photo: { large: [1600, 200 * 1024], small: [800, 90 * 1024] },
     cover: { large: [1080, 160 * 1024], small: [540, 70 * 1024] },
     folder: { large: [1200, 180 * 1024], small: [640, 80 * 1024] },
-    polaroid: { large: [900, 150 * 1024], small: [480, 70 * 1024] }
+    polaroid: { large: [900, 150 * 1024], small: [480, 70 * 1024] },
+    card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] }
   };
   const pathsOf = id => [`${id}.webp`, `${id}-s.webp`];
   const noDash = text => String(text || '').replace(/[\u2014\u2013]/g, '-');

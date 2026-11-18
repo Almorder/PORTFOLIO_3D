@@ -15,6 +15,15 @@
       { slot: 'home.wedding.0', label: 'Polaroïd 1 (Film de mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },
       { slot: 'home.wedding.1', label: 'Polaroïd 2 (Demande en mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },
       { slot: 'home.wedding.2', label: 'Polaroïd 3 (Le jour J)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true }
+    ] },
+    { group: 'Accueil · Cartes des tarifs', note: 'Recto de chaque carte de la section Tarifs, et le dos commun. Image décorative : les infos de l’offre sont écrites sur la carte.', slots: [
+      { slot: 'home.cards.mariage', label: 'Carte A♣ · Film de mariage', origin: '/assets/cards/mariage.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.demande', label: 'Carte K♦ · Demande en mariage', origin: '/assets/cards/demande.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.contenu', label: 'Carte Q♥ · Création de contenu', origin: '/assets/cards/contenu.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.film', label: 'Carte J♠ · Film de marque ou court métrage', origin: '/assets/cards/film.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.direction', label: 'Carte 5♦ · Direction artistique', origin: '/assets/cards/direction.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.strategie', label: 'Carte 10♣ · Stratégie de marque', origin: '/assets/cards/strategie.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },
+      { slot: 'home.cards.dos', label: 'Dos des cartes (commun)', origin: '/assets/cards/dos.webp', preset: 'card', format: 'Vertical, environ 3:5 (idéal 1000 × 1700 px).' }
     ] }
   ];
   const plain = i => ({ id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight });

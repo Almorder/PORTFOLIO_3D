@@ -244,6 +244,28 @@ if((home.match(/class="v16-logo-card/g)||[]).length!==6) fail('Home V17: six eco
 for(const price of ['1 500 €','250 €','200 €','89 € / h','Accompagnement sur devis','Sur devis']) if(!home.includes(price)) fail(`Home: pricing missing ${price}`);
 if(home.includes('Session ciblée —')) fail('Home: « Session ciblée » without dash');
 if((home.match(/data-price-card/g)||[]).length!==6||!home.includes('data-price-arena')||!home.includes('data-price-grid')||!/href="\/contact\/\?intent=\w+&amp;offre=\w+"/.test(home)||/home-pricing__backdrop/.test(home)) fail('Home: six floating pricing cards on the grid, each linking to a prefilled contact form');
+// Tarifs : six cartes à jouer (recto propre à l'offre, dos commun, index de coin), chacune piochable au clavier,
+// prix dans le nom accessible du bouton, CTA prérempli vers Contact ; pioche, rangement, mise en veille, mouvement réduit.
+{
+  const { pricing:offers, pricingHref:hrefOf }=await import('../content/pricing.mjs');
+  const items=home.split('data-price-card data-key="').slice(1);
+  if(items.length!==offers.length) fail('Home: one playing card per offer');
+  for(const o of offers){
+    const li=items.find(x=>x.startsWith(`${o.key}"`))||'';
+    const label=(li.match(/data-price-draw hidden aria-label="([^"]+)"/)||[])[1]||'';
+    if(!li||!label.includes(o.title)||!/€|devis/i.test(label)) fail(`Home: card « ${o.key} » needs a hidden draw button named with its title and price`);
+    if(!li.includes(`href="${hrefOf(o).replace(/&/g,'&amp;')}"`)) fail(`Home: card « ${o.key} » CTA must link to ${hrefOf(o)}`);
+    if(!/class="price-card__face price-card__face--back" aria-hidden="true"/.test(li)||!li.includes('class="price-card__index')||!li.includes(o.card.rank)) fail(`Home: card « ${o.key} » needs its back face and corner index`);
+    const art=(li.match(/class="price-card__art" src="([^"]+)"/)||[])[1]||'';
+    if(!art||!existing.has(art.replace(/^\//,''))) fail(`Home: card « ${o.key} » art missing (${art})`);
+  }
+  if(!existing.has('assets/cards/dos.webp')) fail('Home: card back image missing');
+  const block=app.slice(app.indexOf("$$('[data-price-proof]').forEach"),app.indexOf("// Work, « Social media videos »"));
+  for(const token of ['if(reduced) return;','[data-price-draw]','[data-price-stow]','[data-price-deal]','is-down','if(active) raf=requestAnimationFrame(step)','Math.exp(-k*dt)']) if(!block.includes(token)) fail(`Home: pricing cards script lacks ${token}`);
+  if(/priceFloat/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Home: pricing cards must not run an idle CSS animation');
+  const adminImages=await readFile(join(root,'public/admin/images.js'),'utf8'), slotsSrc=await readFile(join(root,'tools/fetch-published.mjs'),'utf8');
+  for(const key of [...offers.map(o=>o.key),'dos']) if(!adminImages.includes(`'home.cards.${key}'`)||!slotsSrc.includes(`'home.cards.${key}'`)) fail(`Admin: card image slot home.cards.${key} missing`);
+}
 if(!app.includes('data-offer-input')||!(await readFile(join(dist,'contact/index.html'),'utf8')).includes('data-offers=')) fail('Contact: offers data and prefill handler expected');
 if(app.indexOf('const showcaseState=new WeakMap();')<0||app.indexOf('const showcaseState=new WeakMap();')>app.indexOf('updateScroll();')) fail('Home V18: showcase state must exist before initial scroll choreography runs');
 if(!app.includes("$$('[data-price-proof]').forEach")||!app.includes("$$('[data-faq-section]').forEach")) fail('Home: pricing/FAQ interaction handlers missing');
