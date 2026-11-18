@@ -23,19 +23,21 @@
   status.setAttribute('role', 'status');
   const say = (text, kind = '') => { status.textContent = text; status.dataset.kind = kind; };
 
+  // Menu : chaque rubrique dit en une ligne ce qu'elle pilote. Le groupe « Site » est rangé page par page,
+  // dans l'ordre où les sections apparaissent sur nolanarc.com.
   const SECTIONS = [
-    { id: 'overview', label: 'État du site', group: 'Site' },
-    { id: 'projects', label: 'Projets du portfolio', group: 'Site', hint: 'Section « Ma sélection » de la page Work.' },
-    { id: 'testimonials', label: 'Témoignages', group: 'Site', hint: 'Avis clients affichés sur le site.' },
-    { id: 'instagram', label: 'Social media videos', group: 'Site', hint: 'Vidéos Instagram ou fichiers vidéo de la page Work.' },
-    { id: 'photos', label: 'Photos de la page Work', group: 'Site', hint: 'Section Photographie et tuile du bento.' },
-    { id: 'images', label: 'Images du site', group: 'Site', hint: 'Chaque emplacement photo, page par page.' },
-    { id: 'site', label: 'Textes et chiffres', group: 'Site', hint: 'Signature, chiffres clés, marques, questions fréquentes, liens.' },
-    { id: 'legal', label: 'Informations légales', group: 'Site', hint: 'Coordonnées, médiateur, conditions.' },
-    { id: 'publish', label: 'Publication', group: 'Site' }
+    { id: 'projects', label: 'Projets', group: 'Site · page Work', hint: 'Section « Ma sélection » : tuiles, liste, pages projet et leurs médias.' },
+    { id: 'instagram', label: 'Vidéos réseaux', group: 'Site · page Work', hint: 'Section « Social media videos » : le téléphone et ses vidéos.' },
+    { id: 'photos', label: 'Photographie', group: 'Site · page Work', hint: 'Section « Photographie » et photo de sa tuile.' },
+    { id: 'images', label: 'Images des pages', group: 'Site · accueil et Work', hint: 'Accueil : dossiers, polaroïds, cartes des tarifs. Work : couvertures.' },
+    { id: 'publish', label: 'Mise en ligne', group: 'Site · publier', hint: 'Publier une version, voir ce qui est en ligne, historique.' },
+    { id: 'testimonials', label: 'Témoignages', group: 'Pas encore relié au site', hint: 'Brouillon seulement : le site affiche encore les avis écrits dans le code.' },
+    { id: 'site', label: 'Textes et chiffres', group: 'Pas encore relié au site', hint: 'Brouillon seulement : signature, chiffres, marques, questions, liens.' },
+    { id: 'legal', label: 'Informations légales', group: 'Pas encore relié au site', hint: 'Brouillon seulement : coordonnées, médiateur, conditions.' }
   ];
+  const HINTS = { pilotage: 'Ce qui est à faire aujourd’hui, en un coup d’œil.', clients: 'Fiches clients et leur historique.', demandes: 'Demandes reçues et projets en cours, étape par étape.', documents: 'Devis, factures, contrats, droits à l’image.', messages: 'Modèles de messages et relances à envoyer.', agenda: 'Tournages, rendez-vous et échéances.', finances: 'Recettes, cotisations, objectif annuel.', reglages: 'Tes informations d’entreprise et préférences.' };
   const labelOf = id => SECTIONS.find(s => s.id === id)?.label || id;
-  const state = { email: '', view: 'overview', drafts: {}, snapshots: [], audit: [], dirty: false, armed: '' };
+  const state = { email: '', view: 'publish', drafts: {}, snapshots: [], audit: [], dirty: false, armed: '' };
 
   // ---------------------------------------------------------------- Données
   const load = async () => {
@@ -119,9 +121,13 @@
     let group = '';
     SECTIONS.forEach(section => {
       if (section.group && section.group !== group) { group = section.group; nav.append(el('small', { textContent: group })); }
-      const item = button(section.label, 'admin-nav__item', () => go(section.id));
+      const item = button('', 'admin-nav__item', () => go(section.id));
+      const hint = section.hint || HINTS[section.id];
+      item.append(el('span', { className: 'admin-nav__label', textContent: section.label }));
+      if (hint) item.append(el('span', { className: 'admin-nav__hint', textContent: hint }));
       if (section.id === state.view || cockpit?.parent[state.view] === section.id) item.setAttribute('aria-current', 'page');
-      if (section.group === 'Site') item.classList.add('admin-nav__item--site');
+      if (section.group.startsWith('Site') || section.group.startsWith('Pas encore')) item.classList.add('admin-nav__item--site');
+      if (section.group.startsWith('Pas encore')) item.classList.add('admin-nav__item--draft');
       const count = cockpit?.badge(section.id) || 0;
       if (count) item.append(el('span', { className: 'admin-badge', textContent: String(count) }));
       if (section.id === 'publish' && pending().length) item.append(el('span', { className: 'admin-badge', textContent: String(pending().length) }));
@@ -148,29 +154,36 @@
   if (cockpit) { SECTIONS.unshift(...cockpit.sections); SECTIONS.push(...(cockpit.footer || [])); }
 
   // ---------------------------------------------------------------- Mise en ligne
-  // 1. publish_snapshot fige les brouillons. 2. La fonction Supabase « publish-site » (supabase/functions/)
-  // relance tout de suite le déploiement GitHub ; sans elle, la vérification automatique (toutes les 10 min)
-  // s'en charge. 3. L'admin lit /version.json (écrit à chaque déploiement) jusqu'à voir la nouvelle version.
+  // 1. publish_snapshot fige les brouillons dans une version (content_snapshots).
+  // 2. Le site se reconstruit sur Cloudflare Pages (deploy hook), lancé par le premier qui le voit :
+  //    la fonction Supabase « publish-site » (si elle est déployée avec son secret), un Database Webhook Supabase
+  //    sur content_snapshots (si Nolan l'a créé), sinon la vérification périodique (.github/workflows/admin-sync.yml,
+  //    programmée toutes les 10 minutes, que GitHub peut retarder). L'admin ne sait pas lequel a agi.
+  // 3. L'admin lit /version.json (écrit à chaque build) : « En ligne » dès que snapshot = version publiée.
   const liveLine = el('p', { className: 'admin-live' });
   liveLine.setAttribute('role', 'status');
-  const live = { online: null, waiting: 0, timer: 0 };
+  const live = { online: null, waiting: 0, timer: 0, since: 0 };
+  const latest = () => state.snapshots[0]?.id || 0;
   const paintLive = () => {
-    if (live.waiting && (!live.online || live.online.snapshot < live.waiting)) liveLine.textContent = `Mise en ligne de la version n° ${live.waiting} en cours…`;
-    else if (live.online?.snapshot) liveLine.textContent = `En ligne : version n° ${live.online.snapshot}${live.online.builtAt ? `, ${date(live.online.builtAt)}` : ''}.`;
-    else liveLine.textContent = live.online ? 'En ligne : contenu du code (aucune version publiée).' : '';
-    liveLine.dataset.kind = live.waiting && (!live.online || live.online.snapshot < live.waiting) ? 'warn' : 'ok';
+    const on = live.online?.snapshot || 0;
+    if (live.waiting && on < live.waiting) { liveLine.textContent = `Version n° ${live.waiting} : en attente de mise en ligne${on ? ` (en ligne : n° ${on})` : ''}. La page se met à jour seule.`; liveLine.dataset.kind = 'warn'; }
+    else if (on) { liveLine.textContent = `En ligne : version n° ${on}${live.online.builtAt ? `, construite le ${date(live.online.builtAt)}` : ''}.`; liveLine.dataset.kind = 'ok'; }
+    else { liveLine.textContent = live.online ? 'En ligne : contenu du code (aucune version publiée).' : ''; liveLine.dataset.kind = 'ok'; }
   };
   const readLive = async () => { try { const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' }); if (res.ok) live.online = await res.json(); } catch {} paintLive(); };
+  // Surveille /version.json jusqu'à voir la version attendue (toutes les 15 s, puis toutes les minutes après 10 min).
   const watchLive = id => {
-    live.waiting = id; clearTimeout(live.timer); paintLive();
-    const started = Date.now();
+    live.waiting = id; live.since = Date.now(); clearTimeout(live.timer); paintLive();
     const tick = async () => {
       await readLive();
-      if (live.online?.snapshot >= id) { live.waiting = 0; paintLive(); say(`En ligne : la version n° ${id} est sur nolanarc.com.`, 'ok'); return; }
-      if (Date.now() - started < 25 * 60 * 1000) live.timer = setTimeout(tick, 15000);
+      if ((live.online?.snapshot || 0) >= id) { live.waiting = 0; paintLive(); say(`En ligne : la version n° ${id} est sur nolanarc.com.`, 'ok'); if (state.view === 'publish') draw(); return; }
+      const age = Date.now() - live.since;
+      if (age < 3 * 60 * 60 * 1000) live.timer = setTimeout(tick, age < 10 * 60 * 1000 ? 15000 : 60000);
     };
-    live.timer = setTimeout(tick, 10000);
+    live.timer = setTimeout(tick, 8000);
   };
+  // À l'ouverture : si la dernière version publiée n'est pas encore en ligne, on la surveille.
+  const checkLive = async () => { await readLive(); const id = latest(); if (id && live.online && (live.online.snapshot || 0) < id) watchLive(id); };
   const publishVersion = async note => {
     say('Publication…');
     const { data, error } = await client.rpc('publish_snapshot', { p_note: note || null });
@@ -179,7 +192,9 @@
     draw();
     let launched = false;
     try { const res = await client.functions.invoke('publish-site', { body: { snapshot: data } }); launched = !res.error; } catch {}
-    say(launched ? `Version n° ${data} enregistrée. Mise en ligne lancée : le site est à jour en 2 à 4 minutes.` : `Version n° ${data} enregistrée. Mise en ligne automatique dans 10 minutes au plus (lancement immédiat indisponible : voir la fonction publish-site).`, 'ok');
+    say(launched
+      ? `Version n° ${data} enregistrée. Reconstruction du site lancée : « En ligne » s’affichera en bas du menu dès que nolanarc.com sert la version n° ${data}.`
+      : `Version n° ${data} enregistrée. Elle partira en ligne au prochain déclenchement : le webhook Supabase s’il est en place, sinon la vérification automatique (prévue toutes les 10 minutes, parfois retardée). « En ligne » s’affichera en bas du menu dès que nolanarc.com sert la version n° ${data} ; tu peux fermer cette page en attendant.`, 'ok');
     watchLive(data);
     return true;
   };
@@ -207,71 +222,13 @@
     // Projet photo créé depuis une photo : ajouté (masqué) à la fin des projets de « Ma sélection ».
     addProjects: async list => { const current = state.drafts.projects?.data || await getSeed('projects') || []; const res = await saveKey('projects', [...structuredClone(current), ...list]); if (!res.error) projectsEditor?.reset(); return res; } }) : null;
 
-  // ---------------------------------------------------------------- Vue d'ensemble
   const VIEWS = {};
   if (cockpit) Object.assign(VIEWS, cockpit.views);
   if (photos) VIEWS.photos = photos.view;
   if (projectsEditor) VIEWS.projects = projectsEditor.view;
   if (videosEditor) VIEWS.instagram = videosEditor.view;
   if (imagesView) VIEWS.images = imagesView.view;
-  VIEWS.overview = () => {
-    const d = key => state.drafts[key]?.data;
-    if (!Object.keys(state.drafts).length) {
-      const start = button('Importer le contenu actuel du site', 'admin-button', async () => {
-        start.disabled = true; say('Import en cours…');
-        try { const count = await importSite(); draw(); say(`${count} blocs importés. Tu peux maintenant les modifier.`, 'ok'); }
-        catch (err) { say(`Import impossible : ${err.message}`, 'error'); start.disabled = false; }
-      });
-      return el('div', {}, [heading('Bienvenue', 'Première étape : copier le contenu actuel du site dans le tableau de bord. Rien ne change sur le site public.'), start]);
-    }
-    const last = state.snapshots[0];
-    const waiting = pending();
-    const projects = d('projects') || [];
-    const legal = d('legal') || {};
-    const missing = [!legal.professionalAddress && 'adresse professionnelle', !legal.professionalPhone && 'téléphone professionnel', !legal.mediator?.name && 'médiateur de la consommation'].filter(Boolean);
-    const site = d('site') || {};
-
-    const stat = (value, label, target) => {
-      const node = button('', 'admin-stat', () => go(target), `${label} : ${value}`);
-      node.append(el('strong', { textContent: String(value) }), el('span', { textContent: label }));
-      return node;
-    };
-    const publishCard = card('Mise en ligne', [
-      el('p', { textContent: last ? `Dernière version : n° ${last.id}, le ${date(last.created_at)}.` : 'Aucune version enregistrée pour l’instant.' }),
-      el('p', { className: waiting.length ? 'admin-alert' : 'admin-ok', textContent: waiting.length ? `${waiting.length} bloc(s) modifié(s) depuis : ${waiting.map(labelOf).join(', ')}.` : 'Tout est à jour.' }),
-      waiting.length ? button('Aller à la publication', 'admin-button', () => go('publish')) : null
-    ], 'admin-card--wide');
-
-    const todo = card('À compléter', missing.length
-      ? [el('p', { textContent: `Informations légales manquantes : ${missing.join(', ')}.` }), button('Compléter', 'admin-mini', () => go('legal'))]
-      : [el('p', { className: 'admin-ok', textContent: 'Rien à signaler.' })]);
-
-    const shortcuts = card('Mon activité', [el('ul', { className: 'admin-links' }, [
-      ['Statistiques de visite', 'https://dash.cloudflare.com/?to=/:account/web-analytics'],
-      ['Demandes reçues (Gmail)', 'https://mail.google.com/mail/#search/formsubmit'],
-      ['Rendez-vous (Calendly)', 'https://calendly.com/app/scheduled_events/user/me'],
-      ['Instagram', site.instagram],
-      ['YouTube', site.youtube]
-    ].filter(([, href]) => href).map(([text, href]) => el('li', {}, [link(`${text} ↗`, href)])))]);
-
-    const ACTIONS = { publish: 'Version enregistrée', draft_insert: 'Bloc importé', draft_update: 'Bloc modifié', draft_delete: 'Bloc supprimé' };
-    const journal = card('Dernières actions', [el('ul', { className: 'admin-log' }, state.audit.length
-      ? state.audit.map(row => el('li', {}, [el('span', { textContent: `${ACTIONS[row.action] || row.action}${row.detail?.key ? ` : ${labelOf(row.detail.key)}` : row.detail?.snapshot ? ` n° ${row.detail.snapshot}` : ''}` }), el('time', { textContent: date(row.at) })]))
-      : [el('li', { textContent: 'Aucune action enregistrée.' })])]);
-
-    return el('div', {}, [
-      heading('Vue d’ensemble'),
-      el('div', { className: 'admin-stats' }, [
-        stat(`${projects.filter(p => p.visible).length}/${projects.length}`, 'projets visibles', 'projects'),
-        stat((d('testimonials') || []).length, 'témoignages', 'testimonials'),
-        stat((d('instagram') || []).length, 'social media videos', 'instagram'),
-        stat((d('photos')?.items || []).filter(p => p.visible).length, 'photos visibles', 'photos'),
-        stat((site.clients || []).length, 'marques accompagnées', 'site')
-      ]),
-      el('div', { className: 'admin-grid' }, [publishCard, shortcuts, todo, journal])
-    ]);
-  };
-
+  VIEWS.overview = () => VIEWS.publish();
   // ---------------------------------------------------------------- Éditeur (formulaire généré depuis les données)
   const FIELD_LABELS = { image: 'Image du projet (adresse de l’image)', link: 'Lien (adresse, facultatif)', linkLabel: 'Texte du lien', manifesto: 'Phrase de l’accueil (lue mot à mot)', title: 'Titre', type: 'Type', role: 'Rôle', year: 'Année', context: 'Contexte', location: 'Lieu', format: 'Format', camera: 'Caméra', visible: 'Visible sur le site', videoId: 'Identifiant vidéo YouTube', poster: 'Image d’affiche (adresse)', summary: 'Résumé', contextText: 'Texte de contexte', intent: 'Intention', decisions: 'Décisions', text: 'Texte', quote: 'Citation', name: 'Nom', territory: 'Territoire', id: 'Identifiant de la publication', kind: 'Précision', ratio: 'Format (ex. 9/16)', label: 'Libellé', value: 'Valeur', suffix: 'Suffixe', question: 'Question', answer: 'Réponse', clients: 'Marques accompagnées', proofStats: 'Chiffres clés', faqs: 'Questions fréquentes', home: 'Accueil', services: 'Services', contact: 'Contact', legalName: 'Nom légal', principle: 'Signature', email: 'Email', responseTime: 'Délai de réponse', calendly: 'Lien Calendly', instagram: 'Lien Instagram', youtube: 'Lien YouTube', professionalAddress: 'Adresse professionnelle', professionalPhone: 'Téléphone professionnel', mediator: 'Médiateur de la consommation', host: 'Hébergeur', address: 'Adresse', website: 'Site web', phone: 'Téléphone', card: 'Carte', image: 'Image', alt: 'Description de l’image', slug: 'Identifiant (non modifiable)', href: 'Adresse de la page (non modifiable)' };
   const EXTRA_FIELDS = { testimonials: { image: '', link: '', linkLabel: '' } };
@@ -286,7 +243,7 @@
   VIEWS.editor = key => {
     const section = SECTIONS.find(s => s.id === key);
     const row = state.drafts[key];
-    if (!row) return el('div', {}, [heading(section.label, section.hint), el('p', { textContent: 'Ce bloc n’est pas encore importé. Passe par la Vue d’ensemble ou la Publication pour importer le contenu du site.' })]);
+    if (!row) return el('div', {}, [heading(section.label, section.hint), el('p', { textContent: 'Ce bloc n’est pas encore importé. Passe par « Mise en ligne » pour importer le contenu du site.' })]);
     const model = { data: structuredClone(row.data) };
     // Champs ajoutés après le premier import : on les complète pour qu'ils apparaissent dans le formulaire.
     const extra = EXTRA_FIELDS[key];
@@ -355,32 +312,74 @@
     return el('div', {}, [el('div', { className: 'admin-bar' }, [heading(section.label, section.hint), save]), form]);
   };
 
-  // ---------------------------------------------------------------- Publication
+  // « Mise en ligne » : état en ligne, nouvelle version, historique, à compléter, liens utiles.
   VIEWS.publish = () => {
+    const d = key => state.drafts[key]?.data;
+    if (!Object.keys(state.drafts).length) {
+      const start = button('Importer le contenu actuel du site', 'admin-button', async () => {
+        start.disabled = true; say('Import en cours…');
+        try { const count = await importSite(); draw(); say(`${count} blocs importés. Tu peux maintenant les modifier.`, 'ok'); }
+        catch (err) { say(`Import impossible : ${err.message}`, 'error'); start.disabled = false; }
+      });
+      return el('div', {}, [heading('Bienvenue', 'Première étape : copier le contenu actuel du site dans le tableau de bord. Rien ne change sur le site public.'), start]);
+    }
     const waiting = pending();
+    const last = state.snapshots[0];
+    const on = live.online?.snapshot || 0;
+    const stat = (value, label, target) => {
+      const node = button('', 'admin-stat', () => go(target), `${label} : ${value}`);
+      node.append(el('strong', { textContent: String(value) }), el('span', { textContent: label }));
+      return node;
+    };
+    const projects = d('projects') || [];
+    const legal = d('legal') || {};
+    const missing = [!legal.professionalAddress && 'adresse professionnelle', !legal.professionalPhone && 'téléphone professionnel', !legal.mediator?.name && 'médiateur de la consommation'].filter(Boolean);
+    const site = d('site') || {};
     const note = el('input', { type: 'text', maxLength: 200, placeholder: 'Note (facultatif) : ce qui change', className: 'admin-input' });
     note.setAttribute('aria-label', 'Note de version');
-    const publish = button('Enregistrer une version', 'admin-button', async () => {
+    const publish = button('Enregistrer et publier une version', 'admin-button admin-button--ember', async () => {
       publish.disabled = true;
       if (!await publishVersion(note.value)) publish.disabled = false;
     });
-    publish.disabled = !Object.keys(state.drafts).length;
     const reset = button('Réimporter le contenu du site', 'admin-mini', async () => {
       if (reset.dataset.armed !== '1') { reset.dataset.armed = '1'; reset.textContent = 'Confirmer : remplacer tous les brouillons'; return say('Attention : tous les brouillons seront remplacés par le contenu actuel du site. Clique encore pour confirmer.', 'warn'); }
       reset.disabled = true; say('Import en cours…');
       try { const count = await importSite(); draw(); say(`${count} blocs réimportés.`, 'ok'); }
       catch (err) { say(`Import impossible : ${err.message}`, 'error'); reset.disabled = false; }
     });
+    const onlineText = !last ? 'Aucune version publiée pour l’instant.'
+      : !live.online ? `Dernière version : n° ${last.id}, le ${date(last.created_at)}. État en ligne inconnu (version.json illisible).`
+      : on >= last.id ? `En ligne : la version n° ${on} est sur nolanarc.com.`
+      : `Version n° ${last.id} publiée le ${date(last.created_at)}, pas encore en ligne (en ligne : n° ${on || 'aucune'}). La mise en ligne passe par le webhook Supabase s’il est en place, sinon par la vérification automatique (toutes les 10 minutes, parfois plus).`;
+    const ACTIONS = { publish: 'Version enregistrée', draft_insert: 'Bloc importé', draft_update: 'Bloc modifié', draft_delete: 'Bloc supprimé' };
     return el('div', {}, [
-      heading('Publication', 'Une version fige l’ensemble des brouillons et lance la mise en ligne. Sont publiés sur le site : projets, photos, social media videos et images du site. Pas encore : témoignages, textes et chiffres, informations légales.'),
+      heading('Mise en ligne', 'Une version fige tous les brouillons et part sur nolanarc.com. Sont publiés : projets, photographie, vidéos réseaux et images des pages. Les rubriques « Pas encore relié au site » restent des brouillons.'),
+      el('div', { className: 'admin-stats' }, [
+        stat(`${projects.filter(p => p.visible).length}/${projects.length}`, 'projets visibles', 'projects'),
+        stat((d('instagram') || []).length, 'vidéos réseaux', 'instagram'),
+        stat((d('photos')?.items || []).filter(p => p.visible).length, 'photos visibles', 'photos'),
+        stat((site.clients || []).length, 'marques (brouillon)', 'site')
+      ]),
       el('div', { className: 'admin-grid' }, [
         card('Nouvelle version', [
+          el('p', { className: !last || on >= last.id ? 'admin-ok' : 'admin-alert', textContent: onlineText }),
           el('p', { className: waiting.length ? 'admin-alert' : 'admin-ok', textContent: waiting.length ? `Modifié depuis la dernière version : ${waiting.map(labelOf).join(', ')}.` : 'Aucune modification en attente.' }),
           el('div', { className: 'admin-row' }, [note, publish])
         ], 'admin-card--wide'),
         card('Historique', [el('ul', { className: 'admin-log' }, state.snapshots.length
-          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.note ? ` | ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
+          ? state.snapshots.map(row => el('li', {}, [el('span', { textContent: `Version n° ${row.id}${row.id === on ? ' · en ligne' : ''}${row.note ? ` | ${row.note}` : ''}` }), el('time', { textContent: date(row.created_at) })]))
           : [el('li', { textContent: 'Aucune version enregistrée.' })])]),
+        card('Dernières actions', [el('ul', { className: 'admin-log' }, state.audit.length
+          ? state.audit.map(row => el('li', {}, [el('span', { textContent: `${ACTIONS[row.action] || row.action}${row.detail?.key ? ` : ${labelOf(row.detail.key)}` : row.detail?.snapshot ? ` n° ${row.detail.snapshot}` : ''}` }), el('time', { textContent: date(row.at) })]))
+          : [el('li', { textContent: 'Aucune action enregistrée.' })])]),
+        card('À compléter', missing.length
+          ? [el('p', { textContent: `Informations légales manquantes : ${missing.join(', ')}.` }), button('Compléter', 'admin-mini', () => go('legal'))]
+          : [el('p', { className: 'admin-ok', textContent: 'Rien à signaler.' })]),
+        card('Liens utiles', [el('ul', { className: 'admin-links' }, [
+          ['Statistiques de visite', 'https://dash.cloudflare.com/?to=/:account/web-analytics'],
+          ['Déploiements du site (Cloudflare)', 'https://dash.cloudflare.com/?to=/:account/pages'],
+          ['Instagram', site.instagram], ['YouTube', site.youtube]
+        ].filter(([, href]) => href).map(([text, href]) => el('li', {}, [link(`${text} ↗`, href)])))]),
         card('Repartir du site actuel', [el('p', { textContent: 'Remplace tous les brouillons par le contenu actuellement en ligne.' }), reset])
       ])
     ]);
@@ -408,8 +407,8 @@
     const { data, error } = await client.rpc('is_admin');
     if (error) { gate(out); return say(`Vérification impossible : ${error.message}`, 'error'); }
     if (data !== true) return gate(el('p', { textContent: `Le compte ${session.user.email} n’a pas les droits d’administration.` }), out);
-    state.email = session.user.email; state.view = cockpit ? 'pilotage' : 'overview';
-    try { await load(); draw(); readLive(); } catch (err) { gate(out); say(`Lecture impossible : ${err.message}`, 'error'); }
+    state.email = session.user.email; state.view = cockpit ? 'pilotage' : 'publish';
+    try { await load(); draw(); checkLive(); } catch (err) { gate(out); say(`Lecture impossible : ${err.message}`, 'error'); }
   };
   addEventListener('beforeunload', event => { if (state.dirty) event.preventDefault(); });
   // setTimeout : ne jamais appeler Supabase directement dans le rappel d'authentification (risque de blocage).

@@ -22,6 +22,7 @@ export const coverId = photos.some(p => p.id === published.cover) ? published.co
 export const tilePhotos = [...photos.filter(p => p.id === coverId), ...photos.filter(p => p.id !== coverId)].slice(0, 3);
 
 // Même liste, au format du brouillon de l'admin (pour « Importer le contenu actuel du site »).
-export const photoDraft = { cover: coverId, items: photos.map(({ id, width, height, smallWidth, smallHeight, alt, series, place, year }) => ({ id, width, height, smallWidth, smallHeight, alt, series, place, year, visible: true })) };
+// cover vide = tuile automatique (première photo) : l'admin peut revenir à « Automatique » après un choix.
+export const photoDraft = { cover: photos.some(p => p.id === published.cover) ? published.cover : '', items: photos.map(({ id, width, height, smallWidth, smallHeight, alt, series, place, year }) => ({ id, width, height, smallWidth, smallHeight, alt, series, place, year, visible: true })) };
 
 export const MIN_PHOTOS = 1;

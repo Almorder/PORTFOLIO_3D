@@ -39,26 +39,52 @@ const showPhotos = photos.length >= MIN_PHOTOS;
 // Page Work : un projet = une tuile de la sélection, une ligne de la liste et une fiche.
 // Seul ce qui est renseigné s'affiche ; un projet masqué (visible:false) n'apparaît nulle part.
 const igUrl = id => `https://www.instagram.com/p/${id}/`;
-// Projets mis en avant (admin, rubrique « Projets du portfolio ») : photo envoyée, ou vidéo YouTube / Instagram.
-// Aucun lecteur n'est chargé dans le bento : la tuile montre une image servie par le site et renvoie vers le
-// projet, la page du film ou la vidéo (YouTube et Instagram restent derrière le clic, comme ailleurs).
+// Projets mis en avant (admin, rubrique « Projets du portfolio ») : un ou plusieurs médias (photo, YouTube,
+// Instagram, fichier vidéo), dont un média principal qui fait la tuile. Aucun lecteur n'est chargé dans le bento :
+// la tuile montre une image servie par le site et ouvre la page projet (ou le lien choisi), sinon ne s'ouvre pas.
 // Un projet sans média réel (image envoyée ou affiche copiée au déploiement) n'apparaît pas (règle R1).
 const publicFile = src => typeof src==='string' && /^\/(?!\/)/.test(src) && existsSync(new URL(`../public${src}`, import.meta.url));
 const mediaKind = p => p.mediaKind || (p.videoId ? 'youtube' : '');
 const videoUrl = p => mediaKind(p)==='youtube'&&p.videoId ? `https://www.youtube.com/watch?v=${p.videoId}` : mediaKind(p)==='instagram'&&p.instagramId ? igUrl(p.instagramId) : '';
+const territoryTag = { 'Récits':'recits', 'Marques':'marques', 'Moments':'moments', 'Réseaux':'reseaux', 'Photographie':'photo' };
+// Médias d'un projet réellement présents sur le site (fichier copié au déploiement), dans l'ordre de l'admin.
+// Une vidéo YouTube sans image envoyée prend son affiche copiée, sinon l'affiche publique de YouTube.
+const ytPoster = id => { const local=`/assets/work/yt-${id}.jpg`; return publicFile(local) ? { src:local, abs:`${site.domain}${local}` } : { src:`https://i.ytimg.com/vi/${id}/hqdefault.jpg`, abs:`https://i.ytimg.com/vi/${id}/hqdefault.jpg` }; };
+const shownMedia = p => (p.media||[]).map(m=>{
+  const img = m.image && publicFile(m.image.srcSmall) ? m.image : null;
+  if (m.kind==='photo') return img && m.alt ? { ...m, img } : null;
+  if (m.kind==='youtube') { const poster = img ? null : p.slug==='le-bol-den-face' ? { src:bolPoster, abs:bolPosterAbs } : ytPoster(m.videoId); return { ...m, img, poster, alt:m.alt||`${p.title}, image de la vidéo` }; }
+  if (m.kind==='instagram') return img && m.alt ? { ...m, img } : null;
+  if (m.kind==='file') return img && m.alt && publicFile(m.video?.src) ? { ...m, img } : null;
+  return null;
+}).filter(Boolean);
+// Page projet générée (/projet/<adresse>/) : dès qu'il y a plusieurs médias, ou si l'admin le demande (« page »).
+// Le bol d'en face garde sa page. Sans page ni lien, la tuile reste visible mais ne s'ouvre pas.
+const RESERVED_PAGES = new Set(['le-bol-den-face','film-de-marque','film-institutionnel','direction-artistique','contenu-social','strategie-visuelle','mariage','demande-en-mariage']);
+const usedPages = new Set();
+const pageOf = new Map(projects.filter(p=>p.visible).map(p=>{
+  if (p.slug==='le-bol-den-face') return [p.slug,'/projet/le-bol-den-face/'];
+  const count = shownMedia(p).length;
+  if (!count || !(count>1 || p.pageMode==='page')) return [p.slug,''];
+  let slug = p.pageSlug || p.slug, n = 2;
+  while (RESERVED_PAGES.has(slug) || usedPages.has(slug)) slug = `${p.pageSlug||p.slug}-${n++}`;
+  usedPages.add(slug);
+  return [p.slug,`/projet/${slug}/`];
+}));
+const projectHref = p => pageOf.get(p.slug) || (p.pageMode==='link' && p.link) || '';
 const projectMedia = (p,large) => {
-  if (p.image && publicFile(p.image.srcSmall) && String(p.alt||'').trim()) return { image:large?p.image.src:p.image.srcSmall, width:large?p.image.width:p.image.smallWidth, height:large?p.image.height:p.image.smallHeight, alt:p.alt, full:p.image.src, srcset:`${p.image.srcSmall} ${p.image.smallWidth}w, ${p.image.src} ${p.image.width}w` };
-  if (mediaKind(p)==='youtube' && publicFile(p.posterFile)) return { image:p.posterFile, width:1280, height:720, alt:p.alt||`${p.title}, image de la vidéo` };
-  if (p.slug==='le-bol-den-face' && mediaKind(p)==='youtube') return { image:bolPoster, width:1280, height:720, alt:p.alt||'Le bol d’en face, court métrage' };
+  const m = shownMedia(p).find(x=>x.key===p.cover) || shownMedia(p)[0];
+  if (!m) return null;
+  if (m.img) return { image:large?m.img.src:m.img.srcSmall, width:large?m.img.width:m.img.smallWidth, height:large?m.img.height:m.img.smallHeight, alt:m.alt, full:m.img.src, srcset:`${m.img.srcSmall} ${m.img.smallWidth}w, ${m.img.src} ${m.img.width}w` };
+  if (m.kind==='youtube' && (p.slug==='le-bol-den-face' || publicFile(m.poster.src))) return { image:m.poster.src, width:1280, height:720, alt:m.alt };
   return null;
 };
-const territoryTag = { 'Récits':'recits', 'Marques':'marques', 'Moments':'moments', 'Réseaux':'reseaux', 'Photographie':'photo' };
 const featured = projects.filter(p=>p.visible&&projectMedia(p,false));
 const projectItem = (p,i) => {
-  const m = projectMedia(p,i===0), kind = mediaKind(p), own = p.href || p.link;
+  const m = projectMedia(p,i===0), kind = mediaKind(p), own = projectHref(p), count = shownMedia(p).length;
   return { title:p.title, type:p.type||'', tags:[territoryTag[p.territory]||(kind==='photo'?'photo':'recits')], role:p.role||'', context:p.context||'', client:p.client||'', year:p.year||'', result:p.result||'',
     label:[p.type,p.year].filter(Boolean).join(' · ')||p.title, text:p.summary||'', image:m.image, width:m.width, height:m.height, alt:m.alt, srcset:m.srcset,
-    href: own || videoUrl(p) || m.full || '#selection', cta: p.slug==='le-bol-den-face' ? 'Voir le film' : own ? 'Voir le projet' : kind==='photo' ? 'Voir la photo' : 'Voir la vidéo',
+    href: own, cta: !own ? '' : p.slug==='le-bol-den-face' ? 'Voir le film' : pageOf.get(p.slug) ? (count>1 ? `Voir le projet (${count} médias)` : 'Voir le projet') : 'Voir le projet',
     ...(kind==='instagram'&&p.instagramId ? { instagram:igUrl(p.instagramId) } : {}), project:p };
 };
 // Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
@@ -80,7 +106,9 @@ const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Ma
 const videoSchema = ({ name, description, thumbnail, uploadDate, duration, embedUrl, url }) => (uploadDate && thumbnail) ? { '@type':'VideoObject', name, description, thumbnailUrl:[thumbnail], uploadDate, ...(duration?{duration}:{}), embedUrl, url } : null;
 const bolVideo = () => videoSchema({ name:bol.title, description:bol.summary, thumbnail:bolPosterAbs, uploadDate:bol.uploadDate, duration:bol.duration, embedUrl:`https://www.youtube-nocookie.com/embed/${bol.videoId}`, url:`https://www.youtube.com/watch?v=${bol.videoId}` });
 // Vidéos des projets mis en avant (Le bol d'en face compris) : publiées seulement avec date et vignette.
-const projectVideos = () => workItems.filter(it=>it.project&&mediaKind(it.project)!=='photo').map(({project:p,image})=>videoSchema({ name:p.title, description:p.summary||`${p.title}, vidéo de Nolan Ribeiro.`, thumbnail:/^https?:/.test(image)?image:`${site.domain}${image}`, uploadDate:p.uploadDate, duration:p.duration, embedUrl:mediaKind(p)==='youtube'?`https://www.youtube-nocookie.com/embed/${p.videoId}`:`${igUrl(p.instagramId)}embed/`, url:videoUrl(p) })).filter(Boolean);
+const projectVideos = () => workItems.filter(it=>it.project&&mediaKind(it.project)!=='photo').map(({project:p,image,href})=>{ const k=mediaKind(p), cover=(p.media||[]).find(m=>m.key===p.cover), page=href&&href.startsWith('/')?`${site.domain}${href}`:'';
+  const v=videoSchema({ name:p.title, description:p.summary||`${p.title}, vidéo de Nolan Ribeiro.`, thumbnail:/^https?:/.test(image)?image:`${site.domain}${image}`, uploadDate:p.uploadDate, duration:p.duration, embedUrl:k==='youtube'?`https://www.youtube-nocookie.com/embed/${p.videoId}`:k==='instagram'?`${igUrl(p.instagramId)}embed/`:undefined, url:k==='file'?(page||`${site.domain}/work/#selection`):videoUrl(p) });
+  return v&&k==='file'&&cover?.video ? { ...v, contentUrl:`${site.domain}${cover.video.src}`, ...(cover.video.duration&&!p.duration?{ duration:`PT${cover.video.duration}S` }:{}) } : v; }).filter(Boolean);
 const igVideos = () => instagramPosts.map(p=>{ const thumb=socialThumb(p), file=p.source==='file';
   const v=videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:thumb?`${site.domain}${thumb.src}`:'', uploadDate:p.uploadDate, embedUrl:file?undefined:`${igUrl(p.id)}embed/`, url:file?`${site.domain}/work/#social`:igUrl(p.id) });
   return v&&file ? { ...v, contentUrl:`${site.domain}${p.video.src}`, ...(p.video.duration?{ duration:`PT${p.video.duration}S` }:{}) } : v; }).filter(Boolean);
@@ -280,7 +308,7 @@ export function workPage(){
     { intent:'story', title:'Film / récit', text:'Film de marque, court métrage', price:fromPrice(priceOf('film')) },
   ];
   const listed = [
-    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: /^https?:/.test(it.href) ? it.href : it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
+    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: !it.href ? (it.instagram || `${site.domain}/work/#selection`) : /^https?:/.test(it.href) ? it.href : it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
   ].map((it,i)=>({ ...it, position:i+1 }));
   const cell = (cls,v) => `<span class="${cls}">${v?esc(v):''}</span>`;
   const icon = { grid:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.4"/></svg>', list:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="6.7" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="10.9" width="13" height="2.6" rx="1.3"/></svg>' };
@@ -304,7 +332,7 @@ export function workPage(){
           <span class="wk-row__n" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
           <strong class="wk-row__title">${esc(it.title)}</strong>
           <span class="wk-row__meta">${cell('wk-row__year',it.year)}${cell('wk-row__type',it.type)}${cell('wk-row__role',it.role)}${cell('wk-row__ctx',it.context)}</span>
-          <span class="wk-row__act"><a class="wk-row__go" href="${esc(it.href)}"${Number.isInteger(it.stack)?` data-stack-goto="${it.stack}"`:''}>${esc(it.cta)} <span aria-hidden="true">↗</span></a>${it.instagram?`<a class="wk-row__ext" href="${esc(it.instagram)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(it.title)} sur Instagram (nouvel onglet)">Instagram <span aria-hidden="true">↗</span></a>`:''}</span>
+          <span class="wk-row__act">${it.href?`<a class="wk-row__go" href="${esc(it.href)}"${Number.isInteger(it.stack)?` data-stack-goto="${it.stack}"`:''}>${esc(it.cta)} <span aria-hidden="true">↗</span></a>`:''}${it.instagram?`<a class="wk-row__ext" href="${esc(it.instagram)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(it.title)} sur Instagram (nouvel onglet)">Instagram <span aria-hidden="true">↗</span></a>`:''}</span>
         </li>`).join('')}</ol>
       </div>
     </section>
@@ -345,9 +373,54 @@ export function projectPage(){
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
     <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bolPoster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
+    ${gallerySection(bol, shownMedia(bol).filter(m=>m.key!==(bol.cover||'m-1')&&!(m.kind==='youtube'&&m.videoId===bol.videoId)))}
     <section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div><p>${bol.contextText}</p></header><div class="fab-project-story__statement motion-reveal"><span>Problème narratif</span><h3>${bol.intent}</h3></div><div class="fab-project-decisions">${bol.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${d.title}</h3><p>${d.text}</p></article>`).join('')}</div></section>
     <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
   </main>` + footer();
+}
+
+// ---------------------------------------------------------------- Pages projet générées
+// Même gabarit que « Le bol d’en face » : titre, média principal, fiche, galerie dans l’ordre de l’admin,
+// intention si elle est écrite, suite. Les vidéos (YouTube, Instagram, fichier) ne se chargent qu’au clic.
+const pImg = (img, alt, eager, sizes='(max-width: 700px) 100vw, 70vw') => `<img src="${esc(img.srcSmall)}" srcset="${esc(img.srcSmall)} ${img.smallWidth}w, ${esc(img.src)} ${img.width}w" sizes="${sizes}" alt="${esc(alt)}" width="${img.smallWidth}" height="${img.smallHeight}" loading="${eager?'eager':'lazy'}" decoding="async">`;
+const ratioStyle = m => { const w=m.img?.width||m.video?.width||16, h=m.img?.height||m.video?.height||9; return `--pm-ratio:${w}/${h}`; };
+const mediaBlock = (p, m, i, hero=false) => {
+  const label = m.kind==='photo' ? '' : m.kind==='youtube' ? 'Vidéo YouTube' : m.kind==='instagram' ? 'Vidéo Instagram' : 'Vidéo';
+  const cap = m.caption ? `<figcaption>${esc(m.caption)}</figcaption>` : '';
+  if (m.kind==='photo') return `<figure class="pm-item pm-item--photo motion-reveal" style="${ratioStyle(m)}">${pImg(m.img,m.alt,hero)}${cap}</figure>`;
+  if (m.kind==='youtube') { const poster = m.img ? m.img.src : m.poster.src;
+    return `<figure class="pm-item pm-item--video motion-reveal"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${esc(m.videoId)}" data-video-title="${esc(m.caption?`${p.title}, ${m.caption}`:p.title)}" style="--poster:url('${esc(poster)}')"><div class="external-media__gate"><small>${esc(label)}</small><h2>${hero?`Regarder<br>${esc(p.title)}`:esc(m.caption||'Regarder la vidéo')}</h2><button class="hold-confirm" type="button" data-load-video aria-label="Lire sur YouTube : ${esc(m.caption||p.title)}"><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div>${cap}</figure>`; }
+  const file = m.kind==='file';
+  const ratio = file ? `${m.video.width}/${m.video.height}` : `${m.img.width}/${m.img.height}`;
+  return `<figure class="pm-item pm-item--social motion-reveal"><div class="ig-card pm-card" ${file?`data-video-file data-video-src="${esc(m.video.src)}" data-video-type="${esc(m.video.type)}"`:`data-instagram-post data-post-id="${esc(m.instagramId)}"`} data-post-title="${esc(m.caption||p.title)}" style="--ig-ratio:${ratio}"><div class="ig-card__cover" style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(m.img.srcSmall)}')" role="img" aria-label="${esc(m.alt)}"><strong>${esc(m.caption||p.title)}</strong><button type="button" class="ig-card__play" ${file?'data-load-file':'data-load-instagram'} aria-label="Lire la vidéo ${esc(m.caption||p.title)}${file?'':' (chargée depuis Instagram)'}">▶</button></div>${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(m.instagramId)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}</div>${cap}</figure>`;
+};
+const absImage = m => m.img ? `${site.domain}${m.img.src}` : m.poster?.abs || '';
+const gallerySection = (p, list) => list.length ? `<section class="pm-gallery" id="galerie" aria-labelledby="pm-gallery-title"><header class="fab-section-heading motion-reveal"><div><h2 id="pm-gallery-title">Galerie.</h2></div><p>${list.length} média${list.length>1?'s':''}, dans l’ordre du projet.</p></header><div class="pm-grid" data-count="${Math.min(list.length,3)}">${list.map((m,i)=>mediaBlock(p,m,i)).join('')}</div></section>` : '';
+const projectFiche = p => `<dl class="project-meta-list">${[['Type',p.type],['Contexte',p.context],['Client',p.client],['Rôle',p.role],['Année',p.year],['Lieu',p.location],['Format',p.format],['Caméra',p.camera],['Résultat',p.result]].filter(([,v])=>v).map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+function generatedProjectPage(p, path){
+  const all = shownMedia(p), cover = all.find(m=>m.key===p.cover) || all[0], rest = all.filter(m=>m!==cover);
+  const hasStory = p.contextText || p.intent || (p.decisions||[]).length;
+  const image = absImage(cover) || `${site.domain}/assets/og-home.png`;
+  // Description : le résumé, complété pour rester entre 70 et 170 caractères (moteurs de recherche).
+  const facts = `${[p.type,p.year].filter(Boolean).join(', ')}${p.type||p.year?' : ':''}projet de Nolan Ribeiro, vidéaste et photographe.`;
+  const base = p.summary || `${p.title}.`;
+  const fit = t => t.length <= 170 ? t : `${t.slice(0,168).replace(/\s+\S*$/,'')}…`;
+  const desc = fit(base.length < 100 ? `${base} ${facts}` : base);
+  const videos = all.filter(m=>m.kind!=='photo').map(m=>videoSchema({ name:m.caption?`${p.title} : ${m.caption}`:p.title, description:desc, thumbnail:absImage(m), uploadDate:p.uploadDate, duration:m===cover?p.duration:'', embedUrl:m.kind==='youtube'?`https://www.youtube-nocookie.com/embed/${m.videoId}`:m.kind==='instagram'?`${igUrl(m.instagramId)}embed/`:undefined, url:m.kind==='youtube'?`https://www.youtube.com/watch?v=${m.videoId}`:m.kind==='instagram'?igUrl(m.instagramId):`${site.domain}${path}` })).filter(Boolean)
+    .map((v,i)=>{ const m=all.filter(x=>x.kind!=='photo')[i]; return m?.kind==='file' ? { ...v, contentUrl:`${site.domain}${m.video.src}` } : v; });
+  const work = { '@type':'CreativeWork', '@id':`${site.domain}${path}#projet`, name:p.title, description:desc, url:`${site.domain}${path}`, ...(p.year?{ dateCreated:p.year }:{}), ...(p.type?{ genre:p.type }:{}), inLanguage:'fr', image:all.map(absImage).filter(Boolean).slice(0,12), author:{ '@id':`${site.domain}/#nolan` }, creator:{ '@id':`${site.domain}/#nolan` } };
+  return head({ title:`${p.title} | ${p.type ? `${p.type.toLowerCase()} de ` : 'projet de '}Nolan Ribeiro`, description:desc, path, image, imageWidth:String(cover?.img?.width||1280), imageHeight:String(cover?.img?.height||720), imageAlt:cover?.alt||p.title, extraSchema:[work, ...videos, { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Work', item:`${site.domain}/work/` },{ '@type':'ListItem', position:2, name:p.title, item:`${site.domain}${path}` }] }], bodyClass:'page-project page-fabrica' }) + header(path) + `<main id="main-content" class="fab-project-page pm-page">
+    <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${esc([p.type,p.year].filter(Boolean).join(' · ')||'Projet')}</span><h1>${esc(p.title)}.</h1></div>${p.summary?`<p>${esc(p.summary)}</p>`:''}</section>
+    ${lineToc([{id:'media',label:'Projet'},...(rest.length?[{id:'galerie',label:'Galerie'}]:[]),...(hasStory?[{id:'story',label:'Intention'}]:[]),{id:'next',label:'Suite'}])}
+    <section class="fab-project-film pm-hero" id="media">${mediaBlock(p,cover,0,true)}<div class="fab-project-meta-head"><span>Fiche du projet</span>${pageViewCounter()}</div>${projectFiche(p)}</section>
+    ${gallerySection(p, rest)}
+    ${hasStory?`<section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div>${p.contextText?`<p>${esc(p.contextText)}</p>`:''}</header>${p.intent?`<div class="fab-project-story__statement motion-reveal"><span>Intention</span><h3>${esc(p.intent)}</h3></div>`:''}${(p.decisions||[]).length?`<div class="fab-project-decisions">${p.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${esc(d.title)}</h3><p>${esc(d.text)}</p></article>`).join('')}</div>`:''}</section>`:''}
+    <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
+  </main>` + footer();
+}
+/** Pages projet à générer au build : [chemin du fichier, HTML, adresse publique]. */
+export function projectPages(){
+  return projects.filter(p=>p.visible&&p.slug!=='le-bol-den-face'&&pageOf.get(p.slug)&&shownMedia(p).length).map(p=>{ const path=pageOf.get(p.slug); return [`${path.slice(1)}index.html`, generatedProjectPage(p,path), path]; });
 }
 
 export function servicesPage(){
