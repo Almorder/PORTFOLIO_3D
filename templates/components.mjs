@@ -207,7 +207,7 @@ export function pageViewCounter(){
 /** FAQ en données structurées : les réponses restent lisibles par les robots même repliées à l'écran. */
 export const faqSchema = (items=[], path='/') => items.length ? [{ '@type':'FAQPage', '@id':`${site.domain}${path}#faq`, mainEntity:items.map(item=>({ '@type':'Question', name:item.question, acceptedAnswer:{ '@type':'Answer', text:item.answer } })) }] : [];
 
-/** Confirmation d'envoi du formulaire : carte vitrée sombre, lueur abricot, grille fine ; une lettre lumineuse
+/** Confirmation d'envoi du formulaire : carte vitrée sombre, lueur ember, grille fine ; une lettre lumineuse
  *  glisse dans l'enveloppe, qui se ferme sur un cachet brillant. Ouverte par src/app.js. */
 export function contactDialog(){
   return `<div class="cx-dialog" data-contact-dialog hidden>
@@ -216,7 +216,7 @@ export function contactDialog(){
     <div class="cx-dialog__grid" aria-hidden="true"></div>
     <div class="cx-dialog__top"><span>Nolan Arc · contact</span><span class="cx-dialog__pill" id="cx-dialog-state"><i aria-hidden="true"></i>Message reçu</span></div>
     <svg class="cx-envelope" viewBox="0 0 160 124" aria-hidden="true">
-      <defs><linearGradient id="cx-env-line" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dcc6"/><stop offset=".55" stop-color="#f09a62"/><stop offset="1" stop-color="#d9622a"/></linearGradient></defs>
+      <defs><linearGradient id="cx-env-line" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0c7a5"/><stop offset=".55" stop-color="#e97736"/><stop offset="1" stop-color="#cc460c"/></linearGradient></defs>
       <rect class="cx-envelope__back" x="20" y="46" width="120" height="72" rx="10"/>
       <path class="cx-envelope__flap cx-envelope__flap--open" d="M20 57 80 94 140 57v-5a6 6 0 0 0-6-6H26a6 6 0 0 0-6 6Z"/>
       <g class="cx-envelope__letter"><rect x="36" y="14" width="88" height="66" rx="6"/><path d="M50 32h46M50 44h60M50 56h38"/></g>
