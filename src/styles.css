@@ -2709,3 +2709,18 @@ body.cx-dialog-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.tm-extra:not([hidden]){animation:none}.tm-wrap.is-animating{transition:none}}
 .wk-fiche>[data-fiche-row="text"]{flex:1 1 100%;border-left:0;border-top:1px solid rgba(8,7,6,.08)}
+
+/* Social media videos, téléphone (Work) : la miniature remplit tout l'écran, centrée (comme l'aperçu de l'admin).
+   Avant : background-size auto, l'image restait à sa taille réelle, collée en haut à gauche, d'où le décalage.
+   L'écran du téléphone n'est pas en 9:16 (428 × 944, 0,453) : l'outil de recadrage utilise ce ratio. */
+.ps-card .ig-card__cover{background-size:cover;background-position:center;background-repeat:no-repeat}
+/* Lecture d'un fichier vidéo : toute la vidéo, centrée dans l'écran, bandes noires si besoin. */
+.ps-card.is-playing .ig-card__cover:has(video){background:#000}
+.ps-card .ig-card__cover video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+/* Work : projets au-delà des 5 du bento, même style de tuile. */
+.bento-more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.bento-more:not([hidden]){animation:tm-in .45s var(--ease) both}
+.bento-more .bento__tile{aspect-ratio:4/3}
+.bento-more .bento__tile.is-picked{box-shadow:0 0 0 2px var(--ember)}
+.bento-more__toggle{color:var(--ink)}
+@media(max-width:760px){.bento-more{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bento-more .bento__tile{aspect-ratio:1}}

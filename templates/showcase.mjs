@@ -83,3 +83,15 @@ export function bentoFocus(tiles=[]){
       <button type="button" class="bento__hit" data-bento-focus aria-label="Mettre en avant : ${esc(t.title)}"></button>
     </article>`).join('')}</div>`;
 }
+
+/** Projets au-delà des 5 du bento : même tuile, dans une grille ouverte par « Voir plus de projets » (src/app.js).
+ *  Un clic met le projet dans la fiche, un double-clic l'ouvre (comme dans le bento). */
+export function bentoMore(tiles=[]){
+  if(!tiles.length) return '';
+  return `<div class="bento-more" id="bento-plus" data-bento-more hidden>${tiles.map((t,i)=>`<article class="bento__tile bento-more__tile${t.image?'':' is-blank'}" data-bento-tile${Object.entries(t.data||{}).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')}>
+      ${t.image?tileImg(t.image,t.alt,1,t.width,t.height,t.srcset):''}
+      <div class="bento__text"><span class="bento__label">${esc(t.label)}</span><h3>${esc(t.title)}</h3>${t.href?`<a class="bento__link" href="${esc(t.href)}">${esc(t.cta)} <span aria-hidden="true">↗</span></a>`:''}</div>
+      <button type="button" class="bento__hit" data-bento-focus aria-label="Mettre en avant : ${esc(t.title)}"></button>
+    </article>`).join('')}</div>
+    <button type="button" class="tm-toggle bento-more__toggle" data-bento-more-toggle aria-expanded="false" aria-controls="bento-plus"><span data-bento-more-label>Voir plus de projets</span> <b aria-hidden="true">+</b></button>`;
+}

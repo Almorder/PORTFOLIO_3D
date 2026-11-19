@@ -1150,6 +1150,22 @@ $$('[data-work-views]').forEach(section=>{
   });
 });
 
+// Work, « Voir plus de projets » : les projets au-delà des 5 du bento. Clic = fiche, double-clic = ouvrir.
+$$('[data-bento-more]').forEach(more=>{
+  const toggle=more.parentElement.querySelector('[data-bento-more-toggle]'), bento=$('[data-bento]',more.parentElement);
+  toggle?.addEventListener('click',()=>{
+    const open=more.hidden; more.hidden=!open; toggle.setAttribute('aria-expanded',String(open));
+    $('[data-bento-more-label]',toggle).textContent=open?'Voir moins de projets':'Voir plus de projets';
+    if(open) $('[data-bento-focus]',more)?.focus();
+  });
+  more.addEventListener('click',event=>{
+    const tile=event.target.closest('[data-bento-tile]'); if(!tile||event.target.closest('a')) return;
+    $$('[data-bento-tile]',more).forEach(t=>t.classList.toggle('is-picked',t===tile));
+    bento?.dispatchEvent(new CustomEvent('bento:focus',{detail:{tile}}));
+  });
+  more.addEventListener('dblclick',event=>{ const tile=event.target.closest('[data-bento-tile]'); const link=tile&&$('.bento__link',tile); if(link&&!event.target.closest('a')) location.assign(link.href); });
+});
+
 // Page 404 : une galaxie spirale vue de biais, des dizaines de milliers d'étoiles en lumière additive,
 // cœur blanc, bras orange. Les étoiles proches du centre tournent plus vite (aspiration).
 // La souris incline et décale la galaxie ; un appui maintenu accélère la chute vers le centre.

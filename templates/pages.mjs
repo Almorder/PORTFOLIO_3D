@@ -9,7 +9,7 @@ import { testimonials } from '../content/testimonials.mjs';
 import { siteImage } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
-import { focusText, morphTestimonials, morphPanel, bentoFocus } from './showcase.mjs';
+import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
 import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
@@ -89,7 +89,7 @@ const projectItem = (p,i) => {
     ...(kind==='instagram'&&p.instagramId ? { instagram:igUrl(p.instagramId) } : {}), project:p };
 };
 // Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
-const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
+const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, large:publicFile(p.image.src)?p.image.src:'', width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
 const workItems = [
   ...featured.map(projectItem),
   // Tuile « Photographie » : un seul bloc avec toutes les photos cochées « Dans la tuile » (diaporama lent).
@@ -101,7 +101,10 @@ const workItems = [
     label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
 ];
 const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat'],['text','Description']];
-const bentoTiles = workItems.slice(0,5).map(item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) }));
+const withFiche = item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) });
+const bentoTiles = workItems.slice(0,5).map(withFiche);
+// Plus de 5 projets mis en avant : les suivants dans une grille sous le bento, ouverte par « Voir plus de projets ».
+const moreTiles = featured.length>5 ? workItems.slice(5,featured.length).map(withFiche) : [];
 const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Marques'],['moments','Mariages & moments'],['reseaux','Réseaux'],['photo','Photographie']]
   .map(([key,label])=>({ key, label, count: key==='tout' ? workItems.length : workItems.filter(it=>it.tags.includes(key)).length }))
   .filter(f=>f.count>0);
@@ -323,7 +326,7 @@ export function workPage(){
         <div class="wk-view" role="group" aria-label="Affichage des projets"><button type="button" data-work-view="grid" aria-pressed="true" aria-controls="wk-grid">${icon.grid}<span>Grille</span></button><button type="button" data-work-view="list" aria-pressed="false" aria-controls="wk-list">${icon.list}<span>Liste</span></button></div>
       </header>
       <div class="wk-panel" id="wk-grid" data-work-panel="grid">
-        <div class="bento-section">${bentoFocus(bentoTiles)}</div>
+        <div class="bento-section">${bentoFocus(bentoTiles)}${bentoMore(moreTiles)}</div>
         <dl class="wk-fiche" data-fiche aria-live="polite" aria-label="Fiche du projet mis en avant">
           <div class="wk-fiche__title"><dt>Projet</dt><dd data-fiche-field="title">${esc(first.title)}</dd></div>
           ${ficheFields.map(([k,l])=>`<div data-fiche-row="${k}"${first[k]?'':' hidden'}><dt>${l}</dt><dd data-fiche-field="${k}">${esc(first[k]||'')}</dd></div>`).join('')}
@@ -345,7 +348,7 @@ export function workPage(){
         <div class="phone-stack__stage" data-stack-stage>
           <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>{ const file=p.source==='file', thumb=socialThumb(p);
             return `<li class="ig-card ps-card" ${file?`data-video-file data-video-src="${esc(p.video.src)}" data-video-type="${esc(p.video.type)}"`:`data-instagram-post data-post-id="${esc(p.id)}"`} data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
-            <div class="ps-card__screen"><div class="ig-card__cover"${thumb?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(thumb.src)}')"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}${file?`<button type="button" class="ig-card__play" data-load-file aria-label="Lire la vidéo ${esc(p.title)}">▶</button>`:`<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button>`}</div></div>
+            <div class="ps-card__screen"><div class="ig-card__cover"${thumb?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(thumb.src)}')${thumb.large?`;background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),image-set(url('${esc(thumb.src)}') 1x,url('${esc(thumb.large)}') 2x)`:''}"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}${file?`<button type="button" class="ig-card__play" data-load-file aria-label="Lire la vidéo ${esc(p.title)}">▶</button>`:`<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button>`}</div></div>
             ${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}
           </li>`; }).join('')}</ul>
           <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
