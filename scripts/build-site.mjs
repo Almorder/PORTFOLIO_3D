@@ -67,6 +67,11 @@ for(const [file,rawHtml] of pages){
 await writeFile(join(out,cssAsset),cssSource,'utf8');
 await writeFile(join(out,jsAsset),jsSource,'utf8');
 await writeFile(join(out,'.nojekyll'),'','utf8');
+// En-têtes HTTP de Cloudflare Pages (public/_headers) : la politique de contenu en en-tête est exactement celle de la
+// balise meta des pages, plus frame-ancestors (que la balise meta ne peut pas porter).
+{ const { contentSecurityPolicy } = await import('../templates/components.mjs');
+  const headersFile=join(out,'_headers'), rules=await readFile(headersFile,'utf8');
+  await writeFile(headersFile,rules.replace('Content-Security-Policy: __CSP__',`Content-Security-Policy: ${contentSecurityPolicy}; frame-ancestors 'self'`),'utf8'); }
 // Version en ligne, lue par l'admin après « Enregistrer et publier » (« En ligne : version n° … »).
 { const v=(await import('../content/site-images.mjs')).publishedVersion; await writeFile(join(out,'version.json'),JSON.stringify({ snapshot:v.snapshot||null, published:v.published||'', builtAt:new Date().toISOString(), commit:(process.env.GITHUB_SHA||'').slice(0,12) })+'\n'); }
 // Contenu actuel du site, importable dans les brouillons du dashboard (données déjà publiques).

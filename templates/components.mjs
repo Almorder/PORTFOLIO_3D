@@ -6,8 +6,8 @@ export const esc = (value='') => String(value)
   .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
 // Politique de sécurité du contenu : le navigateur refuse tout script, cadre ou envoi qui ne vient pas
-// d'une source listée ici. GitHub Pages ne permet pas d'en-têtes HTTP : la règle est posée en balise meta
-// (frame-ancestors, lui, se règle dans Cloudflare, voir SECURITY.md).
+// d'une source listée ici. Posée en balise meta (copie GitHub Pages, sans en-têtes) et, sur nolanarc.com, aussi en
+// en-tête HTTP avec frame-ancestors (public/_headers, rempli au build par scripts/build-site.mjs).
 const supabaseOrigin = (site.supabaseUrl||'').replace(/\/$/,'');
 export const contentSecurityPolicy = [
   "default-src 'self'",

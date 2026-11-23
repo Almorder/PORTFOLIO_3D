@@ -4,6 +4,7 @@
 --
 -- Ce que fait ce fichier, concrètement :
 -- 1. Autorise un nouveau bloc de brouillon « photos » (la liste des photos, leur ordre, leurs légendes).
+--    La liste reprend aussi « images » (medias_schema.sql) : réexécuter ce fichier ne bloque jamais les images du site.
 --    Les images des projets de « Ma sélection » utilisent le même espace de fichiers.
 -- 2. Crée l'espace de fichiers « site-photos » : public en lecture (ce sont les photos publiées sur le site),
 --    uniquement des images WebP, 3 Mo maximum par fichier.
@@ -16,7 +17,7 @@
 -- ---------------------------------------------------------------- 1. Brouillon « photos »
 alter table public.content_drafts drop constraint if exists content_drafts_key_check;
 alter table public.content_drafts add constraint content_drafts_key_check
-  check (key in ('projects','testimonials','offers','faq','site','legal','instagram','photos'));
+  check (key in ('projects','testimonials','offers','faq','site','legal','instagram','photos','images'));
 
 -- ---------------------------------------------------------------- 2. Espace de fichiers public en lecture
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -1,0 +1,19 @@
+# En-têtes de sécurité de nolanarc.com, lus par Cloudflare Pages (voir SECURITY.md).
+# __CSP__ est remplacé au build par la politique de contenu de templates/components.mjs (la même que la balise
+# meta de chaque page), complétée de frame-ancestors 'self' : seul le site lui-même peut s'afficher dans un cadre
+# (aperçu des documents dans l'admin). scripts/check.mjs vérifie que les deux politiques restent identiques.
+/*
+  Strict-Transport-Security: max-age=15552000
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Content-Security-Policy: __CSP__
+  ! Access-Control-Allow-Origin
+
+# Admin : jamais indexé ; la page elle-même n'est gardée dans aucun cache (fiches clients affichées).
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+
+/admin/
+  Cache-Control: no-store
