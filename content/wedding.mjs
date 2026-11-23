@@ -15,7 +15,7 @@ export const weddingOffers = {
     price: 'À partir de 1 500 €',
     facts: [['30 min', 'film final'], ['12 h → 00 h', 'couverture de la journée'], ['Sur devis', 'options et besoins supplémentaires']],
     cta: 'Parler du mariage',
-    href: '/contact/?intent=moment'
+    href: '/contact/?intent=moment&offre=mariage'
   },
   demande: {
     id: 'demande-en-mariage',
@@ -24,6 +24,6 @@ export const weddingOffers = {
     note: 'Captation vidéo et/ou photo de la demande, sans limite.',
     instagramId: 'DewEcSOCFV2',
     cta: 'Parler de la demande',
-    href: '/contact/?intent=moment'
+    href: '/contact/?intent=moment&offre=demande'
   }
 };

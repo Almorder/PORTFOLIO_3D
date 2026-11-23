@@ -3,12 +3,11 @@
 // copié sur nolanarc.com au déploiement. Miniature : image envoyée, sinon image tirée de la vidéo à l'import.
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
-  const TAGS = [['recits', 'Films & récits'], ['marques', 'Marques'], ['moments', 'Mariages & moments'], ['reseaux', 'Réseaux']];
   const SOURCES = [['instagram', 'Vidéo Instagram'], ['file', 'Fichier vidéo (envoyé ici)']];
   const instagramId = text => { const v = String(text || '').trim(); if (/^[\w-]{5,40}$/.test(v) && !v.includes('/')) return v; const m = v.match(/instagram\.com\/(?:[\w.]+\/)?(?:p|reel|tv)\/([\w-]{5,40})/); return m ? m[1] : ''; };
   const prepare = list => (Array.isArray(list) ? structuredClone(list) : []).map(p => ({
     ...p, key: p.key || p.id || `video-${crypto.randomUUID().slice(0, 8)}`, source: p.source || (p.video ? 'file' : 'instagram'),
-    visible: p.visible !== false, tags: Array.isArray(p.tags) ? p.tags : ['reseaux'], coverImage: p.coverImage || null, autoCover: p.autoCover || null, video: p.video || null
+    visible: p.visible !== false, tags: Array.isArray(p.tags) ? p.tags : ['reseaux'], categories: window.NolanCategories.social(p), coverImage: p.coverImage || null, autoCover: p.autoCover || null, video: p.video || null
   }));
   const plainImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
 
@@ -136,10 +135,11 @@
       const visible = el('input', { type: 'checkbox', checked: Boolean(p.visible) });
       visible.dataset.focusKey = `${p.key}-visible`;
       visible.addEventListener('change', () => { p.visible = visible.checked; touch(); redraw(); });
-      const tags = el('fieldset', { className: 'admin-group vd-tags' }, [el('legend', { textContent: 'Catégories (filtre de la liste)' }), ...TAGS.map(([value, label]) => {
-        const box = el('input', { type: 'checkbox', checked: p.tags.includes(value) });
-        box.dataset.focusKey = `${p.key}-tag-${value}`;
-        box.addEventListener('change', () => { p.tags = box.checked ? [...new Set([...p.tags, value])] : p.tags.filter(t => t !== value); touch(); });
+      // Catégories du catalogue (page Work). Vidéo publiée avant les catégories : classement proposé, à vérifier.
+      const tags = el('fieldset', { className: 'admin-group vd-tags' }, [el('legend', { textContent: 'Catégories du catalogue' }), ...window.NolanCategories.LIST.map(([value, label]) => {
+        const box = el('input', { type: 'checkbox', checked: p.categories.includes(value) });
+        box.dataset.focusKey = `${p.key}-cat-${value}`;
+        box.addEventListener('change', () => { p.categories = window.NolanCategories.valid(box.checked ? [...p.categories, value] : p.categories.filter(c => c !== value)); touch(); });
         return el('label', { className: 'admin-field admin-field--check' }, [box, el('span', { textContent: label })]);
       })]);
       const tool = (label, aria, key, action, disabled) => { const b = button(label, 'admin-mini', action, aria); b.dataset.focusKey = `${p.key}-${key}`; b.disabled = Boolean(disabled); return b; };
@@ -188,7 +188,7 @@
       head.append(el('div', { className: 'admin-row' }, [save, live]));
       const add = button('+ Ajouter une vidéo', 'admin-button', () => {
         const key = `video-${crypto.randomUUID().slice(0, 8)}`;
-        model.push({ key, source: 'file', id: '', title: '', kind: '', ratio: '', tags: ['reseaux'], client: '', role: '', year: '', result: '', uploadDate: '', cover: '', coverImage: null, autoCover: null, video: null, visible: false });
+        model.push({ key, source: 'file', id: '', title: '', kind: '', ratio: '', tags: ['reseaux'], categories: ['video', 'reseaux-sociaux'], client: '', role: '', year: '', result: '', uploadDate: '', cover: '', coverImage: null, autoCover: null, video: null, visible: false });
         open.add(key); touch(); redraw();
         document.querySelector(`[data-focus-key="${key}-title"]`)?.focus();
       });

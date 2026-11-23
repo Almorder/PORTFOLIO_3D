@@ -65,15 +65,16 @@ export function morphTestimonials(items=[], id='avis'){
 
 // Une image du bento : dimensions déclarées quand on les connaît (pas de saut de mise en page).
 // srcset : petite et grande taille envoyées depuis l'admin ; le navigateur charge la plus juste.
+// i=0 : image prioritaire (seulement quand le bento ouvre la page) ; sinon chargement différé.
 const tileImg=(src,alt,i,w,h,srcset)=>`<img src="${esc(src)}"${srcset?` srcset="${esc(srcset)}" sizes="(max-width: 700px) 100vw, 50vw"`:''} alt="${esc(alt||'')}"${w&&h?` width="${w}" height="${h}"`:''} loading="${i?'lazy':'eager'}"${i?'':' fetchpriority="high"'} decoding="async">`;
 
 /** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand.
  *  t.images : photos de la tuile Photographie, en diaporama lent (une à la fois, fondu) ; t.data : attributs data-* (fiche du projet) ;
  *  t.stack : numéro de la vidéo à afficher dans le téléphone quand on ouvre la tuile.
  *  Sans t.href (projet à un seul média, sans page ni lien) : la tuile se met en avant au clic mais ne s'ouvre pas. */
-export function bentoFocus(tiles=[]){
+export function bentoFocus(tiles=[], {eager=true}={}){
   return `<div class="bento" data-bento style="--bento-n:${tiles.length}">${tiles.map((t,i)=>`<article class="bento__tile${t.image||t.images?'':' is-blank'}${t.images?' bento__tile--slides':''}" data-bento-tile data-slot="${i}"${Object.entries(t.data||{}).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')} style="view-transition-name:bento-${i};--k:${i}">
-      ${t.images?`<span class="bento__slides" data-bento-slides data-count="${t.images.length}">${t.images.map((p,k)=>tileImg(p.src,p.alt,1,p.width,p.height,p.srcset).replace('<img ',`<img class="${k?'':'is-on'}" `)).join('')}</span>`:t.image?tileImg(t.image,t.alt,i,t.width,t.height,t.srcset):''}
+      ${t.images?`<span class="bento__slides" data-bento-slides data-count="${t.images.length}">${t.images.map((p,k)=>tileImg(p.src,p.alt,1,p.width,p.height,p.srcset).replace('<img ',`<img class="${k?'':'is-on'}" `)).join('')}</span>`:t.image?tileImg(t.image,t.alt,eager?i:1,t.width,t.height,t.srcset):''}
       <div class="bento__text">
         <span class="bento__label">${esc(t.label)}</span>
         <h3>${esc(t.title)}</h3>

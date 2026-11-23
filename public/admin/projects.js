@@ -7,7 +7,6 @@
 // Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const BOL = 'le-bol-den-face';
-  const CATEGORIES = [['', 'Choisir'], ['Récits', 'Films & récits'], ['Marques', 'Marques'], ['Moments', 'Mariages & moments'], ['Réseaux', 'Réseaux'], ['Photographie', 'Photographie']];
   const KIND_LABEL = { photo: 'Photo', youtube: 'Vidéo YouTube', instagram: 'Vidéo Instagram', file: 'Fichier vidéo' };
   const youtubeId = text => { const v = String(text || '').trim(); if (/^[\w-]{11}$/.test(v)) return v; const m = v.match(/(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/); return m ? m[1] : ''; };
   const instagramId = text => { const m = String(text || '').trim().match(/instagram\.com\/(?:[\w.]+\/)?(?:p|reel|tv)\/([\w-]{5,40})/); return m ? m[1] : ''; };
@@ -21,7 +20,10 @@
   // « Page projet au clic » (page) ou non (none, ou link : lien externe facultatif). Ancien réglage « auto » :
   // même résultat qu'avant, page dès deux médias, sinon pas de page.
   const pageModeOf = p => p.slug === BOL ? 'page' : p.pageMode === 'auto' || !p.pageMode ? ((p.media || []).length > 1 ? 'page' : 'none') : ['page', 'none', 'link'].includes(p.pageMode) ? p.pageMode : 'none';
-  const migrate = p => {
+  // Catégories du catalogue (cases à cocher). Projet publié avant les catégories : classement proposé, à vérifier.
+  const withCategories = p => { if (!Array.isArray(p.categories)) p.categories = window.NolanCategories.project(p); return p; };
+  const migrate = p => withCategories(migrateMedia(p));
+  const migrateMedia = p => {
     if (Array.isArray(p.media)) { if (!p.media.some(m => m.key === p.cover)) p.cover = p.media[0]?.key || ''; p.pageMode = pageModeOf(p); return p; }
     const kind = ['photo', 'youtube', 'instagram'].includes(p.mediaKind) ? p.mediaKind : p.videoId ? 'youtube' : p.image ? 'photo' : '';
     p.media = kind ? [{ key: 'm-1', kind, image: p.image || null, alt: p.alt || '', caption: '', videoId: kind === 'youtube' ? p.videoId || '' : '', instagramId: kind === 'instagram' ? p.instagramId || '' : '' }] : [];
@@ -274,6 +276,13 @@
       return box;
     };
 
+    const categoriesBlock = p => el('fieldset', { className: 'admin-group vd-tags' }, [el('legend', { textContent: 'Catégories du catalogue' }), ...window.NolanCategories.LIST.map(([value, label]) => {
+      const box = el('input', { type: 'checkbox', checked: p.categories.includes(value) });
+      box.dataset.focusKey = `${p.slug}-cat-${value}`;
+      box.addEventListener('change', () => { p.categories = window.NolanCategories.valid(box.checked ? [...p.categories, value] : p.categories.filter(c => c !== value)); touch(); });
+      return el('label', { className: 'admin-field admin-field--check' }, [box, el('span', { textContent: label })]);
+    })]);
+
     const projectCard = (p, index) => {
       const n = index + 1, isBol = p.slug === BOL, k = (p.media.find(m => m.key === p.cover) || p.media[0])?.kind || 'photo';
       const visible = el('input', { type: 'checkbox', checked: Boolean(p.visible) });
@@ -299,7 +308,6 @@
         el('summary', {}, [el('span', { textContent: `${n} · ${name}` }), el('small', { className: `pj-status${st.startsWith('Visible') ? '' : ' is-off'}`, textContent: st })]),
         el('div', { className: 'pj-grid' }, [
           field('Titre (obligatoire)', text(p, 'title', { max: 120, required: true })),
-          field('Catégorie (filtre de la liste)', select(p, 'territory', CATEGORIES)),
           field('Type', text(p, 'type', { max: 80, placeholder: 'Court métrage, film de marque…' })),
           field('Rôle', text(p, 'role', { max: 80, placeholder: 'Réalisation, image…' })),
           field('Contexte', text(p, 'context', { max: 120 })),
@@ -307,6 +315,7 @@
           field('Année', text(p, 'year', { max: 4, inputMode: 'numeric', placeholder: '2026' })),
           field('Résultat (facultatif)', text(p, 'result', { max: 200 }), 'Uniquement un résultat réel et vérifié.')
         ]),
+        categoriesBlock(p),
         field('Résumé (texte de la tuile)', text(p, 'summary', { area: true, max: 400 })),
         mediaBlock(p),
         pageBlock(p),
@@ -323,7 +332,7 @@
     };
 
     const render = () => {
-      const head = el('div', { className: 'admin-bar' }, [heading('Projets', 'Les cinq premiers forment la grille de la page Work.')]);
+      const head = el('div', { className: 'admin-bar' }, [heading('Projets', 'Les cinq premiers forment la sélection de l’accueil.')]);
       if (!model) {
         const start = button('Partir des projets actuels du site', 'admin-button', async () => {
           start.disabled = true;
@@ -338,7 +347,7 @@
       head.append(el('div', { className: 'admin-row' }, [save, live]));
       const add = button('+ Ajouter un projet', 'admin-button', () => {
         const slug = randomSlug();
-        model.push({ slug, title: '', territory: '', type: '', role: '', context: '', client: '', year: '', result: '', link: '', summary: '', media: [], cover: '', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image: null, alt: '', uploadDate: '', duration: '', visible: false });
+        model.push({ slug, title: '', territory: '', categories: [], type: '', role: '', context: '', client: '', year: '', result: '', link: '', summary: '', media: [], cover: '', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image: null, alt: '', uploadDate: '', duration: '', visible: false });
         open.add(slug); touch(); redraw();
         document.querySelector(`[data-focus-key="${slug}-title"]`)?.focus();
       });

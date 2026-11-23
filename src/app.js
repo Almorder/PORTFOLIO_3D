@@ -1166,6 +1166,66 @@ $$('[data-bento-more]').forEach(more=>{
   more.addEventListener('dblclick',event=>{ const tile=event.target.closest('[data-bento-tile]'); const link=tile&&$('.bento__link',tile); if(link&&!event.target.closest('a')) location.assign(link.href); });
 });
 
+// Work, catalogue : filtres partageables (?categorie=…). Un clic change l'adresse (précédent / suivant du navigateur,
+// rechargement, nouvel onglet et partage gardent le filtre) ; sans JavaScript, tout reste affiché.
+$$('[data-catalog]').forEach(root=>{
+  const links=$$('[data-cat-filter]',root), items=$$('[data-cats]',root), status=$('[data-cat-status]',root), empty=$('[data-cat-empty]',root);
+  const names=new Map($$('.cat-filters [data-cat-filter],.cat-filters [data-cat-filter-empty]',root).map(el=>[el.dataset.catFilter??el.dataset.catFilterEmpty,el.firstChild.textContent.trim()]));
+  const read=()=>{const key=new URLSearchParams(location.search).get('categorie')||'';return names.has(key)?key:'';};
+  const apply=(key,animate)=>{
+    links.forEach(a=>{ if(a.closest('.cat-filters')){ if(a.dataset.catFilter===key) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); } });
+    let n=0;
+    items.forEach(li=>{
+      const show=!key||li.dataset.cats.split(' ').includes(key);
+      li.hidden=!show; li.classList.remove('is-in');
+      if(show){ li.style.setProperty('--k',n); n++; if(animate&&!reduced){ void li.offsetWidth; li.classList.add('is-in'); } }
+    });
+    if(status) status.textContent=`${n} réalisation${n>1?'s':''}${key?` · ${names.get(key)}`:''}`;
+    if(empty) empty.hidden=n>0;
+  };
+  links.forEach(a=>a.addEventListener('click',event=>{
+    if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return; // nouvel onglet : le lien suffit
+    event.preventDefault();
+    const key=a.dataset.catFilter;
+    if(key!==read()) history.pushState(null,'',key?`?categorie=${encodeURIComponent(key)}`:location.pathname);
+    apply(key,true);
+  }));
+  addEventListener('popstate',()=>apply(read(),true));
+  apply(read(),false);
+});
+
+// Work, catalogue : une photo s'ouvre en grand, une vidéo se lit dans une fenêtre (Instagram seulement après ce clic).
+$$('[data-cat-viewer]').forEach(viewer=>{
+  const stage=$('[data-cat-stage]',viewer), title=$('[data-cat-title]',viewer);
+  let opener=null;
+  const close=()=>{ if(viewer.open) viewer.close(); };
+  viewer.addEventListener('close',()=>{ stage.replaceChildren(); viewer.removeAttribute('data-kind'); opener?.focus({preventScroll:true}); });
+  viewer.addEventListener('click',event=>{ if(event.target===viewer) close(); });
+  $('[data-cat-close]',viewer)?.addEventListener('click',close);
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-cat-open]'); if(!button) return;
+    const kind=button.dataset.catOpen; let node=null;
+    if(kind==='photo'&&/^\/assets\//.test(button.dataset.src||'')){ node=document.createElement('img'); node.src=button.dataset.src; node.alt=button.dataset.alt||''; node.decoding='async'; }
+    else if(kind==='instagram'&&/^[A-Za-z0-9_-]+$/.test(button.dataset.postId||'')){
+      node=document.createElement('iframe'); node.src=`https://www.instagram.com/p/${button.dataset.postId}/embed/`; node.title=`${button.dataset.title||'Publication'} | Instagram`;
+      node.allowFullscreen=true; node.referrerPolicy='strict-origin-when-cross-origin';
+    }
+    else if(kind==='file'&&/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(button.dataset.src||'')){ node=document.createElement('video'); node.src=button.dataset.src; node.controls=true; node.playsInline=true; node.setAttribute('aria-label',button.dataset.title||'Vidéo'); }
+    if(!node) return;
+    opener=button; viewer.dataset.kind=kind; title.textContent=button.dataset.title||'';
+    stage.replaceChildren(node); viewer.showModal();
+    if(kind==='instagram') igFrames.set(node.contentWindow,node);
+    if(kind==='file') node.play().catch(()=>{});
+  });
+});
+
+// Services : une ancre (#realisation, #direction-artistique, #strategie-de-marque) ouvre l'onglet correspondant.
+{
+  const switcher=$('[data-expertise-switcher]');
+  const fromHash=()=>{ const anchor=location.hash.length>1&&document.getElementById(decodeURIComponent(location.hash.slice(1))); const key=anchor?.dataset?.expertiseAnchor; if(key) $(`[data-expertise-tab="${key}"]`,switcher)?.click(); };
+  if(switcher){ fromHash(); addEventListener('hashchange',fromHash); }
+}
+
 // Page 404 : une galaxie spirale vue de biais, des dizaines de milliers d'étoiles en lumière additive,
 // cœur blanc, bras orange. Les étoiles proches du centre tournent plus vite (aspiration).
 // La souris incline et décale la galaxie ; un appui maintenu accélère la chute vers le centre.
@@ -1541,31 +1601,6 @@ $$('[data-hold-confirm]').forEach(button=>{
   button.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();begin()}});
   button.addEventListener('keyup',e=>{if((e.key===' '||e.key==='Enter')&&holding){e.preventDefault();cancel()}});
 });
-
-// Page View Counter: faithful Supabase-backed wiring from the public component description.
-// It stays hidden until the user's own Supabase Project URL + anon public key are supplied at build time.
-(async()=>{
-  const counters=$$('[data-page-view-counter]'); if(!counters.length) return;
-  const url=$('meta[name="nolanarc-supabase-url"]')?.content?.replace(/\/$/,'');
-  const key=$('meta[name="nolanarc-supabase-key"]')?.content;
-  if(!url||!key){counters.forEach(c=>c.dataset.counterStatus='needs-supabase');return;}
-  const slug=location.pathname.replace(/\/+$/,'')||'/';
-  const headers={apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
-  try{
-    // Écriture uniquement via la fonction SQL increment_page_view (voir supabase/page_views.sql) :
-    // le navigateur n'a plus aucun droit direct d'insert/update sur la table.
-    const res=await fetch(`${url}/rest/v1/rpc/increment_page_view`,{method:'POST',headers,body:JSON.stringify({p_slug:slug})});
-    if(!res.ok)throw new Error('rpc');
-    const views=Number(await res.json());
-    if(!Number.isFinite(views))throw new Error('rpc');
-    counters.forEach(counter=>{
-      counter.hidden=false;counter.dataset.counterStatus='live';const value=$('[data-page-view-value]',counter);if(!value)return;
-      if(reduced){value.textContent=Intl.NumberFormat('fr-FR').format(views);return;}
-      const start=performance.now(),duration=720;
-      const tick=now=>{const p=clamp((now-start)/duration);const eased=1-Math.pow(1-p,4);value.textContent=Intl.NumberFormat('fr-FR').format(Math.round(views*eased));if(p<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);
-    });
-  }catch{counters.forEach(c=>c.dataset.counterStatus='error')}
-})();
 
 // Pages légales : sommaire ouvert sur grand écran et replié sur mobile, section en cours surlignée, impression, copie du modèle.
 {
