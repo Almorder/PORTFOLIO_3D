@@ -8,8 +8,8 @@
   const MIN = 1;
   const imageFields = it => ({ id: it.id, width: it.width, height: it.height, smallWidth: it.smallWidth, smallHeight: it.smallHeight, ...(it.source ? { source: it.source } : {}), ...(it.crop ? { crop: it.crop } : {}) });
   // Projet photo de « Ma sélection » créé depuis une photo : masqué tant que Nolan n'a pas relu le titre.
-  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', media: [{ key: 'm-1', kind: 'photo', image, alt, caption: '', videoId: '', instagramId: '' }], cover: 'm-1', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
-  const DESTS = [['photo', 'Section Photographie'], ['project', 'Ma sélection (projet photo du bento)'], ['both', 'Les deux']];
+  const projectFrom = (image, { title = '', alt = '', year = '' } = {}) => ({ slug: `projet-${crypto.randomUUID().slice(0, 8)}`, title: title || 'Projet photo', territory: 'Photographie', categories: ['photo'], type: 'Photographie', role: 'Photographie', context: '', client: '', year, result: '', link: '', summary: '', media: [{ key: 'm-1', kind: 'photo', image, alt, caption: '', videoId: '', instagramId: '' }], cover: 'm-1', pageMode: 'none', pageSlug: '', mediaKind: 'photo', videoId: '', instagramId: '', image, alt, uploadDate: '', duration: '', visible: false });
+  const DESTS = [['photo', 'Catalogue Work'], ['project', 'Ma sélection (projet photo du bento)'], ['both', 'Les deux']];
 
   window.NolanPhotos = ({ client, el, button, say, heading, card, getDraft, saveDraft, publish, setDirty, inUse, addProjects }) => {
     const { store, recrop, preview, remove, noDash } = window.NolanMedia(client, inUse);
@@ -18,7 +18,7 @@
     const reset = () => {
       const data = getDraft() || {};
       // inTile absent (ancien brouillon) : la photo visible restait dans la tuile, on garde ce comportement.
-      model = { items: Array.isArray(data.items) ? structuredClone(data.items).map(p => ({ ...p, inTile: typeof p.inTile === 'boolean' ? p.inTile : Boolean(p.visible) })) : [] };
+      model = { items: Array.isArray(data.items) ? structuredClone(data.items).map(p => ({ ...p, inTile: typeof p.inTile === 'boolean' ? p.inTile : Boolean(p.visible), categories: window.NolanCategories.photo(p) })) : [] };
       removed = [];
     };
     const touch = () => { setDirty(true); say('Modifications non enregistrées.', 'warn'); };
@@ -158,9 +158,16 @@
             field('Lieu (facultatif)', textInput(item, 'place', { max: 80 })),
             field('Année', textInput(item, 'year', { max: 4, inputMode: 'numeric', placeholder: '2026' }))
           ]),
+          el('fieldset', { className: 'admin-group vd-tags' }, [el('legend', { textContent: 'Catégories du catalogue' }), ...window.NolanCategories.LIST.map(([value, label]) => {
+            if (!Array.isArray(item.categories)) item.categories = window.NolanCategories.photo(item);
+            const box = el('input', { type: 'checkbox', checked: item.categories.includes(value) });
+            box.dataset.focusKey = `${item.id}-cat-${value}`;
+            box.addEventListener('change', () => { item.categories = window.NolanCategories.valid(box.checked ? [...item.categories, value] : item.categories.filter(c => c !== value)); touch(); });
+            return el('label', { className: 'admin-field admin-field--check' }, [box, el('span', { textContent: label })]);
+          })]),
           el('div', { className: 'ph-card__checks' }, [
-            el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible dans la section Photographie' })]),
-            el('label', { className: 'admin-field admin-field--check' }, [tile, el('span', { textContent: 'Dans la tuile Photographie' })])
+            el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible dans le catalogue (Work)' })]),
+            el('label', { className: 'admin-field admin-field--check' }, [tile, el('span', { textContent: 'Dans la tuile Photographie (accueil)' })])
           ]),
           el('div', { className: 'admin-tools' }, [
             tool('↑', `Monter la photo ${n}`, 'up', () => move(index, index - 1), index === 0),
@@ -212,7 +219,7 @@
       drop.addEventListener('drop', e => { if (!e.dataTransfer?.files?.length) return; e.preventDefault(); drop.classList.remove('is-over'); if (!busy) upload(e.dataTransfer.files); });
       const count = visibleCount();
       const tiles = tileCount();
-      const summary = el('p', { className: 'ph-help', textContent: `Section Photographie : ${count ? `${count} photo(s)` : 'masquée'}. Tuile Photographie : ${tiles ? `${tiles} photo(s)` : 'masquée'}.` });
+      const summary = el('p', { className: 'ph-help', textContent: `Catalogue Work : ${count ? `${count} photo(s)` : 'aucune'}. Tuile Photographie : ${tiles ? `${tiles} photo(s)` : 'masquée'}.` });
       return [
         el('div', { className: 'admin-bar' }, [heading('Photos'), el('div', { className: 'admin-row' }, [save, live])]),
         card('Ajouter', [where, drop, summary], 'admin-card--wide'),

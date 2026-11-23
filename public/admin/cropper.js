@@ -18,7 +18,7 @@
     card: { title: 'Carte des tarifs', ratios: [['Carte 2:3', 290 / 430]], previews: [{ label: 'Recto (le bas porte les infos)', ratio: 290 / 430, frame: 'card' }] },
     cardBack: { title: 'Dos des cartes', ratios: [['Carte 2:3', 290 / 430]], previews: [{ label: 'Dos', ratio: 290 / 430, frame: 'plain' }] },
     project: { title: 'Média du projet', ratios: FREE, previews: [...TILE, { label: 'Page projet', ratio: 0, frame: 'plain' }] },
-    photo: { title: 'Photo', ratios: FREE, previews: [{ label: 'Section Photographie', ratio: 0, frame: 'plain' }, { label: 'Tuile Photographie', ratio: 1, frame: 'tile' }, { label: 'Tuile (téléphone)', ratio: 4 / 5, frame: 'tile' }] },
+    photo: { title: 'Photo', ratios: FREE, previews: [{ label: 'Catalogue Work', ratio: 0, frame: 'plain' }, { label: 'Tuile Photographie', ratio: 1, frame: 'tile' }, { label: 'Tuile (téléphone)', ratio: 4 / 5, frame: 'tile' }] },
     testimonial: { title: 'Image de l’avis', ratios: [['Panneau 4:5', 4 / 5]], previews: [{ label: 'Panneau (ordinateur)', ratio: 4 / 5, frame: 'plain' }, { label: 'Panneau (téléphone)', ratio: 16 / 9, frame: 'plain' }] },
     social: { title: 'Miniature de la vidéo', ratios: [['Écran du téléphone', PHONE_SCREEN]], previews: [{ label: 'Téléphone', ratio: PHONE_SCREEN, frame: 'phone' }] }
   };

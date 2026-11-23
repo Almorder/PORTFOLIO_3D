@@ -12,17 +12,17 @@ import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
 import { weddingWall, weddingOffersSection } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
-import { pricing, pricingHref, pricingMessage } from '../content/pricing.mjs';
-import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, pageViewCounter, gradientMotionBackground, faqAccordion, faqSchema, contactDialog } from './components.mjs';
+import { pricing, pricingHref, pricingMessage, contactTopics } from '../content/pricing.mjs';
+import { pricingSection } from './pricing.mjs';
+import '../public/admin/categories.js';
+const Cat = globalThis.NolanCategories;
+import { head, header, footer, esc, projectMeta, lineToc, animatedStats, glassShowcase, stackedFlow, videoSlideShow, gradientMotionBackground, faqAccordion, faqSchema, contactDialog } from './components.mjs';
 
-// Cartes des tarifs : visuel remplaçable depuis l'admin (« Images du site », emplacements home.cards.*), sinon carte d'origine.
-const cardArt = key => { const s=siteImage(`home.cards.${key}`); return s ? `src="${esc(s.image.srcSmall)}" srcset="${esc(s.image.srcSmall)} ${s.image.smallWidth}w, ${esc(s.image.src)} ${s.image.width}w" sizes="(max-width: 620px) 160px, 230px" ` : `src="/assets/cards/${key}.webp" `; };
 // Fond d'un dossier « Trois dimensions » : image remplacée depuis l'admin (petite et grande taille), sinon texture d'origine (CSS).
 const folderArt = key => { const s=siteImage(`home.dims.${key}`); return s ? ` style="background-image:url('${esc(s.image.srcSmall)}');background-image:image-set(url('${esc(s.image.srcSmall)}') 1x,url('${esc(s.image.src)}') 2x)"` : ''; };
 // Le portrait n'est affiché que si le fichier existe : jamais d'image cassée ni de visage de substitution.
 const hasPortrait = existsSync(new URL('../public/assets/nolan-portrait.jpg', import.meta.url));
 const bol = projects.find(p=>p.slug==='le-bol-den-face');
-const projectCards = projects.filter(p=>p.visible && p.card && p.card.image).map(p=>`<a class="fab-project-card motion-reveal" href="${esc(p.card.href)}"><div class="fab-project-card__meta"><strong>${esc(p.title)}.</strong><span>/${esc(p.year)}</span><i>${esc(p.card.label)}</i></div><figure><img src="${esc(p.card.image)}" alt="${esc(p.card.alt)}" loading="lazy"><span>Voir le contexte ↗</span></figure></a>`).join('\n');
 // Accueil, « Tarifs » : une carte par offre, sur le modèle d'un mur de témoignages vidéo.
 
 // Accueil, « Trois dimensions » : le besoin du visiteur, dans ses mots, et un repère de prix déjà publié dans les tarifs.
@@ -59,6 +59,10 @@ const shownMedia = p => (p.media||[]).map(m=>{
   if (m.kind==='file') return img && m.alt && publicFile(m.video?.src) ? { ...m, img } : null;
   return null;
 }).filter(Boolean);
+// Page projet -> Contact : la catégorie du projet présélectionne le type de demande.
+const contactFor = p => { const c=Cat.project(p); return c.includes('mariage') ? '/contact/?intent=moment' : c.includes('direction-artistique') ? '/contact/?intent=brand&amp;offre=direction' : c.includes('video') ? '/contact/?intent=story&amp;offre=film' : '/contact/'; };
+// Nombre de médias d'un projet : toujours calculé depuis les médias réellement en ligne, jamais saisi.
+const mediaCount = list => { const v=list.filter(m=>m.kind!=='photo').length, ph=list.length-v; return [ph&&`${ph} photo${ph>1?'s':''}`, v&&`${v} vidéo${v>1?'s':''}`].filter(Boolean).join(' · '); };
 // Page projet générée (/projet/<adresse>/) : dès qu'il y a plusieurs médias, ou si l'admin le demande (« page »).
 // Le bol d'en face garde sa page. Sans page ni lien, la tuile reste visible mais ne s'ouvre pas.
 const RESERVED_PAGES = new Set(['le-bol-den-face','film-de-marque','film-institutionnel','direction-artistique','contenu-social','strategie-visuelle','mariage','demande-en-mariage']);
@@ -85,7 +89,7 @@ const projectItem = (p,i) => {
   const m = projectMedia(p,i===0), kind = mediaKind(p), own = projectHref(p), count = shownMedia(p).length;
   return { title:p.title, type:p.type||'', tags:[territoryTag[p.territory]||(kind==='photo'?'photo':'recits')], role:p.role||'', context:p.context||'', client:p.client||'', year:p.year||'', result:p.result||'',
     label:[p.type,p.year].filter(Boolean).join(' · ')||p.title, text:p.summary||'', image:m.image, width:m.width, height:m.height, alt:m.alt, srcset:m.srcset,
-    href: own, cta: !own ? '' : p.slug==='le-bol-den-face' ? 'Voir le film' : pageOf.get(p.slug) ? (count>1 ? `Voir le projet (${count} médias)` : 'Voir le projet') : 'Voir le projet',
+    href: own, cta: !own ? '' : p.slug==='le-bol-den-face' ? 'Voir le film' : pageOf.get(p.slug) ? (count>1 ? `Voir le projet · ${mediaCount(shownMedia(p))}` : 'Voir le projet') : 'Voir le projet',
     ...(kind==='instagram'&&p.instagramId ? { instagram:igUrl(p.instagramId) } : {}), project:p };
 };
 // Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
@@ -95,7 +99,7 @@ const workItems = [
   // Tuile « Photographie » : un seul bloc avec toutes les photos cochées « Dans la tuile » (diaporama lent).
   // Elle ouvre la section Photographie si elle existe ; sinon elle s'affiche sans s'ouvrir. Aucune photo : pas de tuile.
   ...(tilePhotos.length ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(tilePhotos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(tilePhotos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:showPhotos?'#photo':'', cta:showPhotos?'Voir les photos':'' }] : []),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'/work/?categorie=photo', cta:'Voir les photos' }] : []),
   ...instagramPosts.map((p,i)=>{ const thumb=socialThumb(p), file=p.source==='file';
     return { title:p.title, type:'Vidéo verticale', tags:p.tags?.length?p.tags:['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
     label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
@@ -105,9 +109,19 @@ const withFiche = item=>({ ...item, data:Object.fromEntries([['title',item.title
 const bentoTiles = workItems.slice(0,5).map(withFiche);
 // Plus de 5 projets mis en avant : les suivants dans une grille sous le bento, ouverte par « Voir plus de projets ».
 const moreTiles = featured.length>5 ? workItems.slice(5,featured.length).map(withFiche) : [];
-const workFilters = [['tout','Tout'],['recits','Films & récits'],['marques','Marques'],['moments','Mariages & moments'],['reseaux','Réseaux'],['photo','Photographie']]
-  .map(([key,label])=>({ key, label, count: key==='tout' ? workItems.length : workItems.filter(it=>it.tags.includes(key)).length }))
-  .filter(f=>f.count>0);
+
+// Catalogue de la page Work : tous les projets visibles, toutes les vidéos courtes et les photos du catalogue,
+// chacun dans une ou plusieurs catégories (public/admin/categories.js). Mêmes données que l'accueil (admin).
+// Une photo déjà présente dans un projet n'a pas de deuxième carte.
+const projectImageIds = new Set(projects.filter(p=>p.visible).flatMap(p=>(p.media||[]).map(m=>m.image?.id).filter(Boolean)));
+const catalogItems = [
+  ...featured.map(p=>{ const m=projectMedia(p,false), href=projectHref(p), all=shownMedia(p);
+    return { kind:'project', title:p.title, cats:Cat.project(p), year:p.year||'', type:p.type||'', client:p.client||'', image:m, href, count:all.length>1?mediaCount(all):'', project:p }; }),
+  ...instagramPosts.map(p=>({ kind:'social', title:p.title, cats:Cat.social(p), year:p.year||'', type:p.kind||'Vidéo verticale', client:p.client||'', thumb:socialThumb(p), post:p })),
+  ...photos.filter(ph=>!projectImageIds.has(ph.id)).map(ph=>({ kind:'photo', title:ph.series||'Photographie', cats:Cat.photo(ph), year:ph.year||'', type:ph.place||'', client:'', ph })),
+];
+const catalogCount = key => catalogItems.filter(it=>it.cats.includes(key)).length;
+const catalogHref = key => key ? `/work/?categorie=${key}` : '/work/';
 // VideoObject : publié seulement quand la date de mise en ligne et une vignette existent (exigence de Google).
 const videoSchema = ({ name, description, thumbnail, uploadDate, duration, embedUrl, url }) => (uploadDate && thumbnail) ? { '@type':'VideoObject', name, description, thumbnailUrl:[thumbnail], uploadDate, ...(duration?{duration}:{}), embedUrl, url } : null;
 const bolVideo = () => videoSchema({ name:bol.title, description:bol.summary, thumbnail:bolPosterAbs, uploadDate:bol.uploadDate, duration:bol.duration, embedUrl:`https://www.youtube-nocookie.com/embed/${bol.videoId}`, url:`https://www.youtube.com/watch?v=${bol.videoId}` });
@@ -151,21 +165,21 @@ const expertiseTabs = [
     headline:'Prendre le film du concept au fichier final.',
     text:'Je peux garder une seule direction sur la préparation, le tournage, le montage et la livraison. Le bénéfice n’est pas de multiplier les tâches : c’est d’éviter que l’idée se dilue entre les étapes.',
     value:'Une continuité de vision, une vraie expérience terrain et des fichiers pensés pour leur support final.',
-    href:'/services/?expertise=realisation'
+    href:'/services/#realisation'
   },
   {
     key:'direction', label:'Direction artistique', index:'02',
     headline:'Faire tenir l’univers jusque dans les détails.',
     text:'Je construis un langage visuel cohérent pour que l’image, la typographie, la couleur, le rythme et la matière donnent l’impression de venir de la même idée.',
     value:'Plus de cohérence, des choix créatifs plus simples et une identité plus reconnaissable.',
-    href:'/services/?expertise=direction'
+    href:'/services/#direction-artistique'
   },
   {
     key:'strategie', label:'Stratégie de marque', index:'03',
     headline:'Transformer l’analyse en décisions qui bougent.',
     text:'J’audite ce qui bloque, je priorise ce qui mérite d’être accéléré et je préfère exécuter, mesurer puis ajuster plutôt que laisser une stratégie attendre dans un document.',
     value:'Des priorités plus nettes, une mise en action plus rapide et une création reliée aux objectifs de l’entreprise.',
-    href:'/services/?expertise=strategie'
+    href:'/services/#strategie-de-marque'
   }
 ];
 
@@ -179,8 +193,12 @@ const ecosystem = [
 ];
 
 
+// Accueil, « Work » : la sélection (bento, fiche) et les vidéos courtes (téléphone), avec le catalogue à portée de clic.
+const homeCatalogNav = () => `<nav class="home-catalog motion-reveal" aria-label="Explorer le catalogue des réalisations"><a class="home-catalog__all" href="/work/">Voir tout le catalogue <sup>${catalogItems.length}</sup> <span aria-hidden="true">↗</span></a><ul>${Cat.LIST.filter(([k])=>catalogCount(k)).map(([k,label])=>`<li><a href="${catalogHref(k)}">${esc(label)} <sup>${catalogCount(k)}</sup></a></li>`).join('')}</ul></nav>`;
+
 export function homePage(){
   const stats = site.proofStats;
+  const first = bentoTiles[0];
   return head({
     title:'Nolan Ribeiro, vidéaste, photographe et réalisateur | Nolan Arc',
     description:'Nolan Ribeiro (Nolan Arc), vidéaste, photographe et réalisateur en Île-de-France : films de mariage dès 1 500 €, films de marque, direction artistique et stratégie.',
@@ -191,23 +209,45 @@ export function homePage(){
     <div class="hero-stack" data-hero-stack>
     <section class="v16-hero" aria-labelledby="v16-hero-title">
       ${heroSelfHosted
-        ? `<div class="v16-hero__media v16-hero__media--file" aria-hidden="true"><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="auto" poster="${homeHeroVideo.file}.jpg"><source src="${homeHeroVideo.file}.webm" type="video/webm"><source src="${homeHeroVideo.file}.mp4" type="video/mp4"></video><div class="v16-hero__veil"></div></div>`
-        : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div><div class="v16-hero__veil"></div>${gradientMotionBackground({style:'mesh',speed:28,blur:72,opacity:.13,size:122,colors:['#17100d','#5f2812','#12100f','#2b1710']})}</div>`}
+        ? `<div class="v16-hero__media v16-hero__media--file" aria-hidden="true"><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="auto" poster="${homeHeroVideo.file}.jpg"><source src="${homeHeroVideo.file}.webm" type="video/webm"><source src="${homeHeroVideo.file}.mp4" type="video/mp4"></video></div>`
+        : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div></div>`}
       <h1 class="sr-only" id="v16-hero-title">Nolan Ribeiro, vidéaste, photographe et réalisateur. Nolan Arc : réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
         <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
       </div>
     </section>
 
-    <section class="fab-projects v16-work-preview" id="work-preview">
-      <header class="fab-section-heading work-heading motion-reveal"><h2>Work<span class="title-dot">.</span></h2><p>Mes réalisations et projets</p></header>
-      <div class="fab-project-grid">
-        <a class="fab-project-card fab-project-card--wide motion-reveal" href="/projet/le-bol-den-face/"><div class="fab-project-card__meta"><strong>Le bol d’en face.</strong><span>/2026</span><i>Réalisation & scénario</i></div><figure><img src="${bolPoster}" alt="Le bol d’en face, court métrage" width="1280" height="720" loading="eager"><span>Voir le film ↗</span></figure></a>
-        ${projectCards}
+    <section class="fab-projects v16-work-preview home-work" id="work-preview" aria-labelledby="home-work-title">
+      <header class="fab-section-heading work-heading motion-reveal"><h2 id="home-work-title">Work<span class="title-dot">.</span></h2><p>Mes réalisations et projets</p></header>
+      <div class="wk-selection home-selection" id="selection" data-work-views>
+      <div class="wk-panel" data-work-panel="grid">
+        <div class="bento-section">${bentoFocus(bentoTiles,{eager:false})}${bentoMore(moreTiles)}</div>
+        <dl class="wk-fiche" data-fiche aria-live="polite" aria-label="Fiche du projet mis en avant">
+          <div class="wk-fiche__title"><dt>Projet</dt><dd data-fiche-field="title">${esc(first.title)}</dd></div>
+          ${ficheFields.map(([k,l])=>`<div data-fiche-row="${k}"${first[k]?'':' hidden'}><dt>${l}</dt><dd data-fiche-field="${k}">${esc(first[k]||'')}</dd></div>`).join('')}
+        </dl>
       </div>
-      <div class="fab-projects__more"><a class="fab-arrow-link" href="/work/">Tout le Work <span>↗</span></a></div>
+      </div>
+      ${homeCatalogNav()}
     </section>
     </div>
+
+    <section class="ig-section ig-stage home-social motion-reveal" id="social" aria-labelledby="ig-title">
+      <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
+      <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
+        <div class="phone-stack__stage" data-stack-stage>
+          <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>{ const file=p.source==='file', thumb=socialThumb(p);
+            return `<li class="ig-card ps-card" ${file?`data-video-file data-video-src="${esc(p.video.src)}" data-video-type="${esc(p.video.type)}"`:`data-instagram-post data-post-id="${esc(p.id)}"`} data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
+            <div class="ps-card__screen"><div class="ig-card__cover"${thumb?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(thumb.src)}')${thumb.large?`;background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),image-set(url('${esc(thumb.src)}') 1x,url('${esc(thumb.large)}') 2x)`:''}"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}${file?`<button type="button" class="ig-card__play" data-load-file aria-label="Lire la vidéo ${esc(p.title)}">▶</button>`:`<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button>`}</div></div>
+            ${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}
+          </li>`; }).join('')}</ul>
+          <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
+        </div>
+        <div class="phone-stack__nav"><button type="button" data-stack-prev aria-label="Vidéo précédente">←</button><span class="phone-stack__dots">${instagramPosts.map((p,i)=>`<button type="button" data-stack-dot="${i}" aria-label="Voir ${esc(p.title)}"></button>`).join('')}</span><button type="button" data-stack-next aria-label="Vidéo suivante">→</button></div>
+      </div>
+    </section>
+
+    ${weddingWall()}
 
     ${focusText(site.manifesto)}
 
@@ -226,7 +266,7 @@ export function homePage(){
       </div>
     </section>
 
-    ${weddingWall()}
+    ${pricingSection({ workCount: catalogCount })}
 
     <section class="ring-section" id="journey" aria-labelledby="ring-title" data-ring>
       <div class="ring-section__head motion-reveal"><h2 id="ring-title">Comment je travaille.</h2></div>
@@ -242,11 +282,6 @@ export function homePage(){
       </div>
     </section>
 
-    <section class="v16-testimonials" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
-      ${morphTestimonials(testimonials)}
-    </section>
-
     <section class="v16-proof" aria-labelledby="v16-proof-title">
       <header class="v16-proof__head motion-reveal"><span class="fab-dot-label">Datas utiles</span><h2 id="v16-proof-title">Quelques chiffres pour situer ma pratique.</h2></header>
       ${animatedStats(stats,{theme:'light',layout:'grid',replay:true,animation:'blur'})}
@@ -259,34 +294,9 @@ export function homePage(){
       <div class="brand-ecosystem__grid v16-logo-grid" aria-label="Marques et outils de production">${ecosystem.map(b=>`<div class="v16-logo-card ${b.logoClass||''}">${b.logo?`<span class="v16-logo-media"><img src="${b.logo}" alt="Logo ${b.name}" loading="lazy"><b aria-hidden="true">${b.name}</b></span>`:`<strong class="v16-wordmark">${b.wordmark}</strong>`}<small>${b.role}</small></div>`).join('')}</div>
     </section>
 
-    <section class="price-proof" id="pricing" aria-labelledby="pricing-title" data-price-proof>
-      <div class="price-proof__grid" aria-hidden="true" data-price-grid></div>
-      <header class="price-proof__head motion-reveal"><span class="price-proof__chip"><i aria-hidden="true"></i>Tarifs</span><h2 id="pricing-title">Un ordre de grandeur<br><em>avant de parler.</em></h2><p>De quoi répondre à tout.</p></header>
-      <div class="price-tools" data-price-tools hidden>
-        <p class="price-tools__hint"><span class="price-tools__fine">Piochez une carte, ou faites-la glisser hors de la main.</span><span class="price-tools__touch">Touchez une carte pour la piocher. Appui long pour la déplacer.</span></p>
-        <button type="button" class="price-tools__btn" data-price-deal>Voir toutes les offres</button>
-        <button type="button" class="price-tools__btn price-tools__btn--quiet" data-price-stow hidden><span aria-hidden="true">↺</span> Ranger les cartes</button>
-      </div>
-      <ul class="price-arena" data-price-arena aria-label="Offres et tarifs">
-        ${pricing.map((c,i)=>{ const art=cardArt(c.key), back=cardArt('dos'), price=`${c.from?'à partir de ':''}${c.price}`; return `<li class="price-card" data-price-card data-key="${esc(c.key)}" style="--i:${i}">
-          <button type="button" class="price-card__draw" data-price-draw hidden aria-label="${esc(`Piocher la carte ${c.title}, ${price}`)}"></button>
-          <div class="price-card__lift"><div class="price-card__flip">
-            <div class="price-card__face price-card__face--front">
-              <img class="price-card__art" ${art}width="290" height="430" alt="" loading="lazy" decoding="async">
-              <div class="price-card__label">
-                ${c.showTag?`<p class="price-card__tag">${esc(c.tag)}</p>`:''}
-                <h3>${esc(c.title)}</h3>
-                <div class="price-card__row">
-                  <p class="price-card__price">${c.from?'<small>À partir de</small>':''}<strong>${esc(c.price)}</strong></p>
-                  <a class="price-card__cta" href="${esc(pricingHref(c))}">${esc(c.cta)}<span class="sr-only"> : ${esc(c.title)}</span> <span aria-hidden="true">↗</span></a>
-                </div>
-                <div class="price-card__more"><p>${c.showTag?'':`${esc(c.tag)}. `}${esc(c.text)}</p>${c.facts?`<ul>${c.facts.map(([v,l])=>`<li>${esc(v)} ${esc(l)}</li>`).join('')}</ul>`:''}</div>
-              </div>
-            </div>
-            <div class="price-card__face price-card__face--back" aria-hidden="true"><img ${back}width="251" height="425" alt="" loading="lazy" decoding="async"></div>
-          </div></div>
-        </li>`; }).join('')}
-      </ul>
+    <section class="v16-testimonials" id="retours">
+      <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
+      ${morphTestimonials(testimonials)}
     </section>
 
     ${faqAccordion(site.faqs.home,{id:'faq-home',eyebrow:'FAQ',title:'FAQ.',intro:'Au cas où une question vous passe par la tête.'})}
@@ -305,69 +315,52 @@ export function homePage(){
   </main>${contactDialog()}` + footer();
 }
 
+// Page Work : le catalogue. Filtres en haut (lien partageable ?categorie=…), toutes les réalisations, puis les tarifs.
 export function workPage(){
-  const priceOf = key => pricing.find(o=>o.key===key);
-  const fromPrice = o => o ? (o.from ? `dès ${o.price}` : o.price.toLowerCase()) : '';
-  const intents = [
-    { intent:'moment', title:'Mariage / moment', text:`Demande ${fromPrice(priceOf('demande'))}, mariage ${fromPrice(priceOf('mariage'))}`, price:fromPrice(priceOf('demande')) },
-    { intent:'brand', title:'Marque', text:'Contenu, direction artistique, stratégie', price:fromPrice(priceOf('contenu')) },
-    { intent:'story', title:'Film / récit', text:'Film de marque, court métrage', price:fromPrice(priceOf('film')) },
-  ];
-  const listed = [
-    ...workItems.map(it=>({ '@type':'ListItem', name:it.title, url: !it.href ? (it.instagram || `${site.domain}/work/#selection`) : /^https?:/.test(it.href) ? it.href : it.href.startsWith('/') ? `${site.domain}${it.href}` : (it.instagram || `${site.domain}/work/${it.href}`) })),
-  ].map((it,i)=>({ ...it, position:i+1 }));
-  const cell = (cls,v) => `<span class="${cls}">${v?esc(v):''}</span>`;
-  const icon = { grid:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.4"/></svg>', list:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="6.7" width="13" height="2.6" rx="1.3"/><rect x="1.5" y="10.9" width="13" height="2.6" rx="1.3"/></svg>' };
-  const first = bentoTiles[0];
-  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Réalisations de Nolan Ribeiro, vidéaste, photographe et réalisateur : le court métrage « Le bol d’en face » et des vidéos courtes pour les réseaux sociaux.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...projectVideos(), ...igVideos()], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
-    <section class="wk-title motion-reveal"><div><h1>Work<span class="title-dot">.</span></h1><small>Mes réalisations et projets</small></div></section>
-    <section class="wk-selection" id="selection" aria-labelledby="wk-selection-title" data-work-views>
-      <header class="wk-selection__head motion-reveal"><h2 id="wk-selection-title">Ma sélection.</h2>
-        <div class="wk-view" role="group" aria-label="Affichage des projets"><button type="button" data-work-view="grid" aria-pressed="true" aria-controls="wk-grid">${icon.grid}<span>Grille</span></button><button type="button" data-work-view="list" aria-pressed="false" aria-controls="wk-list">${icon.list}<span>Liste</span></button></div>
+  const listed = catalogItems.filter(it=>it.kind!=='photo').map((it,i)=>({ '@type':'ListItem', position:i+1, name:it.title,
+    url: it.kind==='social' ? (it.post.source==='file' ? `${site.domain}/work/` : igUrl(it.post.id)) : !it.href ? `${site.domain}/work/` : /^https?:/.test(it.href) ? it.href : `${site.domain}${it.href}` }));
+  const filters = [['', 'Tous'], ...Cat.LIST].map(([key,label])=>({ key, label, count: key ? catalogCount(key) : catalogItems.length }));
+  const chips = cats => cats.map(k=>Cat.label(k)).join(', ');
+  const meta = it => [it.type, it.client, it.year, it.count].filter(Boolean).map(esc).join(' · ');
+  const img = (src, srcset, w, h, alt, sizes='(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw') => `<img src="${esc(src)}"${srcset?` srcset="${esc(srcset)}" sizes="${sizes}"`:''} alt="${esc(alt)}"${w&&h?` width="${w}" height="${h}"`:''} loading="lazy" decoding="async">`;
+  const card = (it,i) => {
+    let media='', action='', extra='', label='';
+    if(it.kind==='project'){
+      const m=it.image; media=img(m.image, m.srcset, m.width, m.height, m.alt);
+      if(it.href){ const ext=/^https?:/.test(it.href); label=ext?'Voir le projet':(it.project.slug==='le-bol-den-face'?'Voir le film':'Voir le projet');
+        action=`<a class="cat-card__hit" href="${esc(it.href)}"${ext?' target="_blank" rel="noopener noreferrer"':''}><span class="sr-only">${esc(label)} : ${esc(it.title)}${ext?' (nouvel onglet)':''}</span></a>`; label+=ext?' ↗':' →'; }
+      else if(m.full){ label='Agrandir'; action=`<button type="button" class="cat-card__hit" data-cat-open="photo" data-src="${esc(m.full)}" data-alt="${esc(m.alt)}" data-title="${esc(it.title)}"><span class="sr-only">Agrandir : ${esc(it.title)}</span></button>`; }
+    } else if(it.kind==='social'){
+      const p=it.post, t=it.thumb, file=p.source==='file';
+      media=t?img(t.src, t.large?`${t.src} ${t.width||540}w, ${t.large} ${(t.width||540)*2}w`:'', t.width, t.height, `${it.title}, vidéo verticale`):'';
+      label='▶ Lire la vidéo';
+      action=`<button type="button" class="cat-card__hit" data-cat-open="${file?'file':'instagram'}" ${file?`data-src="${esc(p.video.src)}" data-type="${esc(p.video.type)}"`:`data-post-id="${esc(p.id)}"`} data-title="${esc(it.title)}"><span class="sr-only">Lire la vidéo ${esc(it.title)}${file?'':' (chargée depuis Instagram)'}</span></button>`;
+      if(!file) extra=`<a class="cat-card__ext" href="${esc(igUrl(p.id))}" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span><span class="sr-only"> : ${esc(it.title)} (nouvel onglet)</span></a>`;
+    } else {
+      const ph=it.ph; media=img(ph.srcSmall||ph.src, ph.srcSmall?`${ph.srcSmall} ${ph.smallWidth}w, ${ph.src} ${ph.width}w`:'', ph.smallWidth||ph.width, ph.smallHeight||ph.height, ph.alt);
+      label='Agrandir'; action=`<button type="button" class="cat-card__hit" data-cat-open="photo" data-src="${esc(ph.src)}" data-alt="${esc(ph.alt)}" data-title="${esc([ph.series,ph.place,ph.year].filter(Boolean).join(' · ')||it.title)}"><span class="sr-only">Agrandir : ${esc(ph.alt)}</span></button>`;
+    }
+    return `<li class="cat-item" data-cats="${esc(it.cats.join(' '))}" style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
+        <div class="cat-card__media${media?'':' is-blank'}">${media}</div>
+        <div class="cat-card__body"><h3>${esc(it.title)}</h3>${meta(it)?`<p class="cat-card__meta">${meta(it)}</p>`:''}${it.cats.length?`<p class="cat-card__cats">${esc(chips(it.cats))}</p>`:''}${label?`<span class="cat-card__go" aria-hidden="true">${esc(label)}</span>`:''}</div>
+        ${action}${extra}
+      </article></li>`;
+  };
+  return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Toutes les réalisations de Nolan Ribeiro : films, vidéos pour les réseaux sociaux, photographie, mariages et direction artistique, à filtrer par catégorie.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...projectVideos(), ...igVideos(), { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Accueil', item:`${site.domain}/` },{ '@type':'ListItem', position:2, name:'Work', item:`${site.domain}/work/` }] }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
+    <section class="cat" id="catalogue" aria-labelledby="cat-title" data-catalog>
+      <header class="cat__head"><h1 id="cat-title">Work<span class="title-dot">.</span></h1>
+        <nav class="cat-filters" aria-label="Filtrer les réalisations par catégorie">${filters.map(f=>f.count||!f.key?`<a href="${catalogHref(f.key)}" data-cat-filter="${f.key}"${f.key?'':' aria-current="true"'}>${esc(f.label)}<sup>${f.count}</sup></a>`:`<span class="is-empty" data-cat-filter-empty="${f.key}" aria-disabled="true">${esc(f.label)}<sup>0</sup></span>`).join('')}</nav>
       </header>
-      <div class="wk-panel" id="wk-grid" data-work-panel="grid">
-        <div class="bento-section">${bentoFocus(bentoTiles)}${bentoMore(moreTiles)}</div>
-        <dl class="wk-fiche" data-fiche aria-live="polite" aria-label="Fiche du projet mis en avant">
-          <div class="wk-fiche__title"><dt>Projet</dt><dd data-fiche-field="title">${esc(first.title)}</dd></div>
-          ${ficheFields.map(([k,l])=>`<div data-fiche-row="${k}"${first[k]?'':' hidden'}><dt>${l}</dt><dd data-fiche-field="${k}">${esc(first[k]||'')}</dd></div>`).join('')}
-        </dl>
-      </div>
-      <div class="wk-panel" id="wk-list" data-work-panel="list" hidden>
-        <div class="wk-filters" role="group" aria-label="Filtrer les projets">${workFilters.map((f,i)=>`<button type="button" data-work-filter="${f.key}" aria-pressed="${i?'false':'true'}">${esc(f.label)}<sup>${f.count}</sup></button>`).join('')}</div>
-        <ol class="wk-rows" data-work-rows>${workItems.map((it,i)=>`<li class="wk-row" data-tags="${esc(it.tags.join(' '))}">
-          <span class="wk-row__n" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
-          <strong class="wk-row__title">${esc(it.title)}</strong>
-          <span class="wk-row__meta">${cell('wk-row__year',it.year)}${cell('wk-row__type',it.type)}${cell('wk-row__role',it.role)}${cell('wk-row__ctx',it.context)}</span>
-          <span class="wk-row__act">${it.href?`<a class="wk-row__go" href="${esc(it.href)}"${Number.isInteger(it.stack)?` data-stack-goto="${it.stack}"`:''}>${esc(it.cta)} <span aria-hidden="true">↗</span></a>`:''}${it.instagram?`<a class="wk-row__ext" href="${esc(it.instagram)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(it.title)} sur Instagram (nouvel onglet)">Instagram <span aria-hidden="true">↗</span></a>`:''}</span>
-        </li>`).join('')}</ol>
-      </div>
+      <p class="cat__status" data-cat-status aria-live="polite">${catalogItems.length} réalisations</p>
+      <ul class="cat-grid" data-cat-grid>${catalogItems.map(card).join('')}</ul>
+      <p class="cat__empty" data-cat-empty hidden>Rien dans cette catégorie pour l’instant. <a href="/work/" data-cat-filter="">Voir toutes les réalisations</a></p>
     </section>
-    <section class="ig-section ig-stage motion-reveal" id="social" aria-labelledby="ig-title">
-      <header><h2 id="ig-title">Social media videos.</h2><a class="ig-info" href="/cookies/#instagram" aria-label="Informations sur le chargement des vidéos Instagram">i</a></header>
-      <div class="phone-stack" data-phone-stack tabindex="0" role="group" aria-roledescription="carrousel" aria-label="Vidéos social media : glissez, utilisez les flèches ou cliquez sur une miniature" style="--sx:${workAssets.phone.screen[0]}%;--sy:${workAssets.phone.screen[1]}%;--sw:${workAssets.phone.screen[2]}%;--sh:${workAssets.phone.screen[3]}%;--pr:${workAssets.phone.w}/${workAssets.phone.h}">
-        <div class="phone-stack__stage" data-stack-stage>
-          <ul class="phone-stack__cards">${[...instagramPosts,...instagramPosts].map((p,i)=>{ const file=p.source==='file', thumb=socialThumb(p);
-            return `<li class="ig-card ps-card" ${file?`data-video-file data-video-src="${esc(p.video.src)}" data-video-type="${esc(p.video.type)}"`:`data-instagram-post data-post-id="${esc(p.id)}"`} data-stack-card="${i}"${i>=instagramPosts.length?' data-stack-copy':''} data-post-title="${esc(p.title)}" aria-label="${i%instagramPosts.length+1} sur ${instagramPosts.length} : ${esc(p.title)}">
-            <div class="ps-card__screen"><div class="ig-card__cover"${thumb?` style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(thumb.src)}')${thumb.large?`;background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),image-set(url('${esc(thumb.src)}') 1x,url('${esc(thumb.large)}') 2x)`:''}"`:''}><strong>${esc(p.title)}</strong>${p.kind?`<small>${esc(p.kind)}</small>`:''}${file?`<button type="button" class="ig-card__play" data-load-file aria-label="Lire la vidéo ${esc(p.title)}">▶</button>`:`<button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(p.title)} (chargée depuis Instagram)">▶</button>`}</div></div>
-            ${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(p.id)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}
-          </li>`; }).join('')}</ul>
-          <img class="phone-stack__frame" src="/assets/work/phone.webp" alt="" width="${workAssets.phone.w}" height="${workAssets.phone.h}" loading="lazy" decoding="async">
-        </div>
-        <div class="phone-stack__nav"><button type="button" data-stack-prev aria-label="Vidéo précédente">←</button><span class="phone-stack__dots">${instagramPosts.map((p,i)=>`<button type="button" data-stack-dot="${i}" aria-label="Voir ${esc(p.title)}"></button>`).join('')}</span><button type="button" data-stack-next aria-label="Vidéo suivante">→</button></div>
-      </div>
-    </section>
-    ${showPhotos ? `<section class="wk-photo" id="photo" aria-labelledby="wk-photo-title">
-      <header class="fab-section-heading motion-reveal"><div><h2 id="wk-photo-title">Photographie.</h2></div></header>
-      <div class="wk-photo__grid" data-count="${Math.min(photos.length,3)}">${photos.map((ph,i)=>`<figure class="wk-photo__item motion-reveal" style="--i:${i}"><img src="${esc(ph.srcSmall||ph.src)}"${ph.srcSmall?` srcset="${esc(ph.srcSmall)} ${ph.smallWidth}w, ${esc(ph.src)} ${ph.width}w" sizes="(max-width: 700px) 100vw, 33vw"`:''} alt="${esc(ph.alt)}"${ph.width&&ph.height?` width="${ph.width}" height="${ph.height}"`:''} loading="lazy" decoding="async">${[ph.series,ph.place,ph.year].filter(Boolean).length?`<figcaption>${[ph.series,ph.place,ph.year].filter(Boolean).map(esc).join(' · ')}</figcaption>`:''}</figure>`).join('')}</div>
-    </section>` : ''}
-    <section class="v16-testimonials wk-voices" id="retours">
-      <header class="fab-section-heading motion-reveal"><div><h2>Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>
-      ${morphTestimonials(testimonials)}
-    </section>
+    <dialog class="cat-viewer" data-cat-viewer aria-labelledby="cat-viewer-title"><div class="cat-viewer__inner"><div class="cat-viewer__stage" data-cat-stage></div><p class="cat-viewer__caption"><strong id="cat-viewer-title" data-cat-title></strong></p><button type="button" class="cat-viewer__close" data-cat-close aria-label="Fermer">×</button></div></dialog>
+    ${pricingSection({ workCount: catalogCount, heading:'Travailler ensemble.<br><em>Les tarifs.</em>', intro:'Ce qui est compris dans chaque offre, avant d’écrire.' })}
     <section class="wk-cta" id="contact-cta" aria-labelledby="wk-cta-title">
-      <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services et les tarifs <span aria-hidden="true">↗</span></a></div>
+      <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services <span aria-hidden="true">↗</span></a></div>
       <nav class="wk-cta__card motion-reveal" aria-label="Choisir le type de projet"><p class="wk-cta__q">Ça concerne quoi&nbsp;?</p>
-        ${intents.map(x=>`<a href="/contact/?intent=${x.intent}"><strong>${esc(x.title)}</strong><small>${esc(x.text)}</small><b>${esc(x.price)}</b></a>`).join('')}
+        ${[['moment','Mariage / moment','Mariage, demande en mariage'],['brand','Marque','Contenu, direction artistique, stratégie'],['story','Film / récit','Film de marque, court métrage']].map(([intent,t,x])=>`<a href="/contact/?intent=${intent}"><strong>${esc(t)}</strong><small>${esc(x)}</small><b aria-hidden="true">↗</b></a>`).join('')}
         <a class="is-alt" href="/contact/"><strong>Autre</strong><small>Une idée à cadrer</small><b aria-hidden="true">↗</b></a>
       </nav>
     </section>
@@ -375,13 +368,13 @@ export function workPage(){
 }
 
 export function projectPage(){
-  return head({title:`${bol.title} | court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bolPosterAbs, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }, ...[bolVideo()].filter(Boolean)], image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
+  return head({title:`${bol.title} | court métrage de Nolan Ribeiro`, description:bol.summary, path:'/projet/le-bol-den-face/', extraSchema:[{ '@type':'Movie', '@id':`${site.domain}/projet/le-bol-den-face/#film`, name:bol.title, description:bol.summary, dateCreated:bol.year, genre:'Court métrage', inLanguage:'fr', countryOfOrigin:{ '@type':'Country', name:'France' }, image:bolPosterAbs, url:`${site.domain}/projet/le-bol-den-face/`, sameAs:'https://www.youtube.com/watch?v=GbeOQ-hgrtU', director:{ '@id':`${site.domain}/#nolan` }, author:{ '@id':`${site.domain}/#nolan` } }, ...[bolVideo()].filter(Boolean), { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Work', item:`${site.domain}/work/` },{ '@type':'ListItem', position:2, name:bol.title, item:`${site.domain}/projet/le-bol-den-face/` }] }], image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', bodyClass:'page-project page-fabrica'}) + header('/projet/le-bol-den-face/') + `<main id="main-content" class="fab-project-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${bol.type} · ${bol.year}</span><h1>${bol.title}.</h1></div><p>${bol.summary}</p></section>
     ${lineToc([{id:'film',label:'Film'},{id:'story',label:'Intention'},{id:'next',label:'Suite'}])}
-    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bolPoster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span>${pageViewCounter()}</div>${projectMeta(bol)}</section>
+    <section class="fab-project-film" id="film"><div class="external-media project-player ambient-video-player" data-ambient-player data-external-video data-video-id="${bol.videoId}" data-video-title="${bol.title}" style="--poster:url('${bolPoster}')"><div class="external-media__gate"><small>Film · ${bol.year}</small><h2>Regarder<br>${bol.title}</h2><button class="hold-confirm" type="button" data-load-video><span>Lire sur YouTube</span><b aria-hidden="true">▶</b></button><p class="external-media__privacy">Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. <a href="/cookies/">En savoir plus</a>.</p></div></div><div class="fab-project-meta-head"><span>Fiche du film</span></div>${projectMeta(bol)}</section>
     ${gallerySection(bol, shownMedia(bol).filter(m=>m.key!==(bol.cover||'m-1')&&!(m.kind==='youtube'&&m.videoId===bol.videoId)))}
     <section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div><p>${bol.contextText}</p></header><div class="fab-project-story__statement motion-reveal"><span>Problème narratif</span><h3>${bol.intent}</h3></div><div class="fab-project-decisions">${bol.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${d.title}</h3><p>${d.text}</p></article>`).join('')}</div></section>
-    <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
+    <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="${contactFor(bol)}"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
   </main>` + footer();
 }
 
@@ -401,8 +394,8 @@ const mediaBlock = (p, m, i, hero=false) => {
   return `<figure class="pm-item pm-item--social motion-reveal"><div class="ig-card pm-card" ${file?`data-video-file data-video-src="${esc(m.video.src)}" data-video-type="${esc(m.video.type)}"`:`data-instagram-post data-post-id="${esc(m.instagramId)}"`} data-post-title="${esc(m.caption||p.title)}" style="--ig-ratio:${ratio}"><div class="ig-card__cover" style="background-image:linear-gradient(180deg,transparent 45%,rgba(8,7,6,.72)),url('${esc(m.img.srcSmall)}')" role="img" aria-label="${esc(m.alt)}"><strong>${esc(m.caption||p.title)}</strong><button type="button" class="ig-card__play" ${file?'data-load-file':'data-load-instagram'} aria-label="Lire la vidéo ${esc(m.caption||p.title)}${file?'':' (chargée depuis Instagram)'}">▶</button></div>${file?'':`<a class="ig-card__link" href="https://www.instagram.com/p/${esc(m.instagramId)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>`}</div>${cap}</figure>`;
 };
 const absImage = m => m.img ? `${site.domain}${m.img.src}` : m.poster?.abs || '';
-const gallerySection = (p, list) => list.length ? `<section class="pm-gallery" id="galerie" aria-labelledby="pm-gallery-title"><header class="fab-section-heading motion-reveal"><div><h2 id="pm-gallery-title">Galerie.</h2></div><p>${list.length} média${list.length>1?'s':''}, dans l’ordre du projet.</p></header><div class="pm-grid" data-count="${Math.min(list.length,3)}">${list.map((m,i)=>mediaBlock(p,m,i)).join('')}</div></section>` : '';
-const projectFiche = p => `<dl class="project-meta-list">${[['Type',p.type],['Contexte',p.context],['Client',p.client],['Rôle',p.role],['Année',p.year],['Lieu',p.location],['Format',p.format],['Caméra',p.camera],['Résultat',p.result]].filter(([,v])=>v).map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+const gallerySection = (p, list) => list.length ? `<section class="pm-gallery" id="galerie" aria-labelledby="pm-gallery-title"><header class="fab-section-heading motion-reveal"><div><h2 id="pm-gallery-title">Galerie.</h2></div></header><div class="pm-grid" data-count="${Math.min(list.length,3)}">${list.map((m,i)=>mediaBlock(p,m,i)).join('')}</div></section>` : '';
+const projectFiche = (p, count='') => `<dl class="project-meta-list">${[['Type',p.type],['Contexte',p.context],['Client',p.client],['Rôle',p.role],['Année',p.year],['Lieu',p.location],['Format',p.format],['Caméra',p.camera],['Médias',count],['Résultat',p.result]].filter(([,v])=>v).map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
 function generatedProjectPage(p, path){
   const all = shownMedia(p), cover = all.find(m=>m.key===p.cover) || all[0], rest = all.filter(m=>m!==cover);
   const hasStory = p.contextText || p.intent || (p.decisions||[]).length;
@@ -418,12 +411,19 @@ function generatedProjectPage(p, path){
   return head({ title:`${p.title} | ${p.type ? `${p.type.toLowerCase()} de ` : 'projet de '}Nolan Ribeiro`, description:desc, path, image, imageWidth:String(cover?.img?.width||1280), imageHeight:String(cover?.img?.height||720), imageAlt:cover?.alt||p.title, extraSchema:[work, ...videos, { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Work', item:`${site.domain}/work/` },{ '@type':'ListItem', position:2, name:p.title, item:`${site.domain}${path}` }] }], bodyClass:'page-project page-fabrica' }) + header(path) + `<main id="main-content" class="fab-project-page pm-page">
     <section class="fab-project-title motion-reveal"><a href="/work/">← Work</a><div><span>${esc([p.type,p.year].filter(Boolean).join(' · ')||'Projet')}</span><h1>${esc(p.title)}.</h1></div>${p.summary?`<p>${esc(p.summary)}</p>`:''}</section>
     ${lineToc([{id:'media',label:'Projet'},...(rest.length?[{id:'galerie',label:'Galerie'}]:[]),...(hasStory?[{id:'story',label:'Intention'}]:[]),{id:'next',label:'Suite'}])}
-    <section class="fab-project-film pm-hero" id="media">${mediaBlock(p,cover,0,true)}<div class="fab-project-meta-head"><span>Fiche du projet</span>${pageViewCounter()}</div>${projectFiche(p)}</section>
+    <section class="fab-project-film pm-hero" id="media">${mediaBlock(p,cover,0,true)}<div class="fab-project-meta-head"><span>Fiche du projet</span></div>${projectFiche(p, all.length>1?mediaCount(all):'')}</section>
     ${gallerySection(p, rest)}
     ${hasStory?`<section class="fab-project-story" id="story"><header class="fab-section-heading motion-reveal"><div><h2>Intention.</h2></div>${p.contextText?`<p>${esc(p.contextText)}</p>`:''}</header>${p.intent?`<div class="fab-project-story__statement motion-reveal"><span>Intention</span><h3>${esc(p.intent)}</h3></div>`:''}${(p.decisions||[]).length?`<div class="fab-project-decisions">${p.decisions.map((d,i)=>`<article class="motion-reveal"><span>0${i+1}</span><h3>${esc(d.title)}</h3><p>${esc(d.text)}</p></article>`).join('')}</div>`:''}</section>`:''}
-    <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="/contact/"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
+    <section class="fab-project-next" id="next"><header><small>Continuer</small><h2>Et ensuite ?</h2></header><a href="/work/"><span>01</span><strong>Voir les autres travaux.</strong><b>↗</b></a><a href="/services/"><span>02</span><strong>Voir comment j’interviens.</strong><b>↗</b></a><a href="${contactFor(p)}"><span>03</span><strong>Parler du projet.</strong><b>↗</b></a></section>
   </main>` + footer();
 }
+/** Projets visibles du catalogue, avec leur adresse réelle (page projet, lien externe, sinon le catalogue filtré) : llms.txt. */
+export function projectLinks(){
+  return featured.map(p=>{ const href=projectHref(p), cats=Cat.project(p);
+    return { title:p.title, year:p.year||'', type:p.type||'', summary:p.summary||'', client:p.client||'', url: !href ? `${site.domain}${catalogHref(cats[0]||'')}` : /^https?:/.test(href) ? href : `${site.domain}${href}` }; });
+}
+/** Catalogue (llms.txt) : catégories non vides et leur adresse. */
+export const catalogSummary = () => Cat.LIST.filter(([k])=>catalogCount(k)).map(([k,label])=>({ label, count:catalogCount(k), url:`${site.domain}${catalogHref(k)}` }));
 /** Pages projet à générer au build : [chemin du fichier, HTML, adresse publique]. */
 export function projectPages(){
   return projects.filter(p=>p.visible&&p.slug!=='le-bol-den-face'&&pageOf.get(p.slug)&&shownMedia(p).length).map(p=>{ const path=pageOf.get(p.slug); return [`${path.slice(1)}index.html`, generatedProjectPage(p,path), path]; });
@@ -432,12 +432,12 @@ export function projectPages(){
 export function servicesPage(){
   return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Tarifs de Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande en mariage dès 250 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
     <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
-    <section class="v16-service-switcher" data-expertise-switcher data-expertise-query>
+    <section class="v16-service-switcher" data-expertise-switcher data-expertise-query><span class="svc-anchor" id="realisation" data-expertise-anchor="realisation"></span><span class="svc-anchor" id="direction-artistique" data-expertise-anchor="direction"></span><span class="svc-anchor" id="strategie-de-marque" data-expertise-anchor="strategie"></span>
       <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
       <div class="v16-service-switcher__panels">
-        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story">Parler d’une réalisation ↗</a></div><figure><img src="${bolPoster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" width="1280" height="720" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
+        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story&amp;offre=film">Parler d’une réalisation ↗</a></div><figure><img src="${bolPoster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" width="1280" height="720" loading="lazy"></figure></div>
+        <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand&amp;offre=direction">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
+        <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand&amp;offre=strategie">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
       </div>
     </section>
     ${weddingOffersSection()}
@@ -496,7 +496,7 @@ const contactIntents = [
 ];
 
 export function contactPage(){
-  const offers = Object.fromEntries(pricing.map(o=>[o.key,{title:o.title,intent:o.intent,price:o.price?`${o.from?'à partir de ':''}${o.price}`:'',message:pricingMessage(o)}]));
+  const offers = Object.fromEntries([...pricing,...contactTopics].map(o=>[o.key,{title:o.title,intent:o.intent,price:o.price?`${o.from?'à partir de ':''}${o.price}`:'',message:pricingMessage(o)}]));
   const priceMarks = pricing.filter(o=>/€/.test(o.price)).slice(0,4).map(o=>`<li><span>${esc(o.tag)}</span><b>${o.from?'dès ':''}${esc(o.price)}</b></li>`).join('');
   const quote = testimonials[0];
   const igMessage = 'Salut Nolan, je viens de ton site nolanarc.com. Je voudrais te parler d’un projet : ';
@@ -706,7 +706,7 @@ export function adminPage(){
   return head({title:'Tableau de bord | Nolan Arc',description:'Espace d’administration réservé de nolanarc.com.',path:'/admin/',bodyClass:'page-admin'}).replace('<title>','<meta name="robots" content="noindex,nofollow">\n<title>').replace('</head>','<link rel="stylesheet" href="/admin/admin.css?v=__ADMINCSS_V__">\n</head>') + `<a class="skip-link" href="#main-content">Aller au contenu</a>
 <main id="main-content" class="admin-ui"><h1 class="admin-sr">Tableau de bord Nolan Arc</h1>
 <div class="admin-app" data-admin-app data-docs="__DOCS_V__" data-supabase-url="${esc(site.supabaseUrl)}" data-supabase-key="${esc(site.supabasePublishableKey)}" data-offers="${esc(JSON.stringify(pricing.map(o=>({key:o.key,label:o.title,from:o.from?Number(String(o.price).replace(/[^\d]/g,''))||0:0}))))}" data-business="${esc(JSON.stringify({name:site.name,legalName:site.legalName,email:site.email,siret:legal.siret}))}"><noscript><p>JavaScript est nécessaire pour cette page.</p></noscript></div>
-</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/cropper.js?v=__CROP_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/testimonials.js?v=__TESTI_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
+</main><script src="/admin/supabase.js?v=2.119.0" defer></script><script src="/admin/doc-models.js?v=__MODELS_V__" defer></script><script src="/admin/messages.js?v=__MSG_V__" defer></script><script src="/admin/cockpit.js?v=__COCKPIT_V__" defer></script><script src="/admin/cropper.js?v=__CROP_V__" defer></script><script src="/admin/categories.js?v=__CAT_V__" defer></script><script src="/admin/media.js?v=__MEDIA_V__" defer></script><script src="/admin/photos.js?v=__PHOTOS_V__" defer></script><script src="/admin/projects.js?v=__PROJECTS_V__" defer></script><script src="/admin/videos.js?v=__VIDEOS_V__" defer></script><script src="/admin/images.js?v=__IMAGES_V__" defer></script><script src="/admin/testimonials.js?v=__TESTI_V__" defer></script><script src="/admin/admin.js?v=__ADMIN_V__" defer></script></body></html>`;
 }
 
 export function notFoundPage(){

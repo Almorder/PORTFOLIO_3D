@@ -21,6 +21,10 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { site } from '../content/site.mjs';
+import '../public/admin/categories.js';
+
+// Catégories du catalogue cochées dans l'admin : gardées seulement si elles existent ; absentes, le site les déduit.
+const categoriesOf = value => Array.isArray(value) ? { categories: globalThis.NolanCategories.valid(value) } : {};
 
 const root = new URL('../', import.meta.url).pathname;
 const outDir = join(root, 'public/assets/photo/site');
@@ -58,7 +62,7 @@ export function normalizePhotos(draft) {
     const inSection = it?.visible === true, inTile = typeof it?.inTile === 'boolean' ? it.inTile : inSection;
     if (!image || seen.has(image.id) || !(inSection || inTile) || !alt) continue;
     seen.add(image.id);
-    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile });
+    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile, ...categoriesOf(it.categories) });
   }
   return { items: list };
 }
@@ -113,7 +117,7 @@ export function normalizeProjects(list) {
     const media = (Array.isArray(p.media) ? p.media : legacyMedia(p)).slice(0, 24).map(normalizeMedia).filter(m => m && !keys.has(m.key) && keys.add(m.key));
     const cover = media.find(m => m.key === p.cover) || media[0] || null;
     out.push({
-      slug, title, visible: p.visible === true,
+      slug, title, visible: p.visible === true, ...categoriesOf(p.categories),
       territory: TERRITORIES.includes(p.territory) ? p.territory : '',
       type: clean(p.type, 80), role: clean(p.role, 80), context: clean(p.context, 120), client: clean(p.client, 80),
       year: yearOf(p.year), result: clean(p.result, 200), link: link(p.link), summary: clean(p.summary, 400),
@@ -163,7 +167,7 @@ export function normalizeSocial(list) {
     seen.add(key);
     const legacyCover = /^\/assets\/work\/[\w-]+\.(jpe?g|png|webp)$/.test(p.cover || '') ? p.cover : '';
     out.push({
-      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80),
+      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80), ...categoriesOf(p.categories),
       ratio: video ? ratioOf(video.width, video.height) : /^\d{1,4}\/\d{1,4}$/.test(p.ratio || '') ? p.ratio : '9/16',
       tags: (Array.isArray(p.tags) ? p.tags : ['reseaux']).filter(t => TAGS.includes(t)).slice(0, 5),
       client: clean(p.client, 80), role: clean(p.role, 80), year: yearOf(p.year), result: clean(p.result, 200),

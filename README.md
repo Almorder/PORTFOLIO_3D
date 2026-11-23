@@ -81,6 +81,8 @@ Garde le repository `Almorder/PORTFOLIO_3D` et surtout son dossier caché `.git`
 
 ## Documentation
 
+- `docs/CONTENU.md` : ajouter un projet, une vidéo, une photo, ses catégories, une étude de cas ; vérifier avant publication.
+
 - `AUDIT_V17.md`
 - `DESIGN_SYSTEM_V17.md`
 - `COMPONENT_IMPLEMENTATION_V17.md`

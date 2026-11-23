@@ -23,6 +23,6 @@ export const photos = items.filter(inSection);
 export const tilePhotos = items.filter(inTile);
 
 // Même liste, au format du brouillon de l'admin (pour « Importer le contenu actuel du site »).
-export const photoDraft = { items: items.map(({ id, width, height, smallWidth, smallHeight, source, crop, alt, series, place, year, ...p }) => ({ id, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}), alt, series, place, year, visible: inSection(p), inTile: inTile(p) })) };
+export const photoDraft = { items: items.map(({ id, width, height, smallWidth, smallHeight, source, crop, alt, series, place, year, ...p }) => ({ id, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}), alt, series, place, year, visible: inSection(p), inTile: inTile(p), ...(Array.isArray(p.categories) ? { categories: p.categories } : {}) })) };
 
 export const MIN_PHOTOS = 1;
