@@ -2539,7 +2539,7 @@ body.cx-dialog-open{overflow:hidden}
 .wk-fiche>div{flex:1 1 150px;padding:14px 18px;border-left:1px solid rgba(8,7,6,.08)}
 .wk-fiche>div:first-child{border-left:0;flex-grow:1.4}
 .wk-fiche>div[hidden]{display:none}
-.wk-fiche dt{margin:0 0 8px;font:600 10px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(8,7,6,.5)}
+.wk-fiche dt{margin:0 0 8px;font:600 10px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(8,7,6,.66)}
 .wk-fiche dd{margin:0;font:500 15px/1.35 var(--body)}
 .wk-fiche__title dd{font:500 22px/1.05 var(--serif);letter-spacing:-.015em}
 /* Mode liste */
@@ -2809,7 +2809,7 @@ body.cx-dialog-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.cat-item.is-in{animation:none}.cat-card__media img{transition:none}}
 
 /* Tarifs : ce qui est inclus, sous les cartes (même composant sur l'accueil et Work). */
-.price-details{position:relative;z-index:2;max-width:1080px;margin:clamp(30px,4vw,56px) auto 0}
+.price-details{position:relative;z-index:2;max-width:1080px;margin:clamp(44px,5vw,80px) auto 0}
 .price-details__title{margin:0 0 14px;font:600 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;text-align:center;color:rgba(8,7,6,.66)}
 .price-details__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
 .price-detail{border:1px solid rgba(8,7,6,.1);border-radius:16px;background:#fff}

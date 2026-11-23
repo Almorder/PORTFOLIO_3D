@@ -690,7 +690,9 @@ $$('[data-tm]').forEach(wrap=>{
 // préfère moins de mouvement.
 $$('[data-bento-slides]').forEach(box=>{
   const imgs=$$('img',box); if(imgs.length<2||reduced) return;
-  let k=0; setInterval(()=>{ if(document.hidden) return; imgs[k].classList.remove('is-on'); k=(k+1)%imgs.length; imgs[k].classList.add('is-on'); },4500);
+  const load=img=>{ if(img?.dataset.src){ if(img.dataset.srcset) img.srcset=img.dataset.srcset; img.src=img.dataset.src; delete img.dataset.src; delete img.dataset.srcset; } };
+  load(imgs[1]);
+  let k=0; setInterval(()=>{ if(document.hidden) return; imgs[k].classList.remove('is-on'); k=(k+1)%imgs.length; imgs[k].classList.add('is-on'); load(imgs[(k+1)%imgs.length]); },4500);
 });
 
 // Bento : la tuile cliquée prend la grande place, les autres se réinstallent dans l'ordre.
@@ -1101,7 +1103,8 @@ $$('[data-phone-stack]').forEach(stack=>{
       card.classList.toggle('is-active',d===0);
       card.toggleAttribute('inert',a>2);
       if(card.hasAttribute('data-stack-copy')) card.setAttribute('aria-hidden',String(d!==0));
-      $('[data-load-instagram],[data-load-file]',card)?.setAttribute('tabindex',d===0?'0':'-1');
+      // Seule la vidéo du centre reçoit le focus clavier (les autres sont masquées aux lecteurs d'écran).
+      $$('[data-load-instagram],[data-load-file],a',card).forEach(el=>el.setAttribute('tabindex',d===0?'0':'-1'));
       if(d!==0) stop(card);
     });
     dots.forEach((dot,i)=>dot.setAttribute('aria-current',String(i===active%dots.length)));
@@ -1173,7 +1176,12 @@ $$('[data-catalog]').forEach(root=>{
   const names=new Map($$('.cat-filters [data-cat-filter],.cat-filters [data-cat-filter-empty]',root).map(el=>[el.dataset.catFilter??el.dataset.catFilterEmpty,el.firstChild.textContent.trim()]));
   const read=()=>{const key=new URLSearchParams(location.search).get('categorie')||'';return names.has(key)?key:'';};
   const apply=(key,animate)=>{
-    links.forEach(a=>{ if(a.closest('.cat-filters')){ if(a.dataset.catFilter===key) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); } });
+    links.forEach(a=>{ const bar=a.closest('.cat-filters'); if(!bar) return;
+      if(a.dataset.catFilter!==key){ a.removeAttribute('aria-current'); return; }
+      a.setAttribute('aria-current','true');
+      // Sur téléphone, la rangée de filtres défile : le filtre actif reste en vue (sans faire défiler la page).
+      if(bar.scrollWidth>bar.clientWidth) bar.scrollLeft=a.offsetLeft-bar.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;
+    });
     let n=0;
     items.forEach(li=>{
       const show=!key||li.dataset.cats.split(' ').includes(key);

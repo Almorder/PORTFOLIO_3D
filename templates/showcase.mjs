@@ -65,7 +65,9 @@ export function morphTestimonials(items=[], id='avis'){
 
 // Une image du bento : dimensions déclarées quand on les connaît (pas de saut de mise en page).
 // srcset : petite et grande taille envoyées depuis l'admin ; le navigateur charge la plus juste.
-// i=0 : image prioritaire (seulement quand le bento ouvre la page) ; sinon chargement différé.
+// Diaporama de la tuile Photographie : seule la première photo est chargée avec la page, les suivantes juste avant
+// d'apparaître (src/app.js). i=0 : image prioritaire (seulement quand le bento ouvre la page) ; sinon chargement différé.
+// sizes : toute tuile peut passer en grand au clic, on prévoit donc la taille de la grande tuile.
 const tileImg=(src,alt,i,w,h,srcset)=>`<img src="${esc(src)}"${srcset?` srcset="${esc(srcset)}" sizes="(max-width: 700px) 100vw, 50vw"`:''} alt="${esc(alt||'')}"${w&&h?` width="${w}" height="${h}"`:''} loading="${i?'lazy':'eager'}"${i?'':' fetchpriority="high"'} decoding="async">`;
 
 /** Projets en bento : une grande tuile et des petites ; un clic sur une petite la fait passer en grand.
@@ -74,7 +76,7 @@ const tileImg=(src,alt,i,w,h,srcset)=>`<img src="${esc(src)}"${srcset?` srcset="
  *  Sans t.href (projet à un seul média, sans page ni lien) : la tuile se met en avant au clic mais ne s'ouvre pas. */
 export function bentoFocus(tiles=[], {eager=true}={}){
   return `<div class="bento" data-bento style="--bento-n:${tiles.length}">${tiles.map((t,i)=>`<article class="bento__tile${t.image||t.images?'':' is-blank'}${t.images?' bento__tile--slides':''}" data-bento-tile data-slot="${i}"${Object.entries(t.data||{}).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')} style="view-transition-name:bento-${i};--k:${i}">
-      ${t.images?`<span class="bento__slides" data-bento-slides data-count="${t.images.length}">${t.images.map((p,k)=>tileImg(p.src,p.alt,1,p.width,p.height,p.srcset).replace('<img ',`<img class="${k?'':'is-on'}" `)).join('')}</span>`:t.image?tileImg(t.image,t.alt,eager?i:1,t.width,t.height,t.srcset):''}
+      ${t.images?`<span class="bento__slides" data-bento-slides data-count="${t.images.length}">${t.images.map((p,k)=>{ const img=tileImg(p.src,p.alt,1,p.width,p.height,p.srcset).replace('<img ',`<img class="${k?'':'is-on'}" `); return k ? img.replace(' src="',' data-src="').replace(' srcset="',' data-srcset="') : img; }).join('')}</span>`:t.image?(eager||i?tileImg(t.image,t.alt,eager?i:1,t.width,t.height,t.srcset):tileImg(t.image,t.alt,1,t.width,t.height,t.srcset).replace('loading="lazy"','loading="eager"')):''}
       <div class="bento__text">
         <span class="bento__label">${esc(t.label)}</span>
         <h3>${esc(t.title)}</h3>
