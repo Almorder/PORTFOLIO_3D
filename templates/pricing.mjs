@@ -49,10 +49,10 @@ export function pricingSection({ workCount = () => 0, heading = 'Un ordre de gra
           <div class="price-detail__body">
             <p>${esc(c.text)}</p>
             ${list('Inclus',d.includes)}${list('Vous recevez',d.deliverables)}${list('Périmètre',d.scope)}${list('Ce qui fait évoluer le prix',d.varies)}
-            <p class="price-detail__actions">${n?`<a class="price-detail__see" href="/work/?categorie=${esc(d.work)}">Voir des réalisations <span aria-hidden="true">↗</span></a>`:''}<a class="price-detail__go" href="${esc(pricingHref(c))}">${esc(c.cta)}<span class="sr-only"> : ${esc(c.title)}</span> <span aria-hidden="true">↗</span></a></p>
+            <div class="price-detail__actions">${n?`<a class="price-detail__btn" href="/work/?categorie=${esc(d.work)}">Voir des réalisations <span aria-hidden="true">↗</span></a>`:''}<a class="price-detail__btn price-detail__btn--go" href="${esc(pricingHref(c))}">${esc(c.cta)}<span class="sr-only"> : ${esc(c.title)}</span> <span aria-hidden="true">↗</span></a></div>
           </div>
         </details>`; }).join('')}</div>
-        <ul class="price-details__common" aria-label="Pour toutes les offres">${pricingCommon.map(t=>`<li>${esc(t)}</li>`).join('')}<li><a href="/cgv/">Conditions générales de vente</a></li></ul>
+        <div class="price-details__common"><p class="price-details__common-title">Pour toutes les offres</p><ul>${pricingCommon.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><a href="/cgv/">Conditions générales de vente <span aria-hidden="true">↗</span></a></div>
       </div>
     </section>`;
 }

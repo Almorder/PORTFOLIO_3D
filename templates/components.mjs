@@ -27,7 +27,7 @@ export const contentSecurityPolicy = [
   "upgrade-insecure-requests",
 ].join('; ');
 
-export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[], robots='' }) {
+export function head({ title, description, path='/', image=`${site.domain}/assets/og-home.png`, imageAlt='Nolan Arc, halo elliptique noir, blanc et orange', imageWidth='1024', imageHeight='1024', bodyClass='', extraSchema=[], robots='', preload='' }) {
   const canonical = `${site.domain}${path === '/' ? '/' : path}`;
   const personId = `${site.domain}/#nolan`;
   const businessId = `${site.domain}/#business`;
@@ -83,7 +83,7 @@ ${imageHeight?`<meta property="og:image:height" content="${esc(imageHeight)}">`:
 ${path !== '/contact/' ? '<link rel="prefetch" href="/contact/" as="document">' : ''}
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Syne:wght@400..800&family=Yrsa:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
 <style id="critical-shell">.mobile-menu[hidden]{display:none!important}</style>
-<link rel="stylesheet" href="/__SITE_CSS__">
+${preload}<link rel="stylesheet" href="/__SITE_CSS__">
 <script>document.documentElement.classList.remove('no-js');</script>
 <script type="application/ld+json">${schemaJson}</script>
 </head>

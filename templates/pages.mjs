@@ -6,7 +6,7 @@ import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
 import { photos, tilePhotos, MIN_PHOTOS } from '../content/photos.mjs';
 import { testimonials } from '../content/testimonials.mjs';
-import { siteImage } from '../content/site-images.mjs';
+import { siteImage, siteVideo } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
@@ -94,32 +94,39 @@ const projectItem = (p,i) => {
 };
 // Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
 const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, large:publicFile(p.image.src)?p.image.src:'', width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
-const workItems = [
-  ...featured.map(projectItem),
+// « Mis en avant » (admin) : en tête, puis l'ordre manuel ; même règle pour l'accueil et le catalogue Work.
+const featuredFirst = list => [...list.filter(x=>x.featured), ...list.filter(x=>!x.featured)];
+const workItems = featuredFirst([
+  ...featured.map(p=>({ ...projectItem(p,1), featured:Boolean(p.featured) })),
   // Tuile « Photographie » : un seul bloc avec toutes les photos cochées « Dans la tuile » (diaporama lent).
   // Elle ouvre la section Photographie si elle existe ; sinon elle s'affiche sans s'ouvrir. Aucune photo : pas de tuile.
   ...(tilePhotos.length ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(tilePhotos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(tilePhotos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'/work/?categorie=photo', cta:'Voir les photos' }] : []),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'/work/?categorie=photo', cta:'Voir les photos', featured:tilePhotos.some(p=>p.featured) }] : []),
   ...instagramPosts.map((p,i)=>{ const thumb=socialThumb(p), file=p.source==='file';
     return { title:p.title, type:'Vidéo verticale', tags:p.tags?.length?p.tags:['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
-    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
-];
+    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, featured:Boolean(p.featured), ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
+]);
+// La première tuile du bento est la grande : image en grande taille.
+if (workItems[0]?.project) workItems[0] = { ...projectItem(workItems[0].project,0), featured:workItems[0].featured };
 const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat'],['text','Description']];
 const withFiche = item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) });
 const bentoTiles = workItems.slice(0,5).map(withFiche);
 // Plus de 5 projets mis en avant : les suivants dans une grille sous le bento, ouverte par « Voir plus de projets ».
-const moreTiles = featured.length>5 ? workItems.slice(5,featured.length).map(withFiche) : [];
+const moreTiles = workItems.slice(5).filter(it=>it.project).map(withFiche);
 
 // Catalogue de la page Work : tous les projets visibles, toutes les vidéos courtes et les photos du catalogue,
 // chacun dans une ou plusieurs catégories (public/admin/categories.js). Mêmes données que l'accueil (admin).
 // Une photo déjà présente dans un projet n'a pas de deuxième carte.
 const projectImageIds = new Set(projects.filter(p=>p.visible).flatMap(p=>(p.media||[]).map(m=>m.image?.id).filter(Boolean)));
-const catalogItems = [
+// Format réel de chaque aperçu (largeur / hauteur) : image envoyée, affiche YouTube 16:9, vidéo verticale 9:16 par défaut.
+const ratioOf = (w,h,fallback) => w&&h ? `${w}/${h}` : fallback;
+const catalogItems = featuredFirst([
   ...featured.map(p=>{ const m=projectMedia(p,false), href=projectHref(p), all=shownMedia(p);
-    return { kind:'project', title:p.title, cats:Cat.project(p), year:p.year||'', type:p.type||'', client:p.client||'', image:m, href, count:all.length>1?mediaCount(all):'', project:p }; }),
-  ...instagramPosts.map(p=>({ kind:'social', title:p.title, cats:Cat.social(p), year:p.year||'', type:p.kind||'Vidéo verticale', client:p.client||'', thumb:socialThumb(p), post:p })),
-  ...photos.filter(ph=>!projectImageIds.has(ph.id)).map(ph=>({ kind:'photo', title:ph.series||'Photographie', cats:Cat.photo(ph), year:ph.year||'', type:ph.place||'', client:'', ph })),
-];
+    return { kind:'project', title:p.title, cats:Cat.project(p), year:p.year||'', type:p.type||'', client:p.client||'', image:m, href, count:all.length>1?mediaCount(all):'', project:p, featured:Boolean(p.featured), ratio:ratioOf(m.width,m.height,'16/9') }; }),
+  ...instagramPosts.map(p=>{ const thumb=socialThumb(p); return { kind:'social', title:p.title, cats:Cat.social(p), year:p.year||'', type:p.kind||'Vidéo verticale', client:p.client||'', thumb, post:p, featured:Boolean(p.featured),
+    ratio: p.source==='file'&&p.video ? ratioOf(p.video.width,p.video.height) : thumb?.width ? ratioOf(thumb.width,thumb.height) : (p.ratio||'9/16') }; }),
+  ...photos.filter(ph=>!projectImageIds.has(ph.id)).map(ph=>({ kind:'photo', title:ph.series||'Photographie', cats:Cat.photo(ph), year:ph.year||'', type:ph.place||'', client:'', ph, featured:Boolean(ph.featured), ratio:ratioOf(ph.width,ph.height,'4/5') })),
+]);
 const catalogCount = key => catalogItems.filter(it=>it.cats.includes(key)).length;
 const catalogHref = key => key ? `/work/?categorie=${key}` : '/work/';
 // VideoObject : publié seulement quand la date de mise en ligne et une vignette existent (exigence de Google).
@@ -139,16 +146,25 @@ const visuals = {
   moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
 };
 
-// Sony France lists this creator film as an Alpha 7 IV showcase. It is used as a silent,
-// non-interactive background; the still remains underneath as a resilient fallback.
-const homeHeroVideo = {
-  id:'xAapoE5OKIk',
-  title:'Vidéo de fond | Nolan Arc',
-  // Fichier hébergé sur le site (sans extension) : quand il est renseigné, la vidéo démarre seule,
-  // sans demande d'autorisation, car aucun service tiers n'est appelé. Fichiers produits par tools/video/hero.sh.
-  file:''
-};
-const heroSelfHosted = Boolean(homeHeroVideo.file);
+// Bannière de l'accueil. Vidéos hébergées par le site, envoyées depuis l'admin (Images > Accueil · Bannière) :
+// une pour l'ordinateur (16:9), une pour le téléphone (9:16), chacune avec son affiche. Aucune requête tierce :
+// elles démarrent seules (muettes), sans demande d'autorisation. Sans fichier publié, la bannière garde le film
+// YouTube d'origine (Sony France, vitrine Alpha 7 IV), chargé seulement après autorisation.
+const homeHeroVideo = { id:'xAapoE5OKIk', title:'Vidéo de fond | Nolan Arc' };
+const heroWide = siteVideo('home.hero.desktop'), heroNarrow = siteVideo('home.hero.mobile');
+// Ordinateur sans YouTube dès que la vidéo 16:9 est publiée (le téléphone prend alors la 9:16, sinon la 16:9).
+const heroSelfHosted = Boolean(heroWide);
+// Image vide (1 pixel) : une couche masquée sur cet écran ne télécharge pas son affiche.
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+const heroFileLayer = () => { const main = heroWide || heroNarrow, only = !heroWide;
+  const poster = img => `${esc(img.srcSmall)} ${img.smallWidth}w, ${esc(img.src)} ${img.width}w`;
+  return `<div class="v16-hero__media v16-hero__media--file${heroNarrow?' has-narrow':''}${only?' is-narrow-only':''}" aria-hidden="true"><picture>${heroWide&&heroNarrow?`<source media="(max-width: 760px)" srcset="${poster(heroNarrow.image)}" sizes="100vw" width="${heroNarrow.image.width}" height="${heroNarrow.image.height}">`:''}${only?`<source media="(min-width: 761px)" srcset="${BLANK}">`:''}<img class="v16-hero__poster" src="${esc(main.image.src)}" srcset="${poster(main.image)}" sizes="100vw" width="${main.image.width}" height="${main.image.height}" alt="" fetchpriority="high" decoding="async"></picture><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="none"${heroWide?` data-src-wide="${esc(heroWide.video.src)}" data-type-wide="${esc(heroWide.video.type)}"`:''}${heroNarrow?` data-src-narrow="${esc(heroNarrow.video.src)}" data-type-narrow="${esc(heroNarrow.video.type)}"`:''}></video></div>`; };
+// YouTube : sous-titres coupés (cc_load_policy=0), aucune commande ; le titre affiché par YouTube au lancement
+// reste couvert par l'affiche (src/app.js). YouTube ne permet ni de retirer son titre ni de fixer la qualité.
+const heroYoutube = () => `<div class="v16-hero__media v16-hero__media--video${heroNarrow?' has-narrow-file':''}" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&cc_load_policy=0&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}">${heroNarrow?`<picture><source media="(max-width: 760px)" srcset="${BLANK}">`:''}<img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async">${heroNarrow?'</picture>':''}<div class="v16-hero__video-slot" data-hero-video-slot></div></div>`;
+// Affiche de la bannière annoncée dès l'en-tête : elle se télécharge en même temps que la feuille de style (LCP).
+const heroPreload = () => [[heroWide, heroNarrow ? '(min-width: 761px)' : ''], [heroNarrow, heroWide ? '(max-width: 760px)' : '(max-width: 760px)']].filter(([v])=>v).map(([v,media])=>`<link rel="preload" as="image" href="${esc(v.image.src)}" imagesrcset="${esc(v.image.srcSmall)} ${v.image.smallWidth}w, ${esc(v.image.src)} ${v.image.width}w" imagesizes="100vw"${media?` media="${media}"`:''} fetchpriority="high">\n`).join('');
+const heroMedia = () => heroWide ? heroFileLayer() : heroNarrow ? heroYoutube() + heroFileLayer() : heroYoutube();
 
 
 const workMoodSlides = [
@@ -203,14 +219,12 @@ export function homePage(){
     title:'Nolan Ribeiro, vidéaste, photographe et réalisateur | Nolan Arc',
     description:'Nolan Ribeiro (Nolan Arc), vidéaste, photographe et réalisateur en Île-de-France : films de mariage dès 1 500 €, films de marque, direction artistique et stratégie.',
     extraSchema:faqSchema(site.faqs.home,'/'),
-    path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc, halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:'page-home page-fabrica page-v16'
+    path:'/', image:`${site.domain}/assets/og-home.png`, imageAlt:'Nolan Arc, halo elliptique noir, blanc et orange', imageWidth:'1024', imageHeight:'1024', bodyClass:`page-home page-fabrica page-v16${heroWide||heroNarrow?' has-hero-file':''}`, preload:heroPreload()
   }) + header('/') + `
   <main id="main-content" class="v16-home">
     <div class="hero-stack" data-hero-stack>
     <section class="v16-hero" aria-labelledby="v16-hero-title">
-      ${heroSelfHosted
-        ? `<div class="v16-hero__media v16-hero__media--file" aria-hidden="true"><video class="v16-hero__file" data-hero-file autoplay muted loop playsinline disablepictureinpicture preload="auto" poster="${homeHeroVideo.file}.jpg"><source src="${homeHeroVideo.file}.webm" type="video/webm"><source src="${homeHeroVideo.file}.mp4" type="video/mp4"></video></div>`
-        : `<div class="v16-hero__media v16-hero__media--video" aria-hidden="true" data-hero-video data-video-src="https://www.youtube-nocookie.com/embed/${homeHeroVideo.id}?autoplay=1&mute=1&loop=1&playlist=${homeHeroVideo.id}&controls=0&rel=0&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&vq=hd2160" data-video-title="${esc(homeHeroVideo.title)}"><img class="v16-hero__poster" src="https://img.youtube.com/vi/${homeHeroVideo.id}/maxresdefault.jpg" data-fallback="https://img.youtube.com/vi/${homeHeroVideo.id}/hqdefault.jpg" alt="" fetchpriority="high" decoding="async"><div class="v16-hero__video-slot" data-hero-video-slot></div></div>`}
+      ${heroMedia()}
       <h1 class="sr-only" id="v16-hero-title">Nolan Ribeiro, vidéaste, photographe et réalisateur. Nolan Arc : réalisation, direction artistique et stratégie de marque</h1>
       <div class="hero-copy">
         <p class="hero-roles">Réalisation, direction artistique et stratégie de marque</p>
@@ -341,7 +355,7 @@ export function workPage(){
       label='Agrandir'; action=`<button type="button" class="cat-card__hit" data-cat-open="photo" data-src="${esc(ph.src)}" data-alt="${esc(ph.alt)}" data-title="${esc([ph.series,ph.place,ph.year].filter(Boolean).join(' · ')||it.title)}"><span class="sr-only">Agrandir : ${esc(ph.alt)}</span></button>`;
     }
     return `<li class="cat-item" data-cats="${esc(it.cats.join(' '))}" style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
-        <div class="cat-card__media${media?'':' is-blank'}">${media}</div>
+        <div class="cat-card__media${media?'':' is-blank'}" style="aspect-ratio:${esc(it.ratio)}">${media}</div>
         <div class="cat-card__body"><h3>${esc(it.title)}</h3>${meta(it)?`<p class="cat-card__meta">${meta(it)}</p>`:''}${it.cats.length?`<p class="cat-card__cats">${esc(chips(it.cats))}</p>`:''}${label?`<span class="cat-card__go" aria-hidden="true">${esc(label)}</span>`:''}</div>
         ${action}${extra}
       </article></li>`;
@@ -349,14 +363,14 @@ export function workPage(){
   return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Toutes les réalisations de Nolan Ribeiro : films, vidéos pour les réseaux sociaux, photographie, mariages et direction artistique, à filtrer par catégorie.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...projectVideos(), ...igVideos(), { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Accueil', item:`${site.domain}/` },{ '@type':'ListItem', position:2, name:'Work', item:`${site.domain}/work/` }] }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
     <section class="cat" id="catalogue" aria-labelledby="cat-title" data-catalog>
       <header class="cat__head"><h1 id="cat-title">Work<span class="title-dot">.</span></h1>
-        <nav class="cat-filters" aria-label="Filtrer les réalisations par catégorie">${filters.map(f=>f.count||!f.key?`<a href="${catalogHref(f.key)}" data-cat-filter="${f.key}"${f.key?'':' aria-current="true"'}>${esc(f.label)}<sup>${f.count}</sup></a>`:`<span class="is-empty" data-cat-filter-empty="${f.key}" aria-disabled="true">${esc(f.label)}<sup>0</sup></span>`).join('')}</nav>
+        <div class="cat-filters" role="group" aria-label="Filtrer les réalisations par catégorie, plusieurs choix possibles">${filters.map(f=>f.count||!f.key?`<a href="${catalogHref(f.key)}" role="button" data-cat-filter="${f.key}" aria-pressed="${f.key?'false':'true'}">${esc(f.label)}<sup>${f.count}</sup></a>`:`<span class="is-empty" data-cat-filter-empty="${f.key}" aria-disabled="true">${esc(f.label)}<sup>0</sup></span>`).join('')}</div>
       </header>
       <p class="cat__status" data-cat-status aria-live="polite">${catalogItems.length} réalisations</p>
       <ul class="cat-grid" data-cat-grid>${catalogItems.map(card).join('')}</ul>
-      <p class="cat__empty" data-cat-empty hidden>Rien dans cette catégorie pour l’instant. <a href="/work/" data-cat-filter="">Voir toutes les réalisations</a></p>
+      <p class="cat__empty" data-cat-empty hidden>Rien dans cette catégorie pour l’instant. <a href="/work/" data-cat-reset>Voir toutes les réalisations</a></p>
     </section>
     <dialog class="cat-viewer" data-cat-viewer aria-labelledby="cat-viewer-title"><div class="cat-viewer__inner"><div class="cat-viewer__stage" data-cat-stage></div><p class="cat-viewer__caption"><strong id="cat-viewer-title" data-cat-title></strong></p><button type="button" class="cat-viewer__close" data-cat-close aria-label="Fermer">×</button></div></dialog>
-    ${pricingSection({ workCount: catalogCount, heading:'Travailler ensemble.<br><em>Les tarifs.</em>', intro:'Ce qui est compris dans chaque offre, avant d’écrire.' })}
+    ${pricingSection({ workCount: catalogCount })}
     <section class="wk-cta" id="contact-cta" aria-labelledby="wk-cta-title">
       <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services <span aria-hidden="true">↗</span></a></div>
       <nav class="wk-cta__card motion-reveal" aria-label="Choisir le type de projet"><p class="wk-cta__q">Ça concerne quoi&nbsp;?</p>

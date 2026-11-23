@@ -2836,3 +2836,82 @@ body.cx-dialog-open{overflow:hidden}
 
 /* Services : ancres des trois expertises (le bon onglet s'ouvre). */
 .svc-anchor{display:block;height:0;scroll-margin-top:96px}
+
+/* Bannière hébergée sur le site : affiche dessous, vidéo en fondu dès la première image (aucun filtre). */
+.v16-hero__media--file picture{position:absolute;inset:0}
+.v16-hero__media--file .v16-hero__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.v16-hero__media--file .v16-hero__file{z-index:1;opacity:0;transition:opacity .5s var(--ease)}
+.v16-hero__media--file.is-video-ready .v16-hero__file{opacity:1}
+.v16-hero__media--file.is-narrow-only{display:none}
+@media(max-width:760px){
+  .v16-hero__media--video.has-narrow-file{display:none!important}
+  .v16-hero__media--file.is-narrow-only{display:block}
+  /* Vidéo verticale sur téléphone : format 9:16, plafonnée à l'écran sous la barre de navigation. */
+  .page-home .v16-hero__media--file.has-narrow{aspect-ratio:9/16;max-height:calc(100svh - 64px)}
+}
+@media(prefers-reduced-motion:reduce){.v16-hero__media--file .v16-hero__file{display:none}}
+
+/* Accueil, Work remonté : fiche, accès au catalogue et vidéos s'enchaînent au même rythme que le reste de l'accueil. */
+.home-work{padding-bottom:clamp(20px,2.4vw,36px)}
+.home-work .wk-selection{padding-bottom:0}
+.home-work .wk-fiche{margin-bottom:0}
+.home-catalog{margin-top:clamp(16px,1.6vw,24px);padding-top:clamp(14px,1.4vw,20px)}
+.ig-stage.home-social{margin-top:clamp(8px,1vw,16px);padding-top:clamp(32px,3.6vw,56px)}
+@media(max-width:760px){.ig-stage.home-social{margin-top:8px;padding-top:28px}}
+
+/* Tarifs, « Ce qui est inclus » : deux boutons de même taille, côte à côte, toujours en bas du détail ;
+   conditions communes regroupées dans un encart compact. */
+.price-detail[open]{display:flex;flex-direction:column}
+.price-detail__body{flex:1}
+.price-detail__actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-top:auto;padding-top:6px}
+.price-detail__actions .price-detail__btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);font:600 10.5px/1.15 var(--ui);letter-spacing:.08em;text-transform:uppercase;text-align:center;text-decoration:none;transition:background .25s var(--ease),color .25s var(--ease),border-color .25s var(--ease)}
+.price-detail__actions .price-detail__btn:hover,.price-detail__actions .price-detail__btn:focus-visible{background:var(--ink);color:var(--paper)}
+.price-detail__actions .price-detail__btn--go{background:var(--ember);border-color:var(--ember);color:#fff}
+.price-detail__actions .price-detail__btn--go:hover,.price-detail__actions .price-detail__btn--go:focus-visible{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.price-details__common{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 14px;max-width:1080px;margin:14px auto 0;padding:10px 16px;border:1px solid rgba(8,7,6,.1);border-radius:14px;background:rgba(255,255,255,.6);font-size:12px;line-height:1.4;color:rgba(8,7,6,.72)}
+.price-details__common-title{margin:0;font:600 10px/1.2 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.price-details__common ul{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 0;margin:0;padding:0;list-style:none}
+.price-details__common li{padding:0 10px;border-left:1px solid rgba(8,7,6,.18)}
+.price-details__common li:first-child{border-left:0}
+.price-details__common a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:760px){
+  .price-details__common{justify-content:flex-start;text-align:left;padding:12px 14px}
+  .price-details__common ul{display:block}
+  .price-details__common li{padding:2px 0 2px 12px;border:0;position:relative}
+  .price-details__common li::before{content:"";position:absolute;left:0;top:.7em;width:4px;height:4px;border-radius:50%;background:var(--ember)}
+}
+
+/* Work, catalogue en maçonnerie : chaque aperçu garde le format réel de son média (aspect-ratio connu d'avance).
+   Le script calcule le nombre de lignes de 4 px occupées par chaque carte ; la grille reste invisible le temps de ce
+   calcul (aucun saut visible), et réapparaît d'elle-même si le script ne tourne pas. */
+.cat-grid{--row:4px;align-items:start}
+.cat-grid.is-packed{grid-auto-rows:var(--row);row-gap:0}
+.cat-grid.is-packed .cat-item{align-self:start}
+html:not(.no-js) .cat-grid:not(.is-packed){visibility:hidden;animation:catReveal 0s 1.5s forwards}
+@keyframes catReveal{to{visibility:visible}}
+.cat-card{height:auto}
+
+.cat-filters a[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.cat-filters a[aria-pressed="true"]:hover{color:var(--paper)}
+.price-detail__actions .price-detail__btn{white-space:nowrap;padding:0 10px;font-size:10px;letter-spacing:.05em}
+@media(min-width:761px){
+  .price-details__common{gap:4px 0;font-size:11.5px}
+  .price-details__common ul{display:contents}
+  .price-details__common-title{margin-right:12px}
+  .price-details__common li{padding:0 12px}
+  .price-details__common li:first-child{border-left:0}
+  .price-details__common a{margin-left:12px}
+}
+.price-detail{container-type:inline-size}
+@container (max-width:340px){.price-detail__actions{grid-template-columns:1fr}}
+
+/* Work : la section Tarifs a exactement le même cadre que sur l'accueil (elle sort de la marge de la page). */
+.wk-page>.price-proof{margin-inline:calc(8px - var(--page))}
+@media(max-width:760px){.wk-page>.price-proof{margin-inline:-10px}}
+
+/* Accueil avec bannière hébergée : le logo d'entrée couvre déjà la page ; sans fondu du body, l'affiche compte comme
+   premier grand affichage (LCP) dès son chargement, et la vidéo qui la remplace ensuite ne le retarde plus.
+   Vidéos courtes de l'accueil : rendu différé tant qu'elles sont loin de l'écran (leurs miniatures ne concurrencent
+   plus l'affiche au chargement). */
+body.page-home.has-hero-file{animation:none}
+.ig-stage.home-social{content-visibility:auto;contain-intrinsic-size:auto 900px}

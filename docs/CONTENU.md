@@ -11,6 +11,7 @@ Tout se fait dans l'admin (`/admin/`), puis **Enregistrer et publier**. Le site 
 | Vidéos | Accueil, téléphone « Social media videos » ; Work, catalogue |
 | Photos, case « Visible dans le catalogue » | Work, catalogue (clic = photo en grand) |
 | Photos, case « Dans la tuile Photographie » | Accueil, tuile Photographie du bento |
+| Images, « Accueil · Bannière » | Bannière de l'accueil : vidéo ordinateur (16:9) et vidéo mobile (9:16) |
 | Images, emplacements `home.wedding.*` | Accueil, polaroïds Mariage (clic = Work filtré sur Mariage) |
 | Avis | Accueil (au-dessus de la FAQ), Contact, À propos |
 | Tarifs | `content/pricing.mjs` (code) : cartes et « Ce qui est inclus », accueil et Work |
@@ -23,6 +24,16 @@ Tout se fait dans l'admin (`/admin/`), puis **Enregistrer et publier**. Le site 
 5. Coche **Visible sur le site**, puis publie.
 
 Un contenu publié avant les catégories reçoit un classement proposé (type de média, ancienne catégorie, texte). Il est déjà coché dans l'admin : vérifie-le et enregistre.
+
+## Bannière de l'accueil (vidéo)
+Images > **Accueil · Bannière**. Deux emplacements : **Bannière ordinateur (16:9)** et **Bannière mobile (9:16)**. L'affiche (image montrée avant la lecture, et à la place de la vidéo pour qui préfère moins d'animations) est tirée de la vidéo ; « Remplacer l'affiche » pour en choisir une autre.
+- Ordinateur : MP4 H.264, 1920 x 1080 (ou 2560 x 1440), 25 ou 30 i/s, 12 à 20 Mbit/s, sans piste son, 10 à 20 s pensées pour boucler, 50 Mo maximum.
+- Mobile : MP4 H.264, 1080 x 1920, 25 ou 30 i/s, 10 à 16 Mbit/s, sans piste son, 10 à 20 s, 50 Mo maximum.
+- Export conseillé (Premiere / Media Encoder) : H.264, profil High, débit variable 2 passes, audio désactivé.
+- Le fichier est servi tel quel (aucun réencodage) : la qualité en ligne est celle de l'export. Sans fichier, la bannière garde la vidéo YouTube d'origine.
+
+## Mettre en avant
+Case **Mis en avant** dans Projets, Vidéos et Photos : l'élément passe en tête du catalogue Work et de « Ma sélection » (accueil), puis l'ordre manuel s'applique.
 
 ## Ajouter une vidéo courte
 Vidéos > ajouter. Source Instagram (colle le lien de la publication) ou fichier (MP4, MOV, WebM, 50 Mo maximum, exporte en H.264, 1080 x 1920, environ 8 à 12 Mbit/s). Coche ses catégories. Une vidéo Instagram n'est chargée qu'au clic du visiteur ; son lien Instagram reste affiché.
@@ -46,5 +57,5 @@ Généré à chaque publication (`templates/seo.mjs`) : identité, pages, tarifs
 
 ## Vérifier avant de publier
 1. Aperçu : texte alternatif présent, catégories cochées, titre sans faute (ex. « Alumni »).
-2. Après publication : ouvre `/work/?categorie=<catégorie>` et la page du projet, sur téléphone aussi.
+2. Après publication : ouvre `/work/?categorie=<catégorie>` (plusieurs catégories : `?categorie=mariage,video`) et la page du projet, sur téléphone aussi.
 3. Côté code : `npm run check` doit finir par `QA OK` (titres, descriptions, liens, ancres, redirections, `llms.txt`, tarifs identiques accueil et Work).

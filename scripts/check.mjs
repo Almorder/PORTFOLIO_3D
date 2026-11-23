@@ -298,7 +298,11 @@ if(!home.includes('data-focus-text')||!/<p class="focus-text__line">(<span data-
 if(!components.includes('data-cookie-settings')||!components.includes('data-cookie-consent')) fail('V20 privacy: consent UI missing');
 if(/if\(!readConsent\(\)\)\s*showConsent\(\)/.test(app)) fail('Home: the video consent must not open by itself (it covered the hero buttons and the mobile dock)');
 if(!heroFile&&!home.includes('data-cookie-settings')) fail('Home: video consent must stay reachable (footer « Préférences vidéo ») while the hero uses YouTube');
-if(heroFile&&/youtube/i.test(home.slice(home.indexOf('class="v16-hero"'),home.indexOf('class="hero-copy"')))) fail('Home: self-hosted hero must not call YouTube');
+if(home.includes('data-src-wide=')&&/youtube/i.test(home.slice(home.indexOf('class="v16-hero"'),home.indexOf('class="hero-copy"')))) fail('Home: self-hosted hero must not call YouTube');
+// Bannière hébergée (admin) : fichiers présents, affiche prioritaire (LCP), aucune vidéo chargée avant le script.
+if(heroFile){ const hero=home.slice(home.indexOf('class="v16-hero"'),home.indexOf('class="hero-copy"'));
+  for(const [,src] of hero.matchAll(/data-src-(?:wide|narrow)="([^"]+)"/g)) if(!existing.has(src.slice(1))) fail(`Home: banner video missing (${src})`);
+  if(!/data-hero-file[^>]*preload="none"/.test(hero)||/<video[^>]+\ssrc=/.test(hero)||!/class="v16-hero__poster" src="\/assets\/photo\/site\/[^"]+" [^>]*fetchpriority="high"/.test(hero)) fail('Home: banner poster first (fetchpriority), video loaded by the script only'); }
 if(!(app.includes("classList.toggle('is-docked'") && app.includes('is-measuring-dock') && css.includes('.is-docked .fnb-bg{') && css.includes('.no-js .fnb-bg{'))) fail('Floating navbar: dock logic, pill style or no-JS fallback missing');
 if(/\bgsap\b|ScrollTrigger/.test(app)) fail('app.js: no animation library dependency (constitution)');
 if(/\.page-(contact|legal) \.site-header:not\(\.is-scrolled\)/.test(await readFile(join(root,'src/styles.css'),'utf8'))) fail('Header: no light variant per page (it made the navigation unreadable)');
@@ -339,8 +343,11 @@ if(!home.includes('data-fiche')||!app.includes("$$('[data-work-views]').forEach"
 if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id="social"')>home.indexOf('class="wedding-wall')) fail('Home: social videos must sit right under « Ma sélection »');
 // WORK = catalogue (23/11) : filtres en haut (liens partageables), catégories multiples, tarifs sous le catalogue.
 { const { KEYS }=globalThis.NolanCategories||(await import('../public/admin/categories.js'),globalThis.NolanCategories);
-  if(!work.includes('data-catalog')||!/<nav class="cat-filters"[^>]*><a href="\/work\/" data-cat-filter="" aria-current="true">Tous/.test(work)) fail('Work: catalogue with « Tous » active by default expected');
-  for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" data-cat-filter="${k}"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
+  if(!work.includes('data-catalog')||!/<div class="cat-filters" role="group"[^>]*><a href="\/work\/" role="button" data-cat-filter="" aria-pressed="true">Tous/.test(work)) fail('Work: catalogue with « Tous » pressed by default expected (toggle buttons, aria-pressed)');
+  for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" role="button" data-cat-filter="${k}" aria-pressed="false"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
+  // Aperçus au format réel du média (plus de 4:5 imposé) : chaque carte déclare son ratio.
+  if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item"/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
+  if(!app.includes("split(',')")||!app.includes('gridRowEnd')) fail('Work: multiple filters (?categorie=a,b) and masonry packing expected');
   if(work.indexOf('data-cat-grid')>work.indexOf('data-price-proof')||work.indexOf('data-cat-filter')>work.indexOf('data-cat-grid')) fail('Work: filters first, then the catalogue, then the pricing');
   if(!app.includes("history.pushState(null,''")||!app.includes("addEventListener('popstate'")||!app.includes("get('categorie')")) fail('Work: filter must live in the URL (reload, back/forward, share)');
   const { instagramPosts:posts }=await import('../content/instagram.mjs'), items=(work.match(/<li class="cat-item"/g)||[]).length;

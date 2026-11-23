@@ -8,6 +8,8 @@ try { published = JSON.parse(readFileSync(new URL('./images.published.json', imp
 
 // Emplacement -> { image: { src, srcSmall, width, height, smallWidth, smallHeight }, alt } ou null.
 export const siteImage = slot => published[slot]?.image ? published[slot] : null;
+// Bannière de l'accueil : { video: { src, type, width, height }, image: affiche } ou null (vidéo YouTube d'origine).
+export const siteVideo = slot => published[slot]?.video?.src && published[slot]?.image ? published[slot] : null;
 
 // Version publiée copiée sur le site (affichée par l'admin via /version.json).
 export let publishedVersion = { snapshot: null, published: '' };

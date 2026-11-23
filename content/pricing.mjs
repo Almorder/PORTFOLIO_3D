@@ -4,7 +4,6 @@
 // `text` et `facts` restent lus par les lecteurs d'écran.
 // `key` sert dans le lien « ?offre= » ; `intent` choisit la catégorie du formulaire (brand, story, moment, other).
 import { weddingOffers } from './wedding.mjs';
-import { legal } from './legal.mjs';
 
 export const pricing = [
   { key:'mariage', card:{rank:'A',suit:'♣',red:false}, tag:'Mariage', title:weddingOffers.mariage.title, price:'1 500 €', from:true,
@@ -53,10 +52,10 @@ export const pricingDetails = {
 
 // Valable pour toutes les offres (CGV, content/legal.mjs et FAQ Services).
 export const pricingCommon = [
-  'Acompte de 40 % à la commande, la date est bloquée à ce moment ; solde avant la prestation.',
-  'Nombre d’allers-retours et droits d’utilisation précisés au devis.',
-  'Fichiers sources non livrés par défaut ; copie de sécurité des fichiers finaux pendant 6 mois.',
-  `${legal.vat}.`,
+  'Acompte de 40 % à la commande, solde avant la prestation',
+  'Allers-retours et droits d’utilisation précisés au devis',
+  'Fichiers sources non livrés, copie de sécurité 6 mois',
+  'TVA non applicable, art. 293 B du CGI',
 ];
 
 // Sujets de demande sans tarif publié : le formulaire de contact sait les présélectionner (?offre=…).
