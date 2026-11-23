@@ -384,16 +384,31 @@ $$('[data-audience-optout]').forEach(button=>{
   });
 });
 
-// Fond vidéo hébergé sur le site : démarre seul (muet), se met en pause hors écran ou onglet caché,
-// et reste sur son image fixe si le visiteur a demandé moins d'animations.
+// Bannière hébergée sur le site (envoyée depuis l'admin) : la vidéo du format de l'écran (16:9 ordinateur,
+// 9:16 téléphone) démarre seule, muette ; l'affiche reste dessous jusqu'à la première image. En pause hors écran ou
+// onglet caché. Mouvement réduit : aucune vidéo chargée, l'affiche reste.
 $$('[data-hero-file]').forEach(video=>{
-  if(reduced){video.removeAttribute('autoplay');video.pause();return;}
-  let visible=true;
-  const sync=()=>{if(visible&&!document.hidden) video.play().catch(()=>{}); else video.pause();};
-  if('IntersectionObserver' in window) new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();}).observe(video);
+  if(reduced){video.removeAttribute('autoplay');return;}
+  const media=video.closest('.v16-hero__media'), narrow=matchMedia('(max-width: 760px)');
+  // Téléphone : la vidéo verticale, sinon l'horizontale ; ordinateur : l'horizontale seulement.
+  const pick=()=>narrow.matches ? (video.dataset.srcNarrow||video.dataset.srcWide||'') : (video.dataset.srcWide||'');
+  let visible=true, current='';
+  const sync=()=>{ if(!current) return; if(visible&&!document.hidden) video.play().catch(()=>{}); else video.pause(); };
+  const load=()=>{
+    const src=pick();
+    if(!src||!/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(src)||src===current){ if(!src){ video.removeAttribute('src'); current=''; media?.classList.remove('is-video-ready'); } return; }
+    media?.classList.remove('is-video-ready'); current=src;
+    const poster=$('.v16-hero__poster',media)?.currentSrc; if(poster) video.poster=poster; // même image que l'affiche : rien ne clignote
+    video.src=src; video.load(); sync();
+  };
+  video.addEventListener('playing',()=>media?.classList.add('is-video-ready'));
+  if('IntersectionObserver' in window) new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();}).observe(media||video);
   document.addEventListener('visibilitychange',sync);
-  video.addEventListener('playing',()=>video.closest('.v16-hero__media')?.classList.add('is-video-ready'),{once:true});
-  sync();
+  narrow.addEventListener?.('change',load);
+  // La vidéo attend la fin du chargement de la page puis un moment calme (au plus 2 s) : l'affiche, prioritaire,
+  // s'affiche d'abord et la vidéo ne lui dispute pas la bande passante.
+  const later=()=>'requestIdleCallback' in window ? requestIdleCallback(()=>setTimeout(load,600),{timeout:2000}) : setTimeout(load,1200);
+  if(document.readyState==='complete') later(); else addEventListener('load',later,{once:true});
 });
 
 // Hero video facade: cinematic when authorised, zero YouTube request before consent.
@@ -418,6 +433,7 @@ if(heroVideo && !reduced){
   };
   const mount=()=>{
     if(readConsent()!=='accepted' || !visible || !slot || heroVideo.dataset.videoMounted==='true' || document.hidden) return;
+    if(heroVideo.classList.contains('has-narrow-file') && matchMedia('(max-width: 760px)').matches) return; // le téléphone lit le fichier du site
     const src=heroVideo.dataset.videoSrc; if(!src) return;
     const iframe=document.createElement('iframe');
     iframe.className='v16-hero__video';
@@ -427,7 +443,8 @@ if(heroVideo && !reduced){
     iframe.loading='lazy';
     iframe.allow='autoplay; encrypted-media; picture-in-picture';
     iframe.referrerPolicy='strict-origin-when-cross-origin';
-    iframe.addEventListener('load',()=>heroVideo.classList.add('is-video-ready'),{once:true});
+    // L'affiche reste au-dessus quelques secondes : YouTube affiche son titre et son logo au lancement.
+    iframe.addEventListener('load',()=>setTimeout(()=>{ if(iframe.isConnected) heroVideo.classList.add('is-video-ready'); },3800),{once:true});
     slot.append(iframe);
     heroVideo.dataset.videoMounted='true';
   };
@@ -1169,36 +1186,55 @@ $$('[data-bento-more]').forEach(more=>{
   more.addEventListener('dblclick',event=>{ const tile=event.target.closest('[data-bento-tile]'); const link=tile&&$('.bento__link',tile); if(link&&!event.target.closest('a')) location.assign(link.href); });
 });
 
-// Work, catalogue : filtres partageables (?categorie=…). Un clic change l'adresse (précédent / suivant du navigateur,
-// rechargement, nouvel onglet et partage gardent le filtre) ; sans JavaScript, tout reste affiché.
+// Work, catalogue : filtres cumulables (une réalisation s'affiche si elle appartient à au moins une catégorie choisie),
+// partageables dans l'adresse (?categorie=mariage,video). Précédent / suivant, rechargement et nouvel onglet gardent
+// le choix ; « Tous » remet à zéro. Sans JavaScript, tout reste affiché. Grille en maçonnerie : chaque carte garde
+// le format réel de son média (hauteur connue d'avance), la grille calcule seulement combien de lignes elle occupe.
 $$('[data-catalog]').forEach(root=>{
-  const links=$$('[data-cat-filter]',root), items=$$('[data-cats]',root), status=$('[data-cat-status]',root), empty=$('[data-cat-empty]',root);
-  const names=new Map($$('.cat-filters [data-cat-filter],.cat-filters [data-cat-filter-empty]',root).map(el=>[el.dataset.catFilter??el.dataset.catFilterEmpty,el.firstChild.textContent.trim()]));
-  const read=()=>{const key=new URLSearchParams(location.search).get('categorie')||'';return names.has(key)?key:'';};
-  const apply=(key,animate)=>{
-    links.forEach(a=>{ const bar=a.closest('.cat-filters'); if(!bar) return;
-      if(a.dataset.catFilter!==key){ a.removeAttribute('aria-current'); return; }
-      a.setAttribute('aria-current','true');
-      // Sur téléphone, la rangée de filtres défile : le filtre actif reste en vue (sans faire défiler la page).
-      if(bar.scrollWidth>bar.clientWidth) bar.scrollLeft=a.offsetLeft-bar.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;
+  const bar=$('.cat-filters',root), chips=$$('[data-cat-filter]',bar), items=$$('[data-cats]',root), grid=$('[data-cat-grid]',root);
+  const status=$('[data-cat-status]',root), empty=$('[data-cat-empty]',root);
+  const names=new Map($$('[data-cat-filter],[data-cat-filter-empty]',bar).map(el=>[el.dataset.catFilter??el.dataset.catFilterEmpty,el.firstChild.textContent.trim()]));
+  const known=[...names.keys()].filter(Boolean);
+  const read=()=>(new URLSearchParams(location.search).get('categorie')||'').split(',').filter(k=>known.includes(k));
+  const urlOf=keys=>keys.length?`${location.pathname}?categorie=${keys.join(',')}`:location.pathname;
+  const toggled=(sel,key)=>!key?[]:known.filter(k=>k===key?!sel.includes(k):sel.includes(k));
+  const pack=()=>{
+    if(!grid) return;
+    const cs=getComputedStyle(grid), row=parseFloat(cs.getPropertyValue('--row'))||4, gap=parseFloat(cs.columnGap)||0;
+    items.forEach(li=>{ if(li.hidden) return; const h=li.firstElementChild.getBoundingClientRect().height; li.style.gridRowEnd=`span ${Math.max(1,Math.ceil((h+gap)/row))}`; });
+    grid.classList.add('is-packed');
+  };
+  const apply=(sel,animate)=>{
+    chips.forEach(chip=>{
+      const key=chip.dataset.catFilter, on=key?sel.includes(key):!sel.length;
+      chip.setAttribute('aria-pressed',String(on));
+      chip.href=urlOf(toggled(sel,key)); // clic milieu ou nouvel onglet : la combinaison que donnerait ce clic
     });
     let n=0;
     items.forEach(li=>{
-      const show=!key||li.dataset.cats.split(' ').includes(key);
+      const show=!sel.length||li.dataset.cats.split(' ').some(k=>sel.includes(k));
       li.hidden=!show; li.classList.remove('is-in');
       if(show){ li.style.setProperty('--k',n); n++; if(animate&&!reduced){ void li.offsetWidth; li.classList.add('is-in'); } }
     });
-    if(status) status.textContent=`${n} réalisation${n>1?'s':''}${key?` · ${names.get(key)}`:''}`;
+    if(status) status.textContent=`${n} réalisation${n>1?'s':''}${sel.length?` · ${sel.map(k=>names.get(k)).join(', ')}`:''}`;
     if(empty) empty.hidden=n>0;
+    pack();
+    // Sur téléphone, la rangée de filtres défile : le premier filtre actif reste en vue (sans faire défiler la page).
+    const active=chips.find(c=>c.getAttribute('aria-pressed')==='true');
+    if(active&&bar.scrollWidth>bar.clientWidth) bar.scrollLeft=active.offsetLeft-bar.offsetLeft-(bar.clientWidth-active.offsetWidth)/2;
   };
-  links.forEach(a=>a.addEventListener('click',event=>{
-    if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return; // nouvel onglet : le lien suffit
-    event.preventDefault();
-    const key=a.dataset.catFilter;
-    if(key!==read()) history.pushState(null,'',key?`?categorie=${encodeURIComponent(key)}`:location.pathname);
-    apply(key,true);
-  }));
+  const choose=(next)=>{ history.pushState(null,'',urlOf(next)); apply(next,true); };
+  chips.forEach(chip=>{
+    chip.addEventListener('click',event=>{
+      if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return; // nouvel onglet : le lien suffit
+      event.preventDefault(); choose(toggled(read(),chip.dataset.catFilter));
+    });
+    chip.addEventListener('keydown',event=>{ if(event.key===' '){ event.preventDefault(); chip.click(); } });
+  });
+  $('[data-cat-reset]',root)?.addEventListener('click',event=>{ event.preventDefault(); choose([]); });
   addEventListener('popstate',()=>apply(read(),true));
+  let resizeTimer=0; addEventListener('resize',()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(pack,120); },{passive:true});
+  document.fonts?.ready.then(pack);
   apply(read(),false);
 });
 

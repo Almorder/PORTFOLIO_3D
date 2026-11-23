@@ -26,6 +26,13 @@
       { slot: 'home.cards.dos', label: 'Dos des cartes (commun)', origin: '/assets/cards/dos.webp', preset: 'card', format: 'Vertical, environ 3:5 (idéal 1000 × 1700 px).' }
     ] }
   ];
+  // Bannière de l'accueil : une vidéo hébergée par le site pour l'ordinateur (16:9) et une pour le téléphone (9:16),
+  // chacune avec son affiche (image fixe montrée avant la lecture et si le visiteur préfère moins d'animations).
+  // Sans fichier publié, la bannière garde la vidéo YouTube d'origine.
+  const HERO = [
+    { slot: 'home.hero.desktop', label: 'Bannière ordinateur (16:9)', wide: true, format: 'MP4 H.264, 1920 × 1080 ou 2560 × 1440, 25 ou 30 i/s, débit élevé (12 à 20 Mbit/s), sans son, 50 Mo max, 10 à 20 s en boucle.' },
+    { slot: 'home.hero.mobile', label: 'Bannière mobile (9:16)', wide: false, format: 'MP4 H.264, 1080 × 1920, 25 ou 30 i/s, débit élevé (10 à 16 Mbit/s), sans son, 50 Mo max, 10 à 20 s en boucle.' }
+  ];
   // Format de recadrage de chaque emplacement (public/admin/cropper.js).
   const cropOf = s => s.slot === 'home.cards.dos' ? 'cardBack' : s.preset;
   const plain = i => ({ id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) });
@@ -106,6 +113,51 @@
       })))], 'admin-card--wide');
     });
 
+    // Bannière : envoyer la vidéo (affiche tirée automatiquement), remplacer l'affiche, revenir à YouTube.
+    const heroRows = () => {
+      const data = getDraft('images') || {};
+      return card('Accueil · Bannière', [el('ul', { className: 'im-list' }, HERO.map(h => {
+        const cur = data[h.slot] || null, key = h.slot, id = `im-${key.replace(/[^\w-]/g, '-')}`;
+        const videoInput = el('input', { type: 'file', accept: 'video/mp4,video/quicktime,video/webm', className: 'ph-file', id: `${id}-video` });
+        const posterInput = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', className: 'ph-file', id: `${id}-poster` });
+        videoInput.disabled = posterInput.disabled = Boolean(busy);
+        videoInput.addEventListener('change', () => { const file = videoInput.files[0]; if (file) run(key, async () => {
+          const { video, cover, report } = await media.storeVideo(file, 'banner');
+          const landscape = video.width >= video.height;
+          if (landscape !== h.wide) { await media.removeVideo(video); await media.remove([cover.id]); throw new Error(h.wide ? 'la bannière ordinateur doit être horizontale (16:9)' : 'la bannière mobile doit être verticale (9:16)'); }
+          const next = await read('images') || {}, old = next[key];
+          next[key] = { video, image: plain(cover), auto: plain(cover) };
+          await save('images', next, old?.image?.id);
+          if (old?.auto?.id && old.auto.id !== old.image?.id) await media.remove([old.auto.id]);
+          if (old?.video) await media.removeVideo(old.video);
+          reports.set(key, report);
+          say(Math.min(video.width, video.height) < 1080 ? `${report}. Résolution faible : préfère ${h.wide ? '1920 × 1080' : '1080 × 1920'} au minimum.` : `${report}. Publie pour mettre en ligne.`, Math.min(video.width, video.height) < 1080 ? 'warn' : 'ok');
+        }); });
+        posterInput.addEventListener('change', () => { const file = posterInput.files[0]; if (file) run(key, async () => {
+          const { image, report } = await media.store(file, 'banner', '');
+          const next = await read('images') || {}; if (!next[key]) throw new Error('envoie d’abord la vidéo');
+          const old = next[key].image?.id !== next[key].auto?.id ? next[key].image?.id : null;
+          next[key].image = plain(image); await save('images', next, old); reports.set(key, report); say(`${report}. Publie pour mettre en ligne.`, 'ok');
+        }); });
+        const figure = el('div', { className: 'im-figure' });
+        if (cur?.image) { const img = el('img', { className: 'ph-thumb', alt: `Affiche actuelle : ${h.label}`, width: cur.image.smallWidth || 0, height: cur.image.smallHeight || 0 }); media.preview(img, cur.image.id); figure.append(img); }
+        else figure.append(el('span', { className: 'im-blank', textContent: 'Vidéo YouTube d’origine' }));
+        const custom = cur && cur.image?.id !== cur.auto?.id;
+        return el('li', { className: 'im-slot' }, [figure, el('div', { className: 'im-body' }, [
+          el('p', { className: 'pj-media__label', textContent: h.label }),
+          el('p', { className: 'ph-help', textContent: cur ? `Vidéo : ${cur.video.width} × ${cur.video.height}, ${cur.video.duration} s. Affiche : ${custom ? 'image envoyée' : 'tirée de la vidéo'}.` : 'Aucun fichier : vidéo YouTube d’origine.' }),
+          el('p', { className: 'ph-help', textContent: `Format idéal : ${h.format}` }),
+          el('div', { className: 'admin-tools' }, [
+            videoInput, el('label', { htmlFor: `${id}-video`, className: 'admin-mini ph-drop__btn', textContent: busy === key ? 'Envoi en cours…' : cur ? 'Remplacer la vidéo' : 'Envoyer la vidéo' }),
+            cur ? posterInput : null, cur ? el('label', { htmlFor: `${id}-poster`, className: 'admin-mini ph-drop__btn', textContent: 'Remplacer l’affiche' }) : null,
+            custom ? button('Affiche tirée de la vidéo', 'admin-mini', () => run(key, async () => { const next = await read('images') || {}; const old = next[key].image.id; next[key].image = next[key].auto; await save('images', next, old); say('Affiche automatique rétablie. Publie pour mettre en ligne.', 'ok'); }), `Affiche automatique : ${h.label}`) : null,
+            cur ? button('Revenir à YouTube', 'admin-mini', () => run(key, async () => { const next = await read('images') || {}; const old = next[key]; delete next[key]; await save('images', next, old.image?.id); if (old.auto?.id && old.auto.id !== old.image?.id) await media.remove([old.auto.id]); await media.removeVideo(old.video); reports.delete(key); say('Vidéo retirée. Publie pour mettre en ligne.', 'ok'); }), `Retirer la vidéo : ${h.label}`) : null
+          ].filter(Boolean)),
+          reports.get(key) ? el('p', { className: 'md-badge', textContent: reports.get(key) }) : null
+        ].filter(Boolean))]);
+      }))], 'admin-card--wide');
+    };
+
     // Miniature d'un projet = son média principal (couverture). Les autres médias se gèrent dans « Projets ».
     const P = window.NolanProjects || {};
     const coverOf = p => { P.migrate?.(p); return (p.media || []).find(m => m.key === p.cover) || (p.media || [])[0] || null; };
@@ -156,7 +208,7 @@
         live.disabled = Boolean(busy);
         box.replaceChildren(
           el('div', { className: 'admin-bar' }, [heading('Images', 'Chaque changement est enregistré tout de suite.'), el('div', { className: 'admin-row' }, [live])]),
-          ...homeRows(), projectRows(projects || []), socialRows(posts || [])
+          heroRows(), ...homeRows(), projectRows(projects || []), socialRows(posts || [])
         );
         if (focusKey) box.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
       };

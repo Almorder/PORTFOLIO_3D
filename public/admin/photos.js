@@ -133,6 +133,9 @@
       const tile = el('input', { type: 'checkbox', checked: Boolean(item.inTile) });
       tile.dataset.focusKey = `${item.id}-tile`;
       tile.addEventListener('change', () => { item.inTile = tile.checked; touch(); redraw(); });
+      const featured = el('input', { type: 'checkbox', checked: Boolean(item.featured) });
+      featured.dataset.focusKey = `${item.id}-featured`;
+      featured.addEventListener('change', () => { item.featured = featured.checked; touch(); });
       const tool = (text, label, key, action, disabled) => { const b = button(text, 'admin-mini', action, label); b.dataset.focusKey = `${item.id}-${key}`; b.disabled = Boolean(disabled); return b; };
       const del = tool('Supprimer', `Supprimer la photo ${n}`, 'del', () => {
         if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmer la suppression'; return say('La photo sera supprimée définitivement à l’enregistrement. Clique encore pour confirmer.', 'warn'); }
@@ -167,7 +170,8 @@
           })]),
           el('div', { className: 'ph-card__checks' }, [
             el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible dans le catalogue (Work)' })]),
-            el('label', { className: 'admin-field admin-field--check' }, [tile, el('span', { textContent: 'Dans la tuile Photographie (accueil)' })])
+            el('label', { className: 'admin-field admin-field--check' }, [tile, el('span', { textContent: 'Dans la tuile Photographie (accueil)' })]),
+            el('label', { className: 'admin-field admin-field--check' }, [featured, el('span', { textContent: 'Mis en avant' })])
           ]),
           el('div', { className: 'admin-tools' }, [
             tool('↑', `Monter la photo ${n}`, 'up', () => move(index, index - 1), index === 0),

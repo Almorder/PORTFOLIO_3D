@@ -17,6 +17,8 @@
     folder: { large: [1200, 180 * 1024], small: [640, 80 * 1024] },
     polaroid: { large: [900, 150 * 1024], small: [480, 70 * 1024] },
     card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] },
+    // Affiche de la bannière de l'accueil : première image vue (LCP), nette en grand écran, légère sur téléphone.
+    banner: { large: [2560, 420 * 1024], small: [1080, 150 * 1024] },
     // Original gardé pour recadrer de nouveau sans perte (jamais copié sur le site) : 2560 px, 2,8 Mo au plus.
     original: { large: [2560, 2800 * 1024] }
   };
@@ -99,7 +101,7 @@
       try { return await fromCrop(bitmap, 0, preset, 'l’image', format || 'photo', image.crop, source); } finally { bitmap.close?.(); }
     };
     // Vidéo : vérifiée par le navigateur (lisible, durée, dimensions), envoyée telle quelle, miniature automatique.
-    const storeVideo = async file => {
+    const storeVideo = async (file, coverPreset = 'cover') => {
       const ext = VIDEO_TYPES[file.type];
       if (!ext) throw new Error(`${file.name} : formats acceptés MP4, MOV ou WebM`);
       if (file.size > MAX_VIDEO) throw new Error(`${file.name} pèse ${mb(file.size)} : 50 Mo maximum (exporte une version plus légère, par exemple en 1080 px)`);
@@ -111,7 +113,7 @@
         await new Promise(ok => { video.onseeked = ok; video.currentTime = Math.min(1, duration / 10 || 0); setTimeout(ok, 4000); });
         const id = crypto.randomUUID();
         await put(VIDEO_BUCKET, `${id}.${ext}`, file, file.type, file.name);
-        const thumb = await storeSource(video, 0, 'cover', file.name);
+        const thumb = await storeSource(video, 0, coverPreset, file.name);
         return { video: { id, ext, type: file.type, bytes: file.size, width: video.videoWidth, height: video.videoHeight, duration: Math.round(duration) }, cover: thumb.image, report: `Vidéo envoyée : ${mb(file.size)}, ${video.videoWidth} × ${video.videoHeight}, ${Math.round(duration)} s. Miniature automatique : ${thumb.report.replace('Optimisé : ', '')}` };
       } finally { URL.revokeObjectURL(url); }
     };
@@ -133,6 +135,6 @@
     const removeVideo = async video => { if (video?.id && !inUse(video.id)) await client.storage.from(VIDEO_BUCKET).remove([`${video.id}.${video.ext}`]); };
     // Champs d'une image gardés dans les brouillons (dimensions, original et recadrage pour recadrer de nouveau).
     const fields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
-    return { store, recrop, fields, storeVideo, preview, remove, removeVideo, noDash, kb, mb, MAX_VIDEO };
+    return { store, storeSource, recrop, fields, storeVideo, preview, remove, removeVideo, noDash, kb, mb, MAX_VIDEO };
   };
 })();

@@ -62,7 +62,7 @@ export function normalizePhotos(draft) {
     const inSection = it?.visible === true, inTile = typeof it?.inTile === 'boolean' ? it.inTile : inSection;
     if (!image || seen.has(image.id) || !(inSection || inTile) || !alt) continue;
     seen.add(image.id);
-    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile, ...categoriesOf(it.categories) });
+    list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile, ...categoriesOf(it.categories), ...(it.featured === true ? { featured: true } : {}) });
   }
   return { items: list };
 }
@@ -117,7 +117,7 @@ export function normalizeProjects(list) {
     const media = (Array.isArray(p.media) ? p.media : legacyMedia(p)).slice(0, 24).map(normalizeMedia).filter(m => m && !keys.has(m.key) && keys.add(m.key));
     const cover = media.find(m => m.key === p.cover) || media[0] || null;
     out.push({
-      slug, title, visible: p.visible === true, ...categoriesOf(p.categories),
+      slug, title, visible: p.visible === true, ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}),
       territory: TERRITORIES.includes(p.territory) ? p.territory : '',
       type: clean(p.type, 80), role: clean(p.role, 80), context: clean(p.context, 120), client: clean(p.client, 80),
       year: yearOf(p.year), result: clean(p.result, 200), link: link(p.link), summary: clean(p.summary, 400),
@@ -167,7 +167,7 @@ export function normalizeSocial(list) {
     seen.add(key);
     const legacyCover = /^\/assets\/work\/[\w-]+\.(jpe?g|png|webp)$/.test(p.cover || '') ? p.cover : '';
     out.push({
-      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80), ...categoriesOf(p.categories),
+      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80), ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}),
       ratio: video ? ratioOf(video.width, video.height) : /^\d{1,4}\/\d{1,4}$/.test(p.ratio || '') ? p.ratio : '9/16',
       tags: (Array.isArray(p.tags) ? p.tags : ['reseaux']).filter(t => TAGS.includes(t)).slice(0, 5),
       client: clean(p.client, 80), role: clean(p.role, 80), year: yearOf(p.year), result: clean(p.result, 200),
@@ -181,9 +181,16 @@ export function normalizeSocial(list) {
 // Images du site : emplacements fixes ; sans image publiée, le site garde son image d'origine.
 export const IMAGE_SLOTS = { 'home.dims.realisation': false, 'home.dims.direction': false, 'home.dims.strategie': false, 'home.wedding.0': true, 'home.wedding.1': true, 'home.wedding.2': true,
   'home.cards.mariage': false, 'home.cards.demande': false, 'home.cards.contenu': false, 'home.cards.film': false, 'home.cards.direction': false, 'home.cards.strategie': false, 'home.cards.dos': false };
+// Bannière de l'accueil : vidéos hébergées par le site (ordinateur 16:9, téléphone 9:16), chacune avec son affiche.
+// Une vidéo dans le mauvais sens (horizontale pour le téléphone, ou l'inverse) n'est pas publiée.
+export const VIDEO_SLOTS = { 'home.hero.desktop': 'landscape', 'home.hero.mobile': 'portrait' };
 export function normalizeImages(map) {
   if (!map || typeof map !== 'object' || Array.isArray(map)) return null;
   const out = {};
+  for (const [slot, sense] of Object.entries(VIDEO_SLOTS)) {
+    const video = videoFileOf(map[slot]?.video), image = imageOf(map[slot]?.image);
+    if (video && image && (sense === 'landscape') === (video.width >= video.height)) out[slot] = { video, image };
+  }
   for (const [slot, needsAlt] of Object.entries(IMAGE_SLOTS)) {
     const image = imageOf(map[slot]?.image), alt = clean(map[slot]?.alt, 300);
     // Polaroïd sans texte alternatif : description par défaut plutôt que d'écarter l'image.
@@ -313,7 +320,7 @@ for (const post of published.social || []) {
   keptSocial.push({ ...post, image });
 }
 const keptImages = published.images && {};
-for (const [slot, value] of Object.entries(published.images || {})) if (await copy(value.image, `Image ${slot}`)) keptImages[slot] = value;
+for (const [slot, value] of Object.entries(published.images || {})) if (await copy(value.image, `Image ${slot}`) && (!value.video || await copyVideo(value.video, `de la bannière (${slot})`))) keptImages[slot] = value;
 // Avis : une image qui ne se copie pas est retirée (l'avis reste, sans image).
 const keptTestimonials = published.testimonials && [];
 for (const t of published.testimonials || []) keptTestimonials.push(t.image && !await copy(t.image, `Image de l'avis de ${t.name}`) ? { ...t, image: null, alt: '' } : t);
