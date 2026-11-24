@@ -240,6 +240,8 @@ a.admin-button{display:inline-flex;align-items:center;text-decoration:none}
 .cr-prev--tile::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(8,7,6,.6))}
 .cr-prev--wedding{border-radius:12px;overflow:hidden}
 .cr-prev--card{border-radius:8px}
+.cr-prev--avatar{border-radius:50%}
+.tm-photo{display:block;width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--ad-ivory)}
 .cr-prev__band{position:absolute;left:0;right:0;bottom:0;height:26%;background:#f0ebe2;border-top:1px solid rgba(8,7,6,.15)}
 .cr-prev--folder{border-radius:12px}
 .cr-prev__front{position:absolute;left:0;right:0;bottom:0;top:30%;background:#120403;border-radius:0 10px 0 0}

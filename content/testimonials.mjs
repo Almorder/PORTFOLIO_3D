@@ -8,7 +8,9 @@ import { site } from './site.mjs';
 let published = null;
 try { published = JSON.parse(readFileSync(new URL('./testimonials.published.json', import.meta.url), 'utf8')).testimonials; } catch {}
 // Liste de départ (code) : même forme que la version publiée, sans image (aucune adresse libre).
-const fromCode = site.testimonials.map(({ quote, name, role = '', link = '', linkLabel = '' }) => ({ quote, name, role, image: null, alt: '', link, linkLabel }));
+const fromCode = site.testimonials.map(({ quote, name, role = '', link = '', linkLabel = '' }) => ({ quote, name, role, image: null, alt: '', photo: null, link, linkLabel }));
 export const testimonials = Array.isArray(published) && published.length ? published : fromCode;
 // Brouillon de l'admin (import) : l'image garde son identifiant et ses dimensions, rien d'autre.
-export const testimonialsDraft = testimonials.map(({ image, ...t }) => ({ ...t, image: image ? { id: image.id, width: image.width, height: image.height, smallWidth: image.smallWidth, smallHeight: image.smallHeight } : null, visible: true }));
+// Photo de la personne (bulle à côté de son nom) : même règle.
+const draftImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight } : null;
+export const testimonialsDraft = testimonials.map(({ image, photo, ...t }) => ({ ...t, image: draftImage(image), photo: draftImage(photo), visible: true }));

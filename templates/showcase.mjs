@@ -19,13 +19,20 @@ const media=(t,cls)=>t.image&&t.image.srcSmall
   ? `<span class="${cls}"><img src="${esc(t.image.srcSmall)}" srcset="${esc(t.image.srcSmall)} ${t.image.smallWidth}w, ${esc(t.image.src)} ${t.image.width}w" sizes="(max-width: 760px) 90vw, 420px" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
+// Bulle ronde à côté du nom : photo de la personne envoyée depuis l'admin (96 et 192 px, carrée), sinon ses
+// initiales sur un fond sobre. La photo est décorative (le nom est écrit juste à côté) : alt vide.
+const initials=name=>String(name).trim().split(/[\s'’-]+/).filter(w=>/^\p{L}/u.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||(String(name).trim()[0]||'·').toUpperCase();
+export const avatar=(t,cls='')=>t.photo&&t.photo.srcSmall
+  ? `<span class="tm-avatar${cls}"><img src="${esc(t.photo.srcSmall)}" srcset="${esc(t.photo.srcSmall)} ${t.photo.smallWidth}w, ${esc(t.photo.src)} ${t.photo.width}w" sizes="44px" alt="" width="${t.photo.smallWidth}" height="${t.photo.smallHeight}" loading="lazy" decoding="async"></span>`
+  : `<span class="tm-avatar is-initials${cls}" aria-hidden="true">${esc(initials(t.name))}</span>`;
+
 /** Panneau d'un avis (dialog natif) : partagé par l'accueil, Work et Contact, ouvert par [data-morph-open]. */
 export const morphPanel=(t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}" data-morph-panel aria-labelledby="morph-name-${i}">
         <div class="morph-panel__inner">
           ${media(t,'morph-panel__media')}
           <div class="morph-panel__body">
             <blockquote>« ${esc(t.quote)} »</blockquote>
-            <p class="morph-panel__who"><strong id="morph-name-${i}">${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</p>
+            <p class="morph-panel__who">${avatar(t,' tm-avatar--panel')}<span class="morph-panel__id"><strong id="morph-name-${i}">${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</span></p>
             ${t.link?`<a class="morph-panel__link" href="${esc(t.link)}"${/^https?:/.test(t.link)?' target="_blank" rel="noopener noreferrer"':''}>${esc(t.linkLabel||'Voir le projet')} <span aria-hidden="true">↗</span></a>`:''}
           </div>
           <button type="button" class="morph-panel__close" data-morph-close aria-label="Fermer">×</button>
@@ -47,7 +54,7 @@ const tmLayout=n=>{
 const tmCard=(t,i,L)=>`<article class="motion-reveal${i===0?' is-featured':''}${i>0&&i===L.k-1&&L.span>1?' tm-span':''}${i>=L.km&&i<L.k?' tm-m-extra':''}${!L.single&&L.modd&&i===L.km-1?' tm-m-span':''}"${i>0&&i===L.k-1&&L.span>1?` style="--tm-span:${L.span}"`:''}>
       <div class="v16-stars" aria-hidden="true">★★★★★</div>
       <blockquote>« ${esc(t.quote)} »</blockquote>
-      <footer><strong>${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
+      <footer><span class="tm-who">${avatar(t)}<strong>${esc(t.name)}</strong></span>${t.role?`<span>${esc(t.role)}</span>`:''}</footer>
       <button type="button" class="morph-hit" data-morph-open="morph-panel-${i}" aria-haspopup="dialog" aria-label="Lire l’avis de ${esc(t.name)}"></button>
     </article>`;
 

@@ -18,6 +18,8 @@
     // Accueil, Mariage : le cadre (4:5) mesure jusqu'à 470 px de large, net sur écran haute densité.
     wedding: { large: [1200, 170 * 1024], small: [640, 80 * 1024] },
     card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] },
+    // Photo de la personne d'un avis : bulle ronde de 36 à 44 px (192 px pour les écrans nets, 96 px sinon).
+    avatar: { large: [192, 24 * 1024], small: [96, 10 * 1024] },
     // Affiche de la bannière de l'accueil : première image vue (LCP), nette en grand écran, légère sur téléphone.
     banner: { large: [2560, 420 * 1024], small: [1080, 150 * 1024] },
     // Original gardé pour recadrer de nouveau sans perte (jamais copié sur le site) : 2560 px, 2,8 Mo au plus.
