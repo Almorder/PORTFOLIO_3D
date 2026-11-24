@@ -12,8 +12,8 @@ const supabaseOrigin = (site.supabaseUrl||'').replace(/\/$/,'');
 export const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self' 'sha256-tuKyZn/3ycw/MNMDii/kvSPrelo6SCsJSecqb1n2neg=' https://static.cloudflareinsights.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data: blob: https://img.youtube.com https://i.ytimg.com https://images.unsplash.com https://upload.wikimedia.org https://images.squarespace-cdn.com https://static.smallrig.com",
   "media-src 'self' blob:",
   // 'self' : l'admin affiche ses modèles de documents (public/admin/docs/) dans un cadre de même origine.

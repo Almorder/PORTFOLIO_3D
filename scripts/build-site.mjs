@@ -123,9 +123,9 @@ await writeFile(join(out,'_redirects'),`# Anciennes adresses -> pages définitiv
 
 // Cache navigateur (Cloudflare Pages lit dist/_headers) : les fichiers dont le nom change à chaque version (feuille de
 // style, script, polices, photos et vidéos envoyées depuis l'admin, nommées par identifiant) sont gardés un an.
-// S'ajoute à public/_headers s'il existe (règles posées ailleurs, par exemple pour la sécurité).
+// S'ajoute aux en-têtes déjà écrits dans dist/_headers (sécurité, politique de contenu).
 { const immutable=['/assets/site.*','/assets/app.*','/assets/fonts/*','/assets/photo/site/*.webp','/assets/video/site/*.mp4','/assets/video/site/*.webm','/assets/video/site/*.mov'].map(p=>`${p}\n  Cache-Control: public, max-age=31536000, immutable`).join('\n');
-  let own=''; try{ own=await readFile(join(publicDir,'_headers'),'utf8'); }catch{}
+  let own=''; try{ own=await readFile(join(out,'_headers'),'utf8'); }catch{}
   await writeFile(join(out,'_headers'),`${own.trim()?`${own.trim()}\n\n`:''}# Cache long des fichiers versionnés (scripts/build-site.mjs)\n${immutable}\n`); }
 
 const routes=['/','/work/','/projet/le-bol-den-face/',...generated.map(([,,path])=>path),'/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
