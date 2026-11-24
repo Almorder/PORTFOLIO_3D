@@ -19,11 +19,14 @@ const media=(t,cls)=>t.image&&t.image.srcSmall
   ? `<span class="${cls}"><img src="${esc(t.image.srcSmall)}" srcset="${esc(t.image.srcSmall)} ${t.image.smallWidth}w, ${esc(t.image.src)} ${t.image.width}w" sizes="(max-width: 760px) 90vw, 420px" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
-// Bulle ronde à côté du nom : photo de la personne envoyée depuis l'admin (96 et 192 px, carrée), sinon ses
-// initiales sur un fond sobre. La photo est décorative (le nom est écrit juste à côté) : alt vide.
+// Bulle ronde à côté du nom : « Photo de la personne » si elle est remplie dans l'admin (facultative, 96 et 192 px,
+// carrée), sinon l'image de l'avis déjà envoyée (celle du panneau, en petite taille, recadrée en rond vers le haut,
+// là où se trouve le visage), sinon ses initiales. Décorative (le nom est écrit juste à côté) : alt vide.
 const initials=name=>String(name).trim().split(/[\s'’-]+/).filter(w=>/^\p{L}/u.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||(String(name).trim()[0]||'·').toUpperCase();
 export const avatar=(t,cls='')=>t.photo&&t.photo.srcSmall
   ? `<span class="tm-avatar${cls}"><img src="${esc(t.photo.srcSmall)}" srcset="${esc(t.photo.srcSmall)} ${t.photo.smallWidth}w, ${esc(t.photo.src)} ${t.photo.width}w" sizes="44px" alt="" width="${t.photo.smallWidth}" height="${t.photo.smallHeight}" loading="lazy" decoding="async"></span>`
+  : t.image&&t.image.srcSmall
+  ? `<span class="tm-avatar is-cover${cls}"><img src="${esc(t.image.srcSmall)}" alt="" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async"></span>`
   : `<span class="tm-avatar is-initials${cls}" aria-hidden="true">${esc(initials(t.name))}</span>`;
 
 /** Panneau d'un avis (dialog natif) : partagé par l'accueil, Work et Contact, ouvert par [data-morph-open]. */
