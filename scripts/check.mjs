@@ -393,11 +393,20 @@ if(!project.includes('id="film"')||!project.includes('data-ambient-player')||!pr
 if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V17: project metadata must appear once');
 if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17: duplicate production-detail section found');
 
-// SERVICES — one compact switcher, deeper value, combined expertise, dedicated FAQ.
-if(!services.includes('data-expertise-switcher')||(services.match(/data-expertise-tab=/g)||[]).length!==3||(services.match(/data-expertise-panel=/g)||[]).length!==3) fail('Services V17: three-expertise switcher incomplete');
-if(!services.includes('v16-combined-expertise')) fail('Services V17: combined-expertise value section missing');
-if(!services.includes('id="faq-services"')||!services.includes('data-faq-section')) fail('Services V17: dedicated FAQ missing');
-for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session ciblée de stratégie à 89 € / h ?']) if(!services.includes(q)) fail(`Services V17: FAQ question missing ${q}`);
+// SERVICES (services5) : besoins en accordéon, billets à détacher, étapes, avis, FAQ. Ancres reçues de l'accueil,
+// des polaroids et du schéma des offres ; offres et prix = content/pricing.mjs ; aucune image de stock.
+for(const id of ['realisation','mariage','demande-en-mariage','direction-artistique','strategie-de-marque','offre-contenu']) if(!services.includes(`id="${id}"`)) fail(`Services: anchor #${id} missing (home, polaroids and Offer schema link to it)`);
+if((services.match(/data-reel-row /g)||[]).length!==4||(services.match(/data-reel-btn/g)||[]).length!==4) fail('Services: four need rows expected (réalisation, mariage, direction artistique, stratégie)');
+{ const { pricing:offers }=await import('../content/pricing.mjs');
+  if((services.match(/data-ticket-stub/g)||[]).length!==offers.length) fail('Services: one ticket per published offer');
+  for(const o of offers) if(!services.includes(`href="/contact/?intent=${o.intent}&amp;offre=${o.key}" data-ticket-stub`)||!services.includes(`<strong class="sv-ticket__price">${o.price}</strong>`)) fail(`Services: ticket ${o.key} needs its published price and a stub linking to Contact with the offer`); }
+if(/images\.unsplash\.com/.test(services.split('<main')[1]||'')) fail('Services: no stock image (R1: real work only)');
+if(!app.includes("$$('[data-ticket]')")||!app.includes('location.assign(stub.href)')||!/if\(reduced\)\{ location\.assign/.test(app)) fail('Services: ticket stub must tear (pointer, click, Enter) and go to Contact; reduced motion skips the animation');
+if((services.match(/data-step="/g)||[]).length!==4||!services.includes('Acompte de 40 %')) fail('Services: four process steps expected, with the published deposit');
+if(!services.includes('id="faq-services"')||(services.match(/data-fold-item/g)||[]).length!==siteData.faqs.services.length) fail('Services: dedicated FAQ missing');
+for(const q of siteData.faqs.services) if(!services.includes(q.question.replace(/'/g,'&#39;'))||!services.includes(q.answer.replace(/'/g,'&#39;'))) fail(`Services: FAQ question changed or missing ${q.question}`);
+if(/v16-quick-contact|data-expertise-switcher|motion-reveal/.test(services.split('<main')[1].split('</main>')[0])) fail('Services: new components only (no reused blocks, no fade-in on every section)');
+if(services.includes(`data-post-id="${(await import('../content/wedding.mjs')).weddingOffers.demande.instagramId}"`)) fail('Services: the Instagram proposal video stays off this page');
 if(/id="marques"|id="recits"|id="moments"/.test(services)) fail('Services V17: obsolete stacked context chapters found');
 
 // ABOUT — human, portrait, no duplicated sales proof.

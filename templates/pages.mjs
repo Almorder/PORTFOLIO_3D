@@ -10,9 +10,9 @@ import { siteImage, siteVideo } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
-import { weddingWall, weddingOffersSection } from './wedding.mjs';
+import { weddingWall } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
-import { pricing, pricingHref, pricingMessage, contactTopics } from '../content/pricing.mjs';
+import { pricing, pricingHref, pricingMessage, contactTopics, pricingDetails, pricingCommon } from '../content/pricing.mjs';
 import { pricingSection } from './pricing.mjs';
 import '../public/admin/categories.js';
 const Cat = globalThis.NolanCategories;
@@ -142,11 +142,6 @@ const igVideos = () => instagramPosts.map(p=>{ const thumb=socialThumb(p), file=
   const v=videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:thumb?`${site.domain}${thumb.src}`:'', uploadDate:p.uploadDate, embedUrl:file?undefined:`${igUrl(p.id)}embed/`, url:file?`${site.domain}/work/#social`:igUrl(p.id) });
   return v&&file ? { ...v, contentUrl:`${site.domain}${p.video.src}`, ...(p.video.duration?{ duration:`PT${p.video.duration}S` }:{}) } : v; }).filter(Boolean);
 
-const visuals = {
-  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
-  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
-  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
-};
 
 // Bannière de l'accueil. Vidéos hébergées par le site, envoyées depuis l'admin (Images > Accueil · Bannière) :
 // une pour l'ordinateur (16:9), une pour le téléphone (9:16), chacune avec son affiche. Aucune requête tierce :
@@ -446,21 +441,194 @@ export function projectPages(){
   return projects.filter(p=>p.visible&&p.slug!=='le-bol-den-face'&&pageOf.get(p.slug)&&shownMedia(p).length).map(p=>{ const path=pageOf.get(p.slug); return [`${path.slice(1)}index.html`, generatedProjectPage(p,path), path]; });
 }
 
+// Page Services : quatre besoins, six offres, la marche à suivre, les avis, la FAQ.
+// Tout le contenu vient de ce qui est déjà publié : offres et prix (content/pricing.mjs), besoins de l'accueil
+// (dimNeeds), réalisations du catalogue Work (mêmes données que l'admin), CGV (acompte), Contact (48 h),
+// avis (content/testimonials.mjs) et FAQ Services (content/site.mjs). Sans média réel, l'emplacement disparaît.
+// Les ancres #realisation, #mariage, #direction-artistique et #strategie-de-marque (lignes des besoins) et
+// #demande-en-mariage (billet) restent : l'accueil, les polaroids et le schéma des offres y renvoient.
+const svOffer = key => pricing.find(o=>o.key===key);
+// Vidéo Instagram de la demande en mariage : volontairement absente de cette page.
+const svHidden = new Set([weddingOffers.demande.instagramId]);
+const svNeeds = [
+  { id:'realisation', key:'realisation', name:'Réalisation', file:'REALISATION_REEL.MOV', keys:['Film de marque','Court métrage','Réseaux sociaux'],
+    need:dimNeeds.realisation.need, text:dimNeeds.realisation.text,
+    get:['Une seule direction, de la préparation à la livraison','Le tournage seul ou le montage seul, si c’est ce qu’il vous faut','Des fichiers pensés pour leur support final'],
+    offers:['contenu','film'], work:['video','reseaux-sociaux'], max:3 },
+  { id:'mariage', key:'mariage', name:'Mariage', file:'MARIAGE_REEL.MOV', keys:['Film de mariage','Demande','Photo'],
+    need:'Un jour qui ne se rejoue pas.', text:`${svOffer('mariage').text} ${svOffer('demande').text}`,
+    get:[...pricingDetails.mariage.includes, ...(pricingDetails.mariage.deliverables||[])].slice(0,3),
+    offers:['mariage','demande'], work:['mariage'], max:3 },
+  { id:'direction-artistique', key:'direction', name:'Direction artistique', file:'DIRECTION_ARTISTIQUE.MOV', keys:['Direction visuelle','Cohérence','Système créatif'],
+    need:dimNeeds.direction.need, text:dimNeeds.direction.text,
+    get:['La direction visuelle, la cohérence de marque ou un système créatif que votre équipe applique ensuite','Sans réalisation vidéo, si vous le souhaitez','Des choix créatifs plus simples, une identité qui se reconnaît'],
+    offers:['direction'], work:['direction-artistique'], max:1 },
+  { id:'strategie-de-marque', key:'strategie', name:'Stratégie de marque', file:'STRATEGIE_SESSION.MOV', keys:['Audit','Priorisation','Session'],
+    need:dimNeeds.strategie.need, text:dimNeeds.strategie.text,
+    get:[pricingDetails.strategie.includes[0], pricingDetails.strategie.includes[1], 'Un accompagnement plus large, chiffré sur devis'],
+    offers:['strategie'], work:[], max:0 },
+];
+// Miniature réelle d'une réalisation du catalogue (projet, vidéo courte ou photo), sinon null.
+const svThumb = it => {
+  if(it.kind==='project'&&it.image?.image) return { src:it.image.image, alt:it.image.alt||it.title, w:it.image.width, h:it.image.height };
+  if(it.kind==='social'&&it.thumb) return { src:it.thumb.src, alt:`${it.title}, vidéo verticale`, w:it.thumb.width, h:it.thumb.height };
+  if(it.kind==='photo') { const ph=it.ph; return { src:ph.srcSmall||ph.src, alt:ph.alt||it.title, w:ph.smallWidth||ph.width, h:ph.smallHeight||ph.height }; }
+  return null;
+};
+// Réalisations d'un besoin : vrais éléments du catalogue, chacun avec son lien Work (page projet ou catégorie).
+const svProofs = n => {
+  const out=[], seen=new Set();
+  for(const c of n.work) for(const it of catalogItems.filter(x=>x.cats.includes(c))){
+    const id=it.kind==='social'?it.post.id:it.kind==='photo'?it.ph.id:it.project.slug;
+    if(out.length>=n.max||seen.has(id)||(it.kind==='social'&&svHidden.has(it.post.id))) continue;
+    const t=svThumb(it); if(!t) continue;
+    // Une photo seule porte sa description ; une vidéo courte renvoie à sa catégorie la plus précise.
+    const title=it.kind==='photo'&&it.ph.alt?it.ph.alt:it.title, meta=it.kind==='photo'?['Photo',it.type,it.year]:[it.type,it.client,it.year];
+    const cat=it.kind==='social'&&it.cats.includes('reseaux-sociaux')?'reseaux-sociaux':c;
+    seen.add(id); out.push({ ...t, title, meta:meta.filter(Boolean).join(' · '), href:(it.kind==='project'&&it.href)||catalogHref(cat), video:it.kind==='social'&&it.post.source==='file'&&it.post.video?.src?it.post.video:null });
+  }
+  return out;
+};
+// Aperçu du lecteur : la première réalisation, sinon l'image choisie pour ce besoin dans l'admin (accueil).
+const svPreview = (n, proofs) => {
+  if(proofs[0]) return proofs[0];
+  const s=siteImage(`home.dims.${n.key}`); return s ? { src:s.image.srcSmall, alt:'', w:s.image.smallWidth, h:s.image.smallHeight, video:null } : null;
+};
+const svImg = (t, cls) => `<img class="${cls}" src="${esc(t.src)}" alt="${esc(t.alt)}"${t.w&&t.h?` width="${t.w}" height="${t.h}"`:''} loading="lazy" decoding="async">`;
+const svArrow = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+// 1. Héros : le mot « Services. » sert de fenêtre sur des photos publiées (vidéo de la bannière si elle est publiée).
+const svHeroMedia = () => {
+  const v = siteVideo('home.hero.desktop') || siteVideo('home.hero.mobile');
+  if(v) return `<span class="sv-mask__media" aria-hidden="true"><img class="sv-mask__layer is-still" src="${esc(v.image.srcSmall)}" alt="" width="${v.image.smallWidth}" height="${v.image.smallHeight}" decoding="async"><video class="sv-mask__layer" data-sv-mask-video muted loop playsinline disablepictureinpicture preload="none" data-src="${esc(v.video.src)}" data-type="${esc(v.video.type)}"></video></span>`;
+  const shots = photos.slice(0,3);
+  if(!shots.length) return '';
+  return `<span class="sv-mask__media" aria-hidden="true">${shots.map((ph,i)=>`<img class="sv-mask__layer sv-mask__layer--${i}" src="${esc(ph.src)}" alt="" width="${ph.width}" height="${ph.height}" decoding="async"${i?' loading="lazy"':' fetchpriority="high"'}>`).join('')}</span>`;
+};
+
+// 2. Une ligne par besoin : titre, trois mots-clés, aperçu (lecteur flottant sur ordinateur), panneau dépliant.
+const svRow = n => {
+  const proofs=svProofs(n), prev=svPreview(n,proofs), all=n.work.filter(c=>catalogCount(c)), total=all.reduce((s,c)=>s+catalogCount(c),0);
+  const from=n.offers.map(svOffer).find(o=>o.from)||svOffer(n.offers[0]);
+  return `<li class="sv-row" id="${n.id}" data-reel-row data-file="${esc(n.file)}"${prev?` data-preview="${esc(prev.src)}"`:''}${prev?.video?` data-preview-video="${esc(prev.video.src)}"`:''}>
+        <h3 class="sv-row__head"><button type="button" class="sv-row__btn" id="sv-btn-${n.id}" aria-expanded="false" aria-controls="sv-panel-${n.id}" data-reel-btn>
+          <span class="sv-row__title">${esc(n.name)}</span>
+          <span class="sv-row__keys" aria-hidden="true">${n.keys.map(k=>`<span>${esc(k)}</span>`).join('')}</span>
+          <span class="sv-row__pill" aria-hidden="true">${svArrow}</span>
+        </button></h3>
+        <div class="sv-row__panel" id="sv-panel-${n.id}" role="region" aria-labelledby="sv-btn-${n.id}" data-reel-panel>
+          <div class="sv-row__clip"><div class="sv-row__inner">
+            ${prev?`<figure class="sv-row__media" aria-hidden="true">${svImg({ ...prev, alt:'' },'sv-row__media-img')}</figure>`:''}
+            <div class="sv-row__need"><p class="sv-row__q">${esc(n.need)}</p><p>${esc(n.text)}</p><a class="sv-row__price" href="#tarifs-${n.id}">${from.from?'À partir de ':''}${esc(from.price)} <span aria-hidden="true">↓</span></a></div>
+            <div class="sv-row__get"><h4>Vous obtenez</h4><ul>${n.get.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+            ${proofs.length?`<div class="sv-row__proof"><h4>${proofs.length>1?'Réalisations':'Réalisation'}</h4><ul>${proofs.map(p=>`<li><a href="${esc(p.href)}">${svImg(p,'sv-row__thumb')}<span><strong>${esc(p.title)}</strong>${p.meta?`<small>${esc(p.meta)}</small>`:''}</span></a></li>`).join('')}</ul>${total>proofs.length?all.map(c=>`<a class="sv-row__all" href="${catalogHref(c)}">${esc(Cat.label(c))} dans Work <sup>${catalogCount(c)}</sup> <span aria-hidden="true">↗</span></a>`).join(''):''}</div>`:''}
+          </div></div>
+        </div>
+      </li>`;
+};
+
+// 3. Billets : corps (offre) et talon (prix) ; tirer le talon, ou l'activer au clavier, ouvre Contact avec l'offre choisie.
+const svFacts = {
+  mariage:[['Durée', weddingOffers.mariage.facts[1][0]], ['Livraison', `Film final de ${weddingOffers.mariage.facts[0][0]}`]],
+  contenu:[['Livraison', pricingDetails.contenu.deliverables[0]]],
+  strategie:[['Durée','1 h']],
+};
+const svTicket = key => { const o=svOffer(key), id=key==='demande'?'demande-en-mariage':`offre-${key}`, digits=o.price.replace(/[^\d ]/g,'').trim(), facts=svFacts[key]||[];
+  const line=(pricingDetails[key]?.includes||[])[0]||o.text, label=o.from?'À partir de':'Tarif', verb=o.cta.charAt(0).toLowerCase()+o.cta.slice(1);
+  return `<li class="sv-ticket" id="${id}" data-ticket>
+          <div class="sv-ticket__body">
+            ${digits?`<span class="sv-ticket__mark" aria-hidden="true">${esc(digits)}</span>`:''}
+            <p class="sv-ticket__cat">${esc(o.tag)}</p>
+            <h4 class="sv-ticket__name">${esc(o.title)}</h4>
+            <p class="sv-ticket__inc">${esc(line)}</p>
+            ${facts.length?`<dl class="sv-ticket__facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}
+          </div>
+          <a class="sv-ticket__stub" href="${esc(pricingHref(o))}" data-ticket-stub aria-label="${esc(o.cta)} : ${esc(o.title)}, ${esc(label.toLowerCase())} ${esc(o.price)}">
+            <span class="sv-ticket__from">${esc(label)}</span>
+            <strong class="sv-ticket__price">${esc(o.price)}</strong>
+            <span class="sv-ticket__tear">Détacher pour ${esc(verb)} <i aria-hidden="true">→</i></span>
+          </a>
+        </li>`; };
+
+// 4. Comment ça se passe : quatre étapes réelles (Contact, devis, CGV, FAQ).
+const svSteps = [
+  { title:'Premier échange', text:['Vous décrivez le projet : une idée, une date ou un problème suffit.', `${site.responseTime}, avec mes premières questions.`], tags:['Sans brief complet','48 h ouvrées'] },
+  { title:'Devis et acompte', text:['On fixe le périmètre, les livrables, le calendrier, le prix et les droits.', 'La commande est validée à la signature et à l’acompte de 40 % ; une date n’est bloquée qu’à ce moment.'], tags:['Devis signé','Acompte de 40 %'] },
+  { title:'Tournage ou séance', text:['Le tournage, la séance photo ou la session de travail a lieu à la date convenue.', 'Pour une prestation datée, le solde est réglé avant son début.'], tags:['Date convenue','Solde avant la prestation'] },
+  { title:'Livraison et allers-retours', text:['Les allers-retours inclus sont ceux prévus au devis.', 'Je garde une copie de sécurité des fichiers finaux pendant six mois après la livraison.'], tags:['Allers-retours au devis','Copie de sécurité 6 mois','Sources non livrées'] },
+];
+
+// 5. Avis : mêmes avis que l'accueil, textes inchangés, en pile de cartes.
+const svQuote = (t,i,n) => `<li class="sv-quote" data-quote="${i}" style="--i:${i}">
+          <blockquote><p>${esc(t.quote)}</p></blockquote>
+          <p class="sv-quote__who">${t.image?`<img src="${esc(t.image.srcSmall)}" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async">`:''}<span><strong>${esc(t.name)}</strong>${t.role?`<small>${esc(t.role)}</small>`:''}</span></p>
+          <span class="sv-quote__n" aria-hidden="true">${i+1} / ${n}</span>
+        </li>`;
+
 export function servicesPage(){
-  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Tarifs de Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande en mariage dès 250 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
-    <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
-    <section class="v16-service-switcher" data-expertise-switcher data-expertise-query><span class="svc-anchor" id="realisation" data-expertise-anchor="realisation"></span><span class="svc-anchor" id="direction-artistique" data-expertise-anchor="direction"></span><span class="svc-anchor" id="strategie-de-marque" data-expertise-anchor="strategie"></span>
-      <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
-      <div class="v16-service-switcher__panels">
-        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story&amp;offre=film">Parler d’une réalisation ↗</a></div><figure><img src="${bolPoster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" width="1280" height="720" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand&amp;offre=direction">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand&amp;offre=strategie">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
+  const faqs = site.faqs.services;
+  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande dès 250 €, contenu et direction artistique dès 200 €, stratégie de marque à 89 € / h.',path:'/services/',extraSchema:faqSchema(faqs,'/services/'),bodyClass:'page-services page-fabrica page-v16 page-sv'}) + header('/services/') + `<main id="main-content" class="sv-page">
+    <section class="sv-hero" aria-labelledby="sv-title">
+      <h1 class="sv-mask" id="sv-title">${svHeroMedia()}<span class="sv-mask__word">Services<span class="sv-mask__dot-hole">.</span></span><span class="sv-mask__dot" aria-hidden="true">Services<b>.</b></span></h1>
+      <p class="sv-hero__lead">Quatre façons de travailler ensemble, chacune avec son prix de départ.</p>
+      <nav class="sv-hero__nav" aria-label="Choisir votre besoin"><ul>${svNeeds.map(n=>`<li><a href="#${n.id}">${esc(n.name)} <span aria-hidden="true">↓</span></a></li>`).join('')}</ul></nav>
+    </section>
+
+    <section class="sv-reel" aria-labelledby="sv-reel-title" data-reel>
+      <h2 class="sv-h2" id="sv-reel-title">Partez de votre besoin<span class="sv-dot">.</span></h2>
+      <ul class="sv-reel__list" data-reel-list>
+      ${svNeeds.map(svRow).join('\n      ')}
+      </ul>
+      <div class="sv-player" aria-hidden="true" data-reel-player>
+        <div class="sv-player__bar"><span class="sv-player__lights"><i></i><i></i><i></i></span><span class="sv-player__file" data-player-file></span><span class="sv-player__rec">● PLAY</span></div>
+        <div class="sv-player__screen"><img data-player-img alt="" decoding="async"><video data-player-video muted loop playsinline disablepictureinpicture preload="none"></video></div>
+        <div class="sv-player__tc"><span>IN <b>00:00:00:00</b></span><span>OUT <b data-player-out>00:00:00:00</b></span></div>
       </div>
     </section>
-    ${weddingOffersSection()}
-    <section class="v16-combined-expertise motion-reveal"><span class="fab-dot-label">Pourquoi les trois comptent</span><h2>Même quand vous n’en achetez qu’une,<br><em>les autres restent dans la pièce.</em></h2><div><article><span>01</span><strong>Un film de marque</strong><p>La stratégie définit ce qu’il doit accomplir, la direction artistique ce à quoi il doit ressembler, la réalisation comment le produire.</p></article><article><span>02</span><strong>Une direction artistique</strong><p>Elle bénéficie d’une compréhension réelle de ce qui sera faisable sur un plateau et au montage.</p></article><article><span>03</span><strong>Une stratégie</strong><p>Elle reste reliée aux contenus et aux supports que l’entreprise devra réellement produire ensuite.</p></article></div></section>
-    ${faqAccordion(site.faqs.services,{id:'faq-services',eyebrow:'FAQ Services',title:'FAQ.',intro:'Questions précises sur la manière dont je peux intervenir.'})}
-    <section class="fab-contact-band motion-reveal"><div><small>Vous savez ce qu’il vous faut ?</small><h2>On cadre le périmètre.</h2></div><p>Un message suffit pour vérifier si je suis la bonne personne et sous quelle forme intervenir.</p><a href="/contact/">M’expliquer le projet <span>↗</span></a></section>
+
+    <section class="sv-tickets" id="tarifs" aria-labelledby="sv-tickets-title">
+      <header class="sv-tickets__head"><h2 class="sv-h2" id="sv-tickets-title">Tarifs<span class="sv-dot">.</span></h2><p>Les prix de départ publiés. Le périmètre exact est fixé au devis.</p></header>
+      ${svNeeds.map(n=>`<div class="sv-tickets__group" id="tarifs-${n.id}">
+        <h3 class="sv-tickets__need"><a href="#${n.id}">${esc(n.name)}</a></h3>
+        <ul class="sv-tickets__list">
+        ${n.offers.map(svTicket).join('\n        ')}
+        </ul>
+      </div>`).join('\n      ')}
+      <div class="sv-tickets__common"><ul>${pricingCommon.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><a href="/cgv/">Conditions générales de vente <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    ${testimonials.length?`<section class="sv-quotes" id="avis" aria-labelledby="sv-quotes-title" data-quote-deck>
+      <h2 class="sv-h2" id="sv-quotes-title">Avis<span class="sv-dot">.</span></h2>
+      <div class="sv-quotes__stage">
+        <ul class="sv-quotes__deck" data-quote-stack tabindex="0" role="group" aria-roledescription="pile d’avis" aria-label="Avis clients, flèches gauche et droite pour changer">
+        ${testimonials.map((t,i)=>svQuote(t,i,testimonials.length)).join('\n        ')}
+        </ul>
+        <div class="sv-quotes__nav"><button type="button" data-quote-prev aria-label="Avis précédent">←</button><span data-quote-count aria-live="polite">1 / ${testimonials.length}</span><button type="button" data-quote-next aria-label="Avis suivant">→</button></div>
+      </div>
+    </section>`:''}
+
+    <section class="sv-steps" id="deroulement" aria-labelledby="sv-steps-title" data-steps>
+      <div class="sv-steps__pin">
+        <h2 class="sv-h2" id="sv-steps-title">Comment ça se passe<span class="sv-dot">.</span></h2>
+        <div class="sv-steps__arc" aria-hidden="true"><div class="sv-steps__wheel" data-steps-wheel>${svSteps.map((s,i)=>`<span class="sv-steps__pip" data-steps-pip="${i}" style="--a:${i*30}deg"><b>${String(i+1).padStart(2,'0')}</b></span>`).join('')}</div></div>
+        <ol class="sv-steps__list">${svSteps.map((s,i)=>`<li class="sv-step${i?'':' is-active'}" data-step="${i}"><span class="sv-step__n" aria-hidden="true">${String(i+1).padStart(2,'0')}</span><h3>${esc(s.title)}</h3>${s.text.map(t=>`<p>${esc(t)}</p>`).join('')}<ul class="sv-step__tags">${s.tags.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></li>`).join('')}</ol>
+      </div>
+    </section>
+
+    <section class="sv-faq" id="faq-services" aria-labelledby="sv-faq-title" data-fold>
+      <h2 class="sv-h2" id="sv-faq-title">Questions<span class="sv-dot">.</span></h2>
+      <div class="sv-faq__list">${faqs.map((f,i)=>`<div class="sv-fold${i?'':' is-open'}" data-fold-item>
+        <h3><button type="button" id="sv-q-${i}" aria-expanded="${i?'false':'true'}" aria-controls="sv-a-${i}" data-fold-btn><span>${esc(f.question)}</span><i aria-hidden="true"></i></button></h3>
+        <div class="sv-fold__panel" id="sv-a-${i}" role="region" aria-labelledby="sv-q-${i}"><div class="sv-fold__clip"><p>${esc(f.answer)}</p></div></div>
+      </div>`).join('')}</div>
+    </section>
+
+    <section class="sv-end" aria-labelledby="sv-end-title">
+      <h2 id="sv-end-title">Un projet en tête<span class="sv-dot">&nbsp;?</span></h2>
+      <p>Une idée, une date ou un problème à résoudre suffit. ${esc(site.responseTime)}.</p>
+      <a class="sv-end__go" href="/contact/"><span>Me décrire le projet</span>${svArrow}</a>
+      <a class="sv-end__alt" href="/work/">Voir les réalisations <span aria-hidden="true">↗</span></a>
+    </section>
   </main>` + footer();
 }
 
