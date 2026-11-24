@@ -6,7 +6,8 @@
   const validLink = v => !v || /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v);
   const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
   // Ancien brouillon : l'image était une adresse libre (texte). Elle n'est plus acceptée : on la retire.
-  const migrate = t => ({ quote: t.quote || '', name: t.name || '', role: t.role || '', image: t.image && typeof t.image === 'object' && t.image.id ? imageFields(t.image) : null, alt: t.alt || '', link: t.link || '', linkLabel: t.linkLabel || '', visible: t.visible !== false });
+  const uploaded = i => i && typeof i === 'object' && i.id ? imageFields(i) : null;
+  const migrate = t => ({ quote: t.quote || '', name: t.name || '', role: t.role || '', image: uploaded(t.image), photo: uploaded(t.photo), alt: t.alt || '', link: t.link || '', linkLabel: t.linkLabel || '', visible: t.visible !== false });
 
   window.NolanTestimonials = ({ client, el, button, say, heading, card, getDraft, getSeed, saveDraft, publish, setDirty, inUse }) => {
     const media = window.NolanMedia ? window.NolanMedia(client, inUse) : null;
@@ -72,16 +73,41 @@
       });
       const fig = el('div', { className: 'im-figure' });
       if (t.image) { const img = el('img', { className: 'ph-thumb', alt: t.alt ? `Aperçu : ${t.alt}` : `Aperçu de l’image de l’avis ${n}`, width: t.image.smallWidth || 0, height: t.image.smallHeight || 0 }); media?.preview(img, t.image.id); fig.append(img); }
+      // Photo de la personne : carrée, petite, affichée en bulle ronde à côté du nom (sans texte alternatif).
+      const photoId = `tm-photo-${i}`;
+      const photoFile = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', className: 'ph-file', id: photoId });
+      photoFile.dataset.focusKey = fk(i, 'photo'); photoFile.disabled = busy >= 0;
+      photoFile.addEventListener('change', async () => {
+        const f = photoFile.files[0]; if (!f || !media) return;
+        busy = i; redraw(); say(`Préparation de ${f.name}…`);
+        try { const { image, report } = await media.store(f, 'avatar', 'avatar'); if (t.photo?.id) removed.push(t.photo.id); t.photo = imageFields(image); touch(); say(`${report}.`, 'warn'); }
+        catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+        busy = -1; redraw();
+      });
+      const photoFig = el('div', { className: 'im-figure' });
+      if (t.photo) { const img = el('img', { className: 'tm-photo', alt: `Photo de ${who}`, width: 72, height: 72 }); media?.preview(img, t.photo.id); photoFig.append(img); }
       const tool = (label, aria, key, action, disabled) => { const b = button(label, 'admin-mini', action, aria); b.dataset.focusKey = fk(i, key); b.disabled = Boolean(disabled); return b; };
       const del = tool('Supprimer', `Supprimer l’avis de ${who}`, 'del', () => {
         if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmer la suppression'; return say('L’avis sera supprimé à l’enregistrement. Clique encore pour confirmer.', 'warn'); }
-        if (t.image?.id) removed.push(t.image.id); model.splice(i, 1); open.clear(); touch(); redraw();
+        if (t.image?.id) removed.push(t.image.id); if (t.photo?.id) removed.push(t.photo.id); model.splice(i, 1); open.clear(); touch(); redraw();
       });
       details.append(
         el('summary', {}, [el('span', { textContent: `${n} · ${who}` }), el('small', { className: `pj-status${t.visible ? '' : ' is-off'}`, textContent: t.visible ? 'Visible' : 'Masqué' })]),
         field('Avis (obligatoire, mot pour mot)', text(t, 'quote', i, { area: true, max: 600, required: true })),
         el('div', { className: 'pj-grid' }, [field('Nom (obligatoire)', text(t, 'name', i, { max: 80, required: true })), field('Contexte (facultatif)', text(t, 'role', i, { max: 80, placeholder: 'Film de mariage, marque…' }))]),
         el('div', { className: 'pj-grid' }, [field('Lien (facultatif)', text(t, 'link', i, { max: 300, placeholder: 'https://… ou /projet/…/' })), field('Texte du lien', text(t, 'linkLabel', i, { max: 60, placeholder: 'Voir le projet' }))]),
+        el('fieldset', { className: 'admin-group pj-media' }, [
+          el('legend', { textContent: 'Photo de la personne' }),
+          photoFig,
+          el('div', { className: 'admin-tools' }, [photoFile, el('label', { htmlFor: photoId, className: 'admin-mini ph-drop__btn', textContent: busy === i ? 'Envoi en cours…' : t.photo ? 'Remplacer la photo' : 'Envoyer une photo' }),
+            t.photo ? tool('Recadrer', `Recadrer la photo de ${who}`, 'photocrop', async () => {
+              busy = i; redraw();
+              try { const { image } = await media.recrop(t.photo, 'avatar', 'avatar'); removed.push(t.photo.id); t.photo = imageFields(image); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
+              catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+              busy = -1; redraw();
+            }) : null,
+            t.photo ? tool('Retirer la photo', `Retirer la photo de ${who}`, 'nophoto', () => { removed.push(t.photo.id); t.photo = null; touch(); redraw(); }) : null].filter(Boolean))
+        ].filter(Boolean)),
         el('fieldset', { className: 'admin-group pj-media' }, [
           el('legend', { textContent: 'Image du panneau (facultatif)' }),
           fig,

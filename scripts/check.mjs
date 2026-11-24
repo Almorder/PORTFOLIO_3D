@@ -94,14 +94,20 @@ for(const m of gearHtml.matchAll(/<img src="([^"]+)"/g)){
 for(const file of ['assets/gear/desk.webp','assets/gear/desk-900.webp','assets/da/texture.webp','assets/da/texture-wide.webp']) if(!existing.has(file)) fail(`Home: visual asset missing (${file})`);
 // Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
 const {weddingPhotos}=await import('../content/wedding.mjs');
-if(!home.includes('class="wedding-wall')||(home.match(/class="polaroid"/g)||[]).length!==3||[...home.matchAll(/class="polaroid__photo"><img src="([^"]+)"[^>]*alt="([^"]*)"/g)].some(([,src,alt])=>!existing.has(src.slice(1))||!alt.trim())) fail('Home: wedding wall shows three polaroids, and no stand-in photo while none is provided');
+// Section Mariage : un cadre, trois images (admin home.wedding.0/1/2) décrites, trois intitulés qui les choisissent, plus de polaroïds.
+{ const wall=home.slice(home.indexOf('class="wedding-wall'),home.indexOf('</section>',home.indexOf('class="wedding-wall')));
+  const shots=[...wall.matchAll(/<(img|span) class="wed__shot[^"]*" data-wed-shot([^>]*)>/g)], picks=[...wall.matchAll(/<button type="button" class="wed__pick" aria-pressed="(true|false)" aria-controls="wed-frame" data-wed-pick data-href="([^"]+)"><span class="wed__n" aria-hidden="true">0\d<\/span><span class="wed__label">([^<]+)</g)];
+  if(!wall||shots.length!==3||picks.length!==3||/polaroid/.test(wall+css)) fail('Home: wedding section shows one frame, three images and three title selectors (no polaroid)');
+  if(picks.map(p=>p[3]).join('|')!=='Film de mariage|Demande en mariage|Le jour J'||picks.map(p=>p[2]).join('|')!=='/services/#mariage|/services/#demande-en-mariage|/services/#mariage'||picks.filter(p=>p[1]==='true').length!==1) fail('Home: wedding selectors keep their titles and Services links');
+  for(const [,tag,attrs] of shots) if(tag==='img'){ const src=attrs.match(/src="([^"]+)"/)?.[1]||'', alt=attrs.match(/alt="([^"]*)"/)?.[1]||''; if(!existing.has(src.slice(1))||!alt.trim()) fail(`Home: wedding image missing or without alt text (${src})`); }
+  if(!app.includes("$$('[data-wed]')")||!app.includes("addEventListener('pointerenter'")||!css.includes('.wed__shot.is-on{opacity:1}')) fail('Home: wedding selectors change the image on hover, click, tap and keyboard'); }
 for(const photo of weddingPhotos){
   if(!existing.has(String(photo.src).replace(/^\//,''))) fail(`Wedding: missing photo file ${photo.src}`);
   if(!photo.alt) fail(`Wedding: photo ${photo.src} needs an alt description`);
   if(!['mariage','demande'].includes(photo.offer)) fail(`Wedding: photo ${photo.src} needs offer 'mariage' or 'demande'`);
 }
 const weddingServicesHtml=await readFile(join(dist,'services/index.html'),'utf8');
-if(!weddingServicesHtml.includes('id="mariage"')||!weddingServicesHtml.includes('id="demande-en-mariage"')) fail('Services: wedding anchors missing (the home polaroids link to them)');
+if(!weddingServicesHtml.includes('id="mariage"')||!weddingServicesHtml.includes('id="demande-en-mariage"')) fail('Services: wedding anchors missing (the home wedding section links to them)');
 if(/<iframe[^>]+instagram\.com|<img[^>]+(instagram|cdninstagram|fbcdn)/i.test(weddingServicesHtml)) fail('Instagram: no Instagram request allowed on Services before click');
 const adminHtml=await readFile(join(dist,'admin/index.html'),'utf8');
 if(!adminHtml.includes('noindex,nofollow')) fail('Admin: page must be noindex');
@@ -311,6 +317,10 @@ if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-widt
   if(!tms.length) fail('Testimonials: at least one testimonial is required');
   for(const t of tms){ if(!String(t.quote||'').trim()||!String(t.name||'').trim()) fail('Testimonials: each testimonial needs a quote and a name'); if(/[\u2014\u2013]/.test(t.quote+t.name+(t.role||''))) fail('Testimonials: no long dash'); if(t.image&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.image.srcSmall||'')||!String(t.alt||'').trim())) fail('Testimonials: images must be uploaded from the admin, with an alt text'); if(t.link&&!/^(\/(?!\/)|https:\/\/)/.test(t.link)) fail('Testimonials: link must be a site page or https'); }
   for(const t of tms) if(!home.includes(`>${t.name.replace(/&/g,'&amp;')}<`)) fail(`Home: testimonial of ${t.name} missing`);
+  // Bulle à côté du nom : photo envoyée depuis l'admin (servie par le site), sinon initiales ; jamais d'image inventée.
+  for(const t of tms){ if(t.photo&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.photo.srcSmall||'')||!existing.has(t.photo.srcSmall.slice(1))||!existing.has(t.photo.src.slice(1)))) fail(`Testimonials: photo of ${t.name} must be an uploaded file copied on the site`);
+    if(t.photo&&!home.includes(`<span class="tm-avatar"><img src="${t.photo.srcSmall}"`)) fail(`Home: photo bubble of ${t.name} missing`); }
+  if((home.match(/<span class="tm-avatar[" ]/g)||[]).length<tms.length) fail('Home: each testimonial needs its bubble (photo or initials) next to the name');
   if(/"@type":"(Review|AggregateRating)"/.test(home)) fail('Testimonials: no self-served Review/AggregateRating markup (Google rules)'); }
 const heroFile=home.includes('data-hero-file');
 if(heroFile ? !/<video class="v16-hero__file" data-hero-file autoplay muted loop playsinline/.test(home) : (!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"'))) fail('Home: hero video must be a muted self-hosted loop, or the consent-gated YouTube facade');
@@ -357,7 +367,7 @@ if(!home.includes('id="selection"')||!/class="home-catalog[\s"][\s\S]*?href="\/w
   for(let i=1;i<order.length;i++) if(at(order[i-1])<0||at(order[i])<at(order[i-1])) fail(`Home: section order broken (${order[i-1]} must come before ${order[i]})`);
   const between=home.slice(at('class="v16-testimonials"'),home.lastIndexOf('<section',at('id="faq-home"'))); if(/<section\b/.test(between.slice(between.indexOf('</section>')+10))) fail('Home: testimonials must sit right above the FAQ');
   if(/v16-hero__veil|gradient-motion-bg/.test(home.slice(at('class="v16-hero"'),at('class="hero-copy"')))) fail('Home: banner must show the video as shot (no veil, no colour layer)');
-  for(const a of home.matchAll(/<a class="polaroid" href="([^"]+)"/g)) if(a[1]!=='/work/?categorie=mariage') fail('Home: wedding photos must open the Work catalogue filtered on Mariage'); }
+  { const frame=home.match(/<a class="wed__frame" id="wed-frame" href="([^"]+)"/); if(!frame||frame[1]!=='/work/?categorie=mariage') fail('Home: the wedding frame must open the Work catalogue filtered on Mariage'); } }
 // Média réel : image du code (card.image), image envoyée depuis l'admin (copiée dans le site) ou vidéo YouTube / Instagram
 // (la page n'affiche ces projets qu'avec une image servie par le site, voir templates/pages.mjs).
 const realMedia=p=>(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))||(p.image&&existing.has(String(p.image.srcSmall||'').slice(1)))||/^[\w-]{11}$/.test(p.videoId||'')||(p.mediaKind==='instagram'&&p.instagramId&&p.image);
@@ -372,7 +382,10 @@ if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id=
   for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" role="button" data-cat-filter="${k}" aria-pressed="false"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
   // Aperçus au format réel du média (plus de 4:5 imposé) : chaque carte déclare son ratio.
   if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
-  if(!app.includes("split(',')")||!app.includes('gridRowEnd')) fail('Work: multiple filters (?categorie=a,b) and masonry packing expected');
+  if(!app.includes("split(',')")||!app.includes('bentoPack(')||!app.includes('gridArea')) fail('Work: multiple filters (?categorie=a,b) and bento packing expected');
+  // Bento : chaque case ouvre la visionneuse plein écran ; textes sur la case (révélés au survol), jamais en dessous.
+  if((work.match(/class="cat-card__hit" data-cat-open="(photo|youtube|instagram|file)"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue case opens the fullscreen viewer');
+  if(!work.includes('data-cat-prev')||!work.includes('data-cat-next')||!app.includes("classList.add('is-viewer-open')")) fail('Work: fullscreen viewer needs previous / next and a scroll lock');
   if(work.indexOf('data-cat-grid')>work.indexOf('data-price-proof')||work.indexOf('data-cat-filter')>work.indexOf('data-cat-grid')) fail('Work: filters first, then the catalogue, then the pricing');
   if(!app.includes("history.pushState(null,''")||!app.includes("addEventListener('popstate'")||!app.includes("get('categorie')")) fail('Work: filter must live in the URL (reload, back/forward, share)');
   const { instagramPosts:posts }=await import('../content/instagram.mjs'), items=(work.match(/<li class="cat-item[ "]/g)||[]).length;
@@ -394,18 +407,31 @@ if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V
 if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17: duplicate production-detail section found');
 
 // SERVICES (services5) : besoins en accordéon, billets à détacher, étapes, avis, FAQ. Ancres reçues de l'accueil,
-// des polaroids et du schéma des offres ; offres et prix = content/pricing.mjs ; aucune image de stock.
-for(const id of ['realisation','mariage','demande-en-mariage','direction-artistique','strategie-de-marque','offre-contenu']) if(!services.includes(`id="${id}"`)) fail(`Services: anchor #${id} missing (home, polaroids and Offer schema link to it)`);
-if((services.match(/data-reel-row /g)||[]).length!==4||(services.match(/data-reel-btn/g)||[]).length!==4) fail('Services: four need rows expected (réalisation, mariage, direction artistique, stratégie)');
+// SERVICES (serv61) : un onglet par besoin, un seul panneau visible, devis en un clic, FAQ native. Ancres reçues de
+// l'accueil, de la section mariage et du schéma des offres ; offres et prix = content/pricing.mjs ; aucune image de stock.
+for(const id of ['realisation','mariage','demande-en-mariage','direction-artistique','strategie-de-marque','offre-contenu']) if(!services.includes(`id="${id}"`)) fail(`Services: anchor #${id} missing (home, wedding section and Offer schema link to it)`);
+{ const tabs=[...services.matchAll(/<a class="srv-tab" role="tab" id="srv-tab-([\w-]+)" href="#\1" aria-controls="\1" aria-selected="(true|false)"/g)];
+  if(tabs.length!==4||tabs.map(t=>t[1]).join()!=='realisation,mariage,direction-artistique,strategie-de-marque'||tabs.filter(t=>t[2]==='true').length!==1) fail('Services: four tabs (role tab, link to the panel) with exactly one selected');
+  if(!services.includes('role="tablist" aria-label="Choisir votre besoin"')) fail('Services: tabs need a labelled tablist');
+  for(const [,id] of tabs) if(!new RegExp(`<section class="srv-panel" id="${id}" role="tabpanel" aria-labelledby="srv-tab-${id}" tabindex="0"`).test(services)) fail(`Services: panel ${id} must be a labelled tabpanel`);
+  if((services.match(/role="tabpanel"[^>]* hidden>/g)||[]).length!==3) fail('Services: one panel visible, the three others hidden until chosen');
+  if(!css.includes('.no-js .srv-panel[hidden]{display:grid!important')) fail('Services: without JavaScript every panel must stay readable'); }
 { const { pricing:offers }=await import('../content/pricing.mjs');
-  if((services.match(/data-ticket-stub/g)||[]).length!==offers.length) fail('Services: one ticket per published offer');
-  for(const o of offers) if(!services.includes(`href="/contact/?intent=${o.intent}&amp;offre=${o.key}" data-ticket-stub`)||!services.includes(`<strong class="sv-ticket__price">${o.price}</strong>`)) fail(`Services: ticket ${o.key} needs its published price and a stub linking to Contact with the offer`); }
+  // Deux clics de l'arrivée au formulaire prérempli : un onglet, puis « Demander un devis » (Contact avec l'offre).
+  for(const o of offers){ const m=services.match(new RegExp(`<a class="srv-go[^"]*" href="/contact/\\?intent=${o.intent}&amp;offre=${o.key}">Demander un devis`)); if(!m) fail(`Services: « Demander un devis » for ${o.key} must open Contact with the offer`); }
+  for(const o of offers) if(!services.includes(o.price.replace(/'/g,'&#39;'))) fail(`Services: published price missing for ${o.key}`);
+  if(!/<dt>À partir de<\/dt><dd>200 €<\/dd>/.test(services.slice(services.indexOf('id="realisation"'),services.indexOf('id="mariage"')))) fail('Services: Réalisation shows « À partir de 200 € »');
+  if(!services.includes('<h2>Un jour qui ne se rejoue pas.</h2>')) fail('Services: validated wedding title missing');
+  const strat=services.slice(services.indexOf('id="strategie-de-marque"'),services.indexOf('class="srv-terms"'));
+  if(/1 mois et demi/.test(strat)||(services.match(/<dd>1 mois et demi max<\/dd>/g)||[]).length!==3) fail('Services: delivery within 1.5 months on every delivered service, not on the strategy session');
+  if(/srv-media__cap/.test(strat)) fail('Services: no work shown for the strategy session (admin image only)');
+  const da=services.slice(services.indexOf('id="direction-artistique"'),services.indexOf('id="strategie-de-marque"')); for(const t of da.matchAll(/srv-media__cap"><strong>([^<]+)</g)) if(!/^Fragments d(&#0?39;|’|')ailleurs$/.test(t[1])) fail(`Services: Direction artistique shows only Fragments d’ailleurs (found ${t[1]})`);
+  if((services.match(/class="srv-reply">Réponse sous 48 h ouvrées</g)||[]).length!==4||!services.includes('Acompte de 40 % à la commande, solde avant la prestation. <a href="/cgv/">')) fail('Services: reply time near the button and common terms (deposit, CGV) expected');
+  if(!services.includes('data-srv-bar')||!css.includes('.srv-bar.is-on')) fail('Services: sticky quote bar expected on phones'); }
 if(/images\.unsplash\.com/.test(services.split('<main')[1]||'')) fail('Services: no stock image (R1: real work only)');
-if(!app.includes("$$('[data-ticket]')")||!app.includes('location.assign(stub.href)')||!/if\(reduced\)\{ location\.assign/.test(app)) fail('Services: ticket stub must tear (pointer, click, Enter) and go to Contact; reduced motion skips the animation');
-if((services.match(/data-step="/g)||[]).length!==4||!services.includes('Acompte de 40 %')) fail('Services: four process steps expected, with the published deposit');
-if(!services.includes('id="faq-services"')||(services.match(/data-fold-item/g)||[]).length!==siteData.faqs.services.length) fail('Services: dedicated FAQ missing');
-for(const q of siteData.faqs.services) if(!services.includes(q.question.replace(/'/g,'&#39;'))||!services.includes(q.answer.replace(/'/g,'&#39;'))) fail(`Services: FAQ question changed or missing ${q.question}`);
-if(/v16-quick-contact|data-expertise-switcher|motion-reveal/.test(services.split('<main')[1].split('</main>')[0])) fail('Services: new components only (no reused blocks, no fade-in on every section)');
+if(!app.includes("history.replaceState(null,'',`#${panels[i].id}`)")||!/ArrowRight:\(i\+1\)%n,ArrowLeft/.test(app)||!app.includes("closest?.('[data-srv-panel]')")) fail('Services: tabs switch without reload, URL follows, arrow keys move, anchors inside a panel open it');
+if(/class="sv-|data-reel|data-ticket|data-quote|data-steps|data-fold/.test(services)||/\.sv-[a-z]/.test(css)) fail('Services: the refused sv- components must not come back');
+if(!services.includes('id="faq-services"')||(services.match(/<details class="srv-q">/g)||[]).length!==siteData.faqs.services.length) fail('Services: dedicated FAQ missing');
 if(services.includes(`data-post-id="${(await import('../content/wedding.mjs')).weddingOffers.demande.instagramId}"`)) fail('Services: the Instagram proposal video stays off this page');
 if(/id="marques"|id="recits"|id="moments"/.test(services)) fail('Services V17: obsolete stacked context chapters found');
 

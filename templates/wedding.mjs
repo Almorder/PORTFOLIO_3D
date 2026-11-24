@@ -2,36 +2,29 @@ import { weddingPhotos, weddingOffers } from '../content/wedding.mjs';
 import { siteImage } from '../content/site-images.mjs';
 
 const esc = value => String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const tilts = [-7, 3, 8, -4, 6, -2];
 const offerHref = photo => `/services/#${(weddingOffers[photo.offer] || weddingOffers.mariage).id}`;
+const captionOf = photo => photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title;
 
-const polaroid = (photo, index, href = offerHref(photo)) => `<li style="--r:${tilts[index % tilts.length]}deg;--i:${index}"><a class="polaroid" href="${href}"><span class="polaroid__photo">${photo.src ? `<img src="${esc(photo.src)}"${photo.srcset ? ` srcset="${esc(photo.srcset)}" sizes="(max-width: 700px) 60vw, 300px"` : ''}${photo.width ? ` width="${photo.width}" height="${photo.height}"` : ''} alt="${esc(photo.alt || '')}" loading="lazy" decoding="async">` : `<span class="polaroid__blank" style="--k:${index}" aria-hidden="true"></span>`}</span><span class="polaroid__caption">${esc(photo.caption || (weddingOffers[photo.offer] || weddingOffers.mariage).title)}</span>${href.startsWith('/work/') ? '<span class="sr-only"> : voir les réalisations mariage</span>' : ''}</a></li>`;
-// Les trois polaroids de l'accueil : photo remplacée depuis l'admin (rubrique « Images du site »), sinon cadre d'origine.
+// Les trois images de la section : photo remplacée depuis l'admin (Images du site > Accueil · Mariage,
+// emplacements home.wedding.0/1/2), sinon texture de la DA (jamais de fausse photo).
 const SLOT_DEFAULTS = [{ offer: 'mariage' }, { offer: 'demande' }, { offer: 'mariage', caption: 'Le jour J' }];
 const slotPhoto = index => { const s = siteImage(`home.wedding.${index}`); return s ? { ...SLOT_DEFAULTS[index], src: s.image.srcSmall, srcset: `${s.image.srcSmall} ${s.image.smallWidth}w, ${s.image.src} ${s.image.width}w`, width: s.image.smallWidth, height: s.image.smallHeight, alt: s.alt } : null; };
 
-// Accueil : un grand titre cliquable (prestations) et trois polaroids. Un clic sur une photo ouvre le catalogue
-// Work déjà filtré sur Mariage (mariages et demandes en mariage), lien partageable.
-export function weddingWall() {
-  // Sans photo fournie : trois polaroids aux tons de la DA, sans fausse image, qui mènent déjà aux prestations.
-  const photos = [0, 1, 2].map(i => slotPhoto(i) || weddingPhotos[i] || SLOT_DEFAULTS[i]);
-  return `<section class="wedding-wall motion-reveal" aria-labelledby="wedding-wall-title">
-      <h2 class="wedding-wall__title" id="wedding-wall-title"><a href="/services/#mariage">Mariage<span class="sr-only"> : voir les prestations mariage et demande en mariage</span></a></h2>
-      <ul class="wedding-wall__photos">${photos.map((photo, i) => polaroid(photo, i, '/work/?categorie=mariage')).join('')}</ul>
-      <a class="wedding-wall__cta" href="/services/#mariage">Voir les formules mariage <span aria-hidden="true">↗</span></a>
-    </section>`;
-}
+const shot = (photo, i) => photo.src
+  ? `<img class="wed__shot${i ? '' : ' is-on'}" data-wed-shot src="${esc(photo.src)}"${photo.srcset ? ` srcset="${esc(photo.srcset)}" sizes="(max-width: 760px) 92vw, 460px"` : ''}${photo.width ? ` width="${photo.width}" height="${photo.height}"` : ''} alt="${esc(photo.alt || '')}"${i ? ' aria-hidden="true"' : ''} loading="lazy" decoding="async">`
+  : `<span class="wed__shot wed__shot--da${i ? '' : ' is-on'}" data-wed-shot style="--k:${i}" aria-hidden="true"></span>`;
 
-// Services : les deux prestations côte à côte, puis toutes les photos quand elles existent.
-export function weddingOffersSection() {
-  const { mariage, demande } = weddingOffers;
-  return `<section class="wedding-offers motion-reveal" id="${mariage.id}" aria-labelledby="wedding-offers-title">
-      <h2 class="wedding-offers__title" id="wedding-offers-title">Mariage et demande en mariage.</h2>
-      <div class="wedding-offers__grid">
-        <article class="wedding-offer"><h3>${esc(mariage.title)}</h3><strong>${esc(mariage.price)}</strong><ul>${mariage.facts.map(([value, label]) => `<li><b>${esc(value)}</b><span>${esc(label)}</span></li>`).join('')}</ul><a class="wedding-offer__cta" href="${esc(mariage.href)}">${esc(mariage.cta)}</a></article>
-        <article class="wedding-offer" id="${demande.id}"><h3>${esc(demande.title)}</h3><strong>${esc(demande.price)}</strong>${demande.note ? `<p class="wedding-offer__note">${esc(demande.note)}</p>` : ''}<a class="wedding-offer__cta" href="${esc(demande.href)}">${esc(demande.cta)}</a></article>
-        <div class="ig-card wedding-offers__film" data-instagram-post data-post-id="${esc(demande.instagramId)}" data-post-title="${esc(demande.title)}" style="--ig-ratio:9/16"><div class="ig-card__cover"><strong>${esc(demande.title)}</strong><button type="button" class="ig-card__play" data-load-instagram aria-label="Lire la vidéo ${esc(demande.title)} (chargée depuis Instagram)">▶</button></div><a class="ig-card__link" href="https://www.instagram.com/p/${esc(demande.instagramId)}/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></div>
+// Accueil : le grand titre (prestations), un seul cadre et trois intitulés qui choisissent la photo affichée.
+// Le cadre ouvre le catalogue Work filtré sur Mariage ; « Voir l'offre » suit l'intitulé actif (Services).
+export function weddingWall() {
+  const photos = [0, 1, 2].map(i => slotPhoto(i) || weddingPhotos[i] || SLOT_DEFAULTS[i]);
+  return `<section class="wedding-wall motion-reveal" aria-labelledby="wedding-wall-title" data-wed>
+      <h2 class="wedding-wall__title" id="wedding-wall-title"><a href="/services/#mariage">Mariage<span class="sr-only"> : voir les prestations mariage et demande en mariage</span></a></h2>
+      <div class="wed">
+        <div class="wed__picks" role="group" aria-label="Choisir la photo affichée">${photos.map((photo, i) => `<button type="button" class="wed__pick" aria-pressed="${i ? 'false' : 'true'}" aria-controls="wed-frame" data-wed-pick data-href="${offerHref(photo)}"><span class="wed__n" aria-hidden="true">0${i + 1}</span><span class="wed__label">${esc(captionOf(photo))}</span></button>`).join('')}</div>
+        <a class="wed__frame" id="wed-frame" href="/work/?categorie=mariage">${photos.map(shot).join('')}<span class="sr-only"> : voir les réalisations mariage</span></a>
+        <a class="wed__go" href="${offerHref(photos[0])}" data-wed-go>Voir l’offre<span class="sr-only"> : <span data-wed-go-name>${esc(captionOf(photos[0]))}</span></span> <span aria-hidden="true">↗</span></a>
       </div>
-      ${weddingPhotos.length ? `<ul class="wedding-offers__photos">${weddingPhotos.map((photo, i) => polaroid(photo, i)).join('')}</ul>` : ''}
+      <a class="wedding-wall__cta" href="/services/#mariage">Voir les formules mariage <span aria-hidden="true">↗</span></a>
     </section>`;
 }
