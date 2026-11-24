@@ -63,10 +63,26 @@ if('requestIdleCallback' in window){
 {
   const lazy=$$('[data-lazy-bg]');
   if(lazy.length){
+    // Posée en style direct : passe devant les fonds décoratifs des cartes (dossiers 2 et 3, vidéos 2 à 4).
+    const show=el=>{ el.classList.add('is-bg'); el.style.backgroundImage='var(--bg)'; };
     if('IntersectionObserver' in window){
-      const io=new IntersectionObserver(entries=>entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-bg'); io.unobserve(e.target); } }),{rootMargin:'900px 900px'});
+      const io=new IntersectionObserver(entries=>entries.forEach(e=>{ if(e.isIntersecting){ show(e.target); io.unobserve(e.target); } }),{rootMargin:'900px 900px'});
       lazy.forEach(el=>io.observe(el));
-    } else lazy.forEach(el=>el.classList.add('is-bg'));
+    } else lazy.forEach(show);
+  }
+}
+
+// Dossiers « Trois dimensions » : hauteur exacte du texte de chaque feuille, pour qu'au survol elle descende sans rien masquer.
+{
+  const fronts=$$('.folder__front');
+  if(fronts.length){
+    const measure=()=>fronts.forEach(front=>{
+      const cs=getComputedStyle(front);
+      let h=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+      [...front.children].forEach(c=>{ const k=getComputedStyle(c); if(k.position==='absolute') return; h+=c.offsetHeight+(c.classList.contains('folder__foot')?0:(parseFloat(k.marginTop)||0)+(parseFloat(k.marginBottom)||0)); });
+      front.closest('.folder')?.style.setProperty('--sheet-h',`${Math.ceil(h+20)}px`);
+    });
+    measure(); addEventListener('resize',measure,{passive:true}); document.fonts?.ready.then(measure);
   }
 }
 

@@ -2090,6 +2090,7 @@ body.cx-dialog-open{overflow:hidden}
    Avant : background-size auto, l'image restait à sa taille réelle, collée en haut à gauche, d'où le décalage.
    L'écran du téléphone n'est pas en 9:16 (428 × 944, 0,453) : l'outil de recadrage utilise ce ratio. */
 .ps-card .ig-card__cover{background-size:cover;background-position:center;background-repeat:no-repeat}
+.ps-card .ig-card__cover.is-bg{background-size:cover;background-position:center;background-repeat:no-repeat}
 /* Lecture d'un fichier vidéo : toute la vidéo, centrée dans l'écran, bandes noires si besoin. */
 .ps-card.is-playing .ig-card__cover:has(video){background:#000}
 .ps-card .ig-card__cover video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
@@ -2295,9 +2296,15 @@ body.page-home.has-hero-file{animation:none}
 .folder__front{transition:transform .55s cubic-bezier(.23,1,.32,1),top .6s cubic-bezier(.23,1,.32,1)}
 .folder__more{max-height:14em;overflow:hidden;transition:opacity .3s ease,max-height .6s cubic-bezier(.23,1,.32,1),margin .6s cubic-bezier(.23,1,.32,1)}
 @media(hover:hover) and (min-width:981px){
+  .dims .folder{aspect-ratio:4/5.4}
+}
+@media(hover:hover) and (min-width:981px) and (max-width:1320px){
+  .dims .folder{aspect-ratio:4/6}
+}
+@media(hover:hover) and (min-width:981px){
   .folder:hover{--lift:0px}
-  .folder:hover .folder__front{top:54%}
-  .folder:hover .folder__more{opacity:0;max-height:0;margin-top:0;margin-bottom:0}
+  /* La feuille descend jusqu'à la hauteur de son texte (mesurée dans app.js) : titre, description et prix restent visibles. */
+  .folder:hover .folder__front{top:max(30%,calc(100% - var(--sheet-h,46%)))}
 }
 /* Téléphone et tablette (pas de survol) : l'image du dossier se voit davantage, tout le texte reste lisible. */
 @media(max-width:980px){.dims .folder{aspect-ratio:auto;padding-top:clamp(210px,62vw,320px)}}
