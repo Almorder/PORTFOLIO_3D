@@ -210,7 +210,7 @@
         const live = button('Publier', 'admin-button admin-button--ember', async () => { live.disabled = true; await publish('Images du site'); live.disabled = false; });
         live.disabled = Boolean(busy);
         box.replaceChildren(
-          el('div', { className: 'admin-bar' }, [heading('Images', 'Chaque changement est enregistré tout de suite.'), el('div', { className: 'admin-row' }, [live])]),
+          el('div', { className: 'admin-bar' }, [heading('Images'), el('div', { className: 'admin-row' }, [live])]),
           heroRows(), ...homeRows(), projectRows(projects || []), socialRows(posts || [])
         );
         if (focusKey) box.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();

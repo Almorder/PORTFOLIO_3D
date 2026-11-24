@@ -1813,6 +1813,10 @@ body.page-contact,.page-contact.page-fabrica main.cx-page{background:var(--paper
 .cx-proof__quote footer{margin-top:auto;display:flex;flex-direction:column;gap:3px}
 .cx-proof__quote footer strong{font:500 18px/1 var(--serif)}
 .cx-proof__quote footer span{font:600 10px/1.3 var(--ui);letter-spacing:.07em;text-transform:uppercase;color:rgba(8,7,6,.58)}
+/* Bulle de l'avis sur la carte Contact (au repos ; le panneau ouvert n'en a pas) : même bulle que l'accueil, sur fond clair. */
+.cx-proof__quote footer .tm-who{display:inline-flex;flex-direction:row;align-items:center;gap:10px;font:inherit;letter-spacing:normal;text-transform:none;color:inherit}
+.cx-proof__quote footer .tm-avatar{border-color:rgba(8,7,6,.14);font:600 12px/1 var(--ui);letter-spacing:.04em;color:var(--paper)}
+.cx-proof__quote footer .tm-avatar.is-initials{background:var(--ink)}
 .page-contact .cx-page .faq-section{background:var(--paper);border-top:0;padding-top:clamp(72px,8vw,120px)}
 .cx-visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
@@ -2236,7 +2240,7 @@ body.page-home.has-hero-file{animation:none}
 .wed-card{--rad:30px;position:relative;display:block;border-radius:var(--rad);color:var(--paper);text-decoration:none;box-shadow:0 0 0 5px rgba(240,235,226,.06),0 40px 80px -28px rgba(0,0,0,.85);transition:translate .3s cubic-bezier(.23,1,.32,1),scale .16s cubic-bezier(.23,1,.32,1)}
 .wed-card__img{position:relative;display:block;aspect-ratio:4/5;border-radius:inherit;overflow:hidden;isolation:isolate;background:#1a0504}
 .wed-card__img img,.wed-card__da{display:block;width:100%;height:100%;object-fit:cover}
-.wed-card__img::after{z-index:1}
+.wed-card__img::after{z-index:1;opacity:.25} /* grain de la section Mariage : moitié de celui des dossiers (.5) */
 .wed-card__da{background:url(/assets/da/texture.webp) 50% 100%/cover}
 .wed-card__da[style*="--k:1"]{background-image:url(/assets/da/texture-c.webp);background-position:50% 0}
 .wed-card__da[style*="--k:2"]{background-image:url(/assets/da/texture-b.webp)}

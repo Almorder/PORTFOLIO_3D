@@ -321,12 +321,16 @@ if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-widt
   if(!tms.length) fail('Testimonials: at least one testimonial is required');
   for(const t of tms){ if(!String(t.quote||'').trim()||!String(t.name||'').trim()) fail('Testimonials: each testimonial needs a quote and a name'); if(/[\u2014\u2013]/.test(t.quote+t.name+(t.role||''))) fail('Testimonials: no long dash'); if(t.image&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.image.srcSmall||'')||!String(t.alt||'').trim())) fail('Testimonials: images must be uploaded from the admin, with an alt text'); if(t.link&&!/^(\/(?!\/)|https:\/\/)/.test(t.link)) fail('Testimonials: link must be a site page or https'); }
   for(const t of tms) if(!home.includes(`>${t.name.replace(/&/g,'&amp;')}<`)) fail(`Home: testimonial of ${t.name} missing`);
-  // Bulle à côté du nom : photo envoyée depuis l'admin (servie par le site), sinon initiales ; jamais d'image inventée.
-  for(const t of tms){ if(t.photo&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.photo.srcSmall||'')||!existing.has(t.photo.srcSmall.slice(1))||!existing.has(t.photo.src.slice(1)))) fail(`Testimonials: photo of ${t.name} must be an uploaded file copied on the site`);
+  // Bulle à côté du nom : image de l'avis, ou sa bulle recadrée dans l'admin (même original, servie par le site),
+  // sinon initiales ; jamais d'image inventée.
+  for(const t of tms){ if(t.photo&&(!t.image||t.photo.source?.id!==t.image.source?.id)) fail(`Testimonials: bubble of ${t.name} must be cut from its own testimonial image`);
+    if(t.photo&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.photo.srcSmall||'')||!existing.has(t.photo.srcSmall.slice(1))||!existing.has(t.photo.src.slice(1)))) fail(`Testimonials: photo of ${t.name} must be an uploaded file copied on the site`);
     if(t.photo&&!home.includes(`<span class="tm-avatar"><img src="${t.photo.srcSmall}"`)) fail(`Home: photo bubble of ${t.name} missing`);
-    // Sans « Photo de la personne », la bulle reprend l'image de l'avis (petite taille publiée).
+    // Sans bulle recadrée, la bulle reprend l'image de l'avis (petite taille publiée).
     if(!t.photo&&t.image&&!home.includes(`<span class="tm-avatar is-cover"><img src="${t.image.srcSmall}"`)) fail(`Home: bubble of ${t.name} must use the testimonial image`); }
   if((home.match(/<span class="tm-avatar[" ]/g)||[]).length<tms.length) fail('Home: each testimonial needs its bubble (photo or initials) next to the name');
+  // Panneau ouvert (clic sur un avis) : l'image est en grand, pas de bulle en double.
+  if(/<p class="morph-panel__who">\s*<span class="tm-avatar/.test(home)||(home.match(/<span class="tm-avatar[" ]/g)||[]).length!==(home.match(/class="morph-hit"/g)||[]).length) fail('Home: the bubble stays on the cards, never in the opened testimonial panel');
   if(/"@type":"(Review|AggregateRating)"/.test(home)) fail('Testimonials: no self-served Review/AggregateRating markup (Google rules)'); }
 const heroFile=home.includes('data-hero-file');
 if(heroFile ? !/<video class="v16-hero__file" data-hero-file autoplay muted loop playsinline/.test(home) : (!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"'))) fail('Home: hero video must be a muted self-hosted loop, or the consent-gated YouTube facade');
@@ -407,7 +411,15 @@ if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id=
   if(!home.includes('Acompte de 40 %')||!home.includes('href="/cgv/">Conditions générales de vente')) fail('Pricing: common conditions (deposit, CGV) expected under the offers'); }
 { const sel=home.slice(home.indexOf('id="selection"'),home.indexOf('id="social"')); const shown=new Set(projectData.filter(p=>p.visible).map(p=>p.title)); const series=new Set((await import('../content/photos.mjs')).photos.map(x=>x.series)); for(const p of projectData.filter(p=>!p.visible&&!shown.has(p.title)&&!series.has(p.title))) if(sel.includes(`>${p.title}<`)||sel.includes(`"${p.title}"`)) fail(`Work V2: hidden project « ${p.title} » must not appear in the selection (R1)`); }
 if(/data-expertise-switcher/.test(work)) fail('Work V2: the three-hat switcher moved out (it stays on Services)');
-{ const { tilePhotos:tiles, tileRank:rank }=await import('../content/photos.mjs'); if(!tiles.length&&/data-title="Photographie"/.test(home)) fail('Home: photography tile appears only with real photos (R1)'); /* Rangée après la 5e place dans l'admin (Ordre), la tuile sort de « Ma sélection » : elle reste dans le catalogue Work. */ if(tiles.length&&(rank==null||rank<=5)&&!/data-title="Photographie"/.test(home)) fail('Home: photos checked for the tile must show the Photographie tile'); }
+{ const { tilePhotos:tiles, tileRank:rank, tileHomeRank:homeRank }=await import('../content/photos.mjs'); if(!tiles.length&&/data-title="Photographie"/.test(home)) fail('Home: photography tile appears only with real photos (R1)');
+  // « Ma sélection » (admin, Ordre > Accueil) : homeRank de 1 à 5 sur les projets et vidéos, tileHomeRank pour la tuile.
+  // Sans ordre Accueil, les cinq premiers de l'ordre Work (la tuile rangée après la 5e place sort de l'accueil).
+  const { instagramPosts:igp }=await import('../content/instagram.mjs');
+  const chosen=[...projectData.filter(p=>p.visible&&Number.isInteger(p.homeRank)).map(p=>[p.homeRank,p.title]),...igp.filter(p=>Number.isInteger(p.homeRank)).map(p=>[p.homeRank,p.title]),...(tiles.length&&homeRank?[[homeRank,'Photographie']]:[])].sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  const bentoTitles=[...home.slice(home.indexOf('data-bento '),home.indexOf('data-fiche')).matchAll(/data-bento-tile data-slot="\d" data-title="([^"]*)"/g)].map(m=>m[1].replace(/&amp;/g,'&').replace(/&quot;/g,'"'));
+  const placed=chosen.filter(t=>bentoTitles.includes(t)); /* un élément choisi puis masqué ou sans média n'est plus sur le site */
+  if(chosen.length){ if(!placed.length||placed.join('|')!==bentoTitles.slice(0,placed.length).join('|')) fail(`Home: « Ma sélection » must follow the Accueil order of the admin (${chosen.join(', ')})`); if(tiles.length&&!homeRank&&chosen.length>=5&&bentoTitles.includes('Photographie')) fail('Home: the Photographie tile is out of the Accueil order'); }
+  else if(tiles.length&&(rank==null||rank<=5)&&!/data-title="Photographie"/.test(home)) fail('Home: photos checked for the tile must show the Photographie tile'); }
 if(work.includes('data-stacked-flow')) fail('Work V17: obsolete stacked collaboration component should not render');
 
 // PROJECT — film first, one compact technical grid.

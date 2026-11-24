@@ -1,13 +1,24 @@
 // Admin Nolan Arc : avis clients (accueil, Work, Contact, À propos). Ajouter, modifier, ordonner, masquer,
 // supprimer un avis. Image facultative, seulement envoyée depuis ici (WebP, stockage « site-photos », copiée sur
-// le site au déploiement) : plus d'adresse d'image libre. « Enregistrer et publier » met les avis en ligne
+// le site au déploiement) : plus d'adresse d'image libre. La bulle ronde à côté du nom reprend automatiquement
+// cette image (cadrage centre-haut, comme sur le site) ; si l'image a son original (recadrage), la bulle peut être
+// recadrée à part (champ photo, tiré du même original). « Enregistrer et publier » met les avis en ligne
 // (tools/fetch-published.mjs). Aucune donnée n'est injectée en HTML : tout passe par textContent.
 (() => {
   const validLink = v => !v || /^\/(?!\/)[\w\-./?=&#%]*$/.test(v) || /^https:\/\/[\w.-]+(\/[\w\-./?=&#%~+]*)?$/.test(v);
   const imageFields = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
   // Ancien brouillon : l'image était une adresse libre (texte). Elle n'est plus acceptée : on la retire.
   const uploaded = i => i && typeof i === 'object' && i.id ? imageFields(i) : null;
-  const migrate = t => ({ quote: t.quote || '', name: t.name || '', role: t.role || '', image: uploaded(t.image), photo: uploaded(t.photo), alt: t.alt || '', link: t.link || '', linkLabel: t.linkLabel || '', visible: t.visible !== false });
+  // Bulle recadrée : gardée seulement si elle vient de l'original de l'image de l'avis. Une ancienne « photo de la
+  // personne » envoyée à part est ignorée : la bulle reprend l'image de l'avis (le site fait de même).
+  const bubbleOf = t => { const img = uploaded(t.image), ph = uploaded(t.photo); return img?.source?.id && ph?.source?.id === img.source.id ? ph : null; };
+  const migrate = t => ({ quote: t.quote || '', name: t.name || '', role: t.role || '', image: uploaded(t.image), photo: bubbleOf(t), alt: t.alt || '', link: t.link || '', linkLabel: t.linkLabel || '', visible: t.visible !== false });
+  // Cadrage par défaut de la bulle, en fractions de l'original : le carré du haut, centré, de la zone gardée pour l'image.
+  const topSquare = image => {
+    const W = image.source.width, H = image.source.height, c = image.crop || { x: 0, y: 0, w: 1, h: 1 };
+    const side = Math.min(c.w * W, c.h * H);
+    return { x: c.x + (c.w - side / W) / 2, y: c.y, w: side / W, h: side / H };
+  };
 
   window.NolanTestimonials = ({ client, el, button, say, heading, card, getDraft, getSeed, saveDraft, publish, setDirty, inUse }) => {
     const media = window.NolanMedia ? window.NolanMedia(client, inUse) : null;
@@ -67,25 +78,17 @@
       file.addEventListener('change', async () => {
         const f = file.files[0]; if (!f || !media) return;
         busy = i; redraw(); say(`Préparation de ${f.name}…`);
-        try { const { image, report } = await media.store(f, 'cover', 'testimonial'); if (t.image?.id) removed.push(t.image.id); t.image = imageFields(image); touch(); say(`${report}. Écris le texte alternatif puis enregistre.`, 'warn'); }
+        try { const { image, report } = await media.store(f, 'cover', 'testimonial'); if (t.image?.id) removed.push(t.image.id); if (t.photo?.id) removed.push(t.photo.id); t.image = imageFields(image); t.photo = null; touch(); say(`${report}. Écris le texte alternatif puis enregistre.`, 'warn'); }
         catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
         busy = -1; redraw();
       });
       const fig = el('div', { className: 'im-figure' });
-      if (t.image) { const img = el('img', { className: 'ph-thumb', alt: t.alt ? `Aperçu : ${t.alt}` : `Aperçu de l’image de l’avis ${n}`, width: t.image.smallWidth || 0, height: t.image.smallHeight || 0 }); media?.preview(img, t.image.id); fig.append(img); }
-      // Photo de la personne : carrée, petite, affichée en bulle ronde à côté du nom (sans texte alternatif).
-      const photoId = `tm-photo-${i}`;
-      const photoFile = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', className: 'ph-file', id: photoId });
-      photoFile.dataset.focusKey = fk(i, 'photo'); photoFile.disabled = busy >= 0;
-      photoFile.addEventListener('change', async () => {
-        const f = photoFile.files[0]; if (!f || !media) return;
-        busy = i; redraw(); say(`Préparation de ${f.name}…`);
-        try { const { image, report } = await media.store(f, 'avatar', 'avatar'); if (t.photo?.id) removed.push(t.photo.id); t.photo = imageFields(image); touch(); say(`${report}.`, 'warn'); }
-        catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
-        busy = -1; redraw();
-      });
-      const photoFig = el('div', { className: 'im-figure' });
-      if (t.photo) { const img = el('img', { className: 'tm-photo', alt: `Photo de ${who}`, width: 72, height: 72 }); media?.preview(img, t.photo.id); photoFig.append(img); }
+      if (t.image) {
+        const img = el('img', { className: 'ph-thumb', alt: t.alt ? `Aperçu : ${t.alt}` : `Aperçu de l’image de l’avis ${n}`, width: t.image.smallWidth || 0, height: t.image.smallHeight || 0 }); media?.preview(img, t.image.id);
+        // Aperçu de la bulle : la bulle recadrée si elle existe, sinon l'image de l'avis cadrée centre-haut (comme le site).
+        const bubble = el('img', { className: `tm-bubble${t.photo ? '' : ' is-cover'}`, alt: `Bulle de ${who}`, width: 72, height: 72 }); media?.preview(bubble, (t.photo || t.image).id);
+        fig.classList.add('tm-figure'); fig.append(img, el('figure', { className: 'tm-bubble__fig' }, [bubble, el('figcaption', { textContent: 'Bulle' })]));
+      }
       const tool = (label, aria, key, action, disabled) => { const b = button(label, 'admin-mini', action, aria); b.dataset.focusKey = fk(i, key); b.disabled = Boolean(disabled); return b; };
       const del = tool('Supprimer', `Supprimer l’avis de ${who}`, 'del', () => {
         if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmer la suppression'; return say('L’avis sera supprimé à l’enregistrement. Clique encore pour confirmer.', 'warn'); }
@@ -97,19 +100,7 @@
         el('div', { className: 'pj-grid' }, [field('Nom (obligatoire)', text(t, 'name', i, { max: 80, required: true })), field('Contexte (facultatif)', text(t, 'role', i, { max: 80, placeholder: 'Film de mariage, marque…' }))]),
         el('div', { className: 'pj-grid' }, [field('Lien (facultatif)', text(t, 'link', i, { max: 300, placeholder: 'https://… ou /projet/…/' })), field('Texte du lien', text(t, 'linkLabel', i, { max: 60, placeholder: 'Voir le projet' }))]),
         el('fieldset', { className: 'admin-group pj-media' }, [
-          el('legend', { textContent: 'Photo de la personne (facultatif, sinon l’image de l’avis)' }),
-          photoFig,
-          el('div', { className: 'admin-tools' }, [photoFile, el('label', { htmlFor: photoId, className: 'admin-mini ph-drop__btn', textContent: busy === i ? 'Envoi en cours…' : t.photo ? 'Remplacer la photo' : 'Envoyer une photo' }),
-            t.photo ? tool('Recadrer', `Recadrer la photo de ${who}`, 'photocrop', async () => {
-              busy = i; redraw();
-              try { const { image } = await media.recrop(t.photo, 'avatar', 'avatar'); removed.push(t.photo.id); t.photo = imageFields(image); touch(); say('Recadrage prêt. Enregistre pour le garder.', 'warn'); }
-              catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
-              busy = -1; redraw();
-            }) : null,
-            t.photo ? tool('Retirer la photo', `Retirer la photo de ${who}`, 'nophoto', () => { removed.push(t.photo.id); t.photo = null; touch(); redraw(); }) : null].filter(Boolean))
-        ].filter(Boolean)),
-        el('fieldset', { className: 'admin-group pj-media' }, [
-          el('legend', { textContent: 'Image du panneau (facultatif)' }),
+          el('legend', { textContent: 'Image de l’avis (facultatif)' }),
           fig,
           el('div', { className: 'admin-tools' }, [file, el('label', { htmlFor: fileId, className: 'admin-mini ph-drop__btn', textContent: busy === i ? 'Envoi en cours…' : t.image ? 'Remplacer l’image' : 'Envoyer une image' }),
             t.image ? tool('Recadrer', `Recadrer l’image de l’avis de ${who}`, 'crop', async () => {
@@ -118,7 +109,14 @@
               catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
               busy = -1; redraw();
             }) : null,
-            t.image ? tool('Retirer l’image', `Retirer l’image de l’avis de ${who}`, 'noimg', () => { removed.push(t.image.id); t.image = null; t.alt = ''; touch(); redraw(); }) : null].filter(Boolean)),
+            t.image?.source?.id ? tool('Recadrer la bulle', `Recadrer la bulle de ${who}`, 'bubble', async () => {
+              busy = i; redraw();
+              try { const { image } = await media.recrop({ id: t.image.id, source: t.image.source, crop: t.photo?.crop || topSquare(t.image) }, 'avatar', 'avatar'); if (t.photo?.id) removed.push(t.photo.id); t.photo = imageFields(image); touch(); say('Bulle recadrée. Enregistre pour la garder.', 'warn'); }
+              catch (err) { say(`Arrêt : ${err.message}.`, 'error'); }
+              busy = -1; redraw();
+            }) : null,
+            t.photo ? tool('Bulle par défaut', `Bulle de ${who} : cadrage centre-haut`, 'nobubble', () => { removed.push(t.photo.id); t.photo = null; touch(); redraw(); }) : null,
+            t.image ? tool('Retirer l’image', `Retirer l’image de l’avis de ${who}`, 'noimg', () => { removed.push(t.image.id); if (t.photo?.id) removed.push(t.photo.id); t.image = null; t.photo = null; t.alt = ''; touch(); redraw(); }) : null].filter(Boolean)),
           t.image ? field('Texte alternatif (obligatoire)', text(t, 'alt', i, { area: true, rows: 2, max: 300, required: true, placeholder: 'Ce que montre l’image, en une phrase' })) : null
         ].filter(Boolean)),
         el('div', { className: 'ph-card__checks' }, [el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })])]),
@@ -143,7 +141,7 @@
       head.append(el('div', { className: 'admin-row' }, [save, live]));
       const add = button('+ Ajouter un avis', 'admin-button', () => { model.push(migrate({})); open.add(model.length - 1); touch(); redraw(); document.querySelector(`[data-focus-key="${fk(model.length - 1, 'quote')}"]`)?.focus(); });
       const shown = model.filter(t => t.visible).length;
-      return [head, el('p', { className: shown ? 'ph-help' : 'admin-alert', textContent: `${shown} avis visible(s). Au-delà de 10 (6 sur téléphone), le site affiche « Voir plus d’avis ».` }), el('div', { className: 'pj-list' }, model.map(item)), add];
+      return [head, el('p', { className: shown ? 'ph-help' : 'admin-alert', textContent: `${shown} avis visible(s)` }), el('div', { className: 'pj-list' }, model.map(item)), add];
     };
     const view = () => {
       if (!model) reset();

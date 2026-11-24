@@ -332,7 +332,7 @@
     };
 
     const render = () => {
-      const head = el('div', { className: 'admin-bar' }, [heading('Projets', 'Les cinq premiers forment la sélection de l’accueil.')]);
+      const head = el('div', { className: 'admin-bar' }, [heading('Projets')]);
       if (!model) {
         const start = button('Partir des projets actuels du site', 'admin-button', async () => {
           start.disabled = true;
@@ -355,8 +355,7 @@
       return [
         head,
         card('Mise en ligne', [
-          el('p', { className: shown ? 'admin-ok' : 'admin-alert', textContent: `${shown} projet(s) visible(s) sur le site après publication. Un projet sans média complet reste masqué.` }),
-          el('p', { className: 'ph-help', textContent: 'Après « Enregistrer et publier », la nouvelle version part en ligne ; l’état (« En ligne : version n° … ») s’affiche en bas du menu.' })
+          el('p', { className: shown ? 'admin-ok' : 'admin-alert', textContent: `${shown} projet(s) visible(s)` }),
         ], 'admin-card--wide'),
         el('div', { className: 'pj-list' }, model.map(projectCard)),
         add

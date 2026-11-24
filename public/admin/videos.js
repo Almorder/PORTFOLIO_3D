@@ -174,7 +174,7 @@
     };
 
     const render = () => {
-      const head = el('div', { className: 'admin-bar' }, [heading('Vidéos', 'Le téléphone de la page Work, dans cet ordre.')]);
+      const head = el('div', { className: 'admin-bar' }, [heading('Vidéos')]);
       if (!model) {
         const start = button('Partir des vidéos actuelles du site', 'admin-button', async () => {
           start.disabled = true;
