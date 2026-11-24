@@ -43,7 +43,7 @@ const jsAsset=`assets/app.${jsHash}.js`;
 const adminVersion=createHash('sha256').update(await readFile(join(root,'public/admin/admin.js'),'utf8')).digest('hex').slice(0,10);
 const cockpitVersion=createHash('sha256').update(await readFile(join(root,'public/admin/cockpit.js'),'utf8')).digest('hex').slice(0,10);
 const fileVersion=async rel=>createHash('sha256').update(await readFile(join(root,rel),'utf8')).digest('hex').slice(0,10);
-const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js'), testiVersion=await fileVersion('public/admin/testimonials.js'), cropVersion=await fileVersion('public/admin/cropper.js'), catVersion=await fileVersion('public/admin/categories.js');
+const modelsVersion=await fileVersion('public/admin/doc-models.js'), msgVersion=await fileVersion('public/admin/messages.js'), adminCssVersion=await fileVersion('public/admin/admin.css'), photosVersion=await fileVersion('public/admin/photos.js'), projectsVersion=await fileVersion('public/admin/projects.js'), mediaVersion=await fileVersion('public/admin/media.js'), videosVersion=await fileVersion('public/admin/videos.js'), imagesVersion=await fileVersion('public/admin/images.js'), testiVersion=await fileVersion('public/admin/testimonials.js'), cropVersion=await fileVersion('public/admin/cropper.js'), catVersion=await fileVersion('public/admin/categories.js'), orderVersion=await fileVersion('public/admin/order.js');
 // Modèles de documents (HTML, CSS, polices) : une seule version pour tout le dossier, l'aperçu de l'admin ne garde jamais un ancien modèle en cache.
 const { readdir } = await import('node:fs/promises');
 const docsHash=createHash('sha256');
@@ -61,7 +61,7 @@ function keepUnitsTogether(html){
   });
 }
 for(const [file,rawHtml] of pages){
-  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion).replaceAll('__TESTI_V__',testiVersion).replaceAll('__CROP_V__',cropVersion).replaceAll('__CAT_V__',catVersion));
+  const html=keepUnitsTogether(rawHtml.replaceAll('__SITE_CSS__',cssAsset).replaceAll('__APP_JS__',jsAsset).replaceAll('__ADMIN_V__',adminVersion).replaceAll('__COCKPIT_V__',cockpitVersion).replaceAll('__MODELS_V__',modelsVersion).replaceAll('__MSG_V__',msgVersion).replaceAll('__ADMINCSS_V__',adminCssVersion).replaceAll('__DOCS_V__',docsVersion).replaceAll('__PHOTOS_V__',photosVersion).replaceAll('__PROJECTS_V__',projectsVersion).replaceAll('__MEDIA_V__',mediaVersion).replaceAll('__VIDEOS_V__',videosVersion).replaceAll('__IMAGES_V__',imagesVersion).replaceAll('__TESTI_V__',testiVersion).replaceAll('__CROP_V__',cropVersion).replaceAll('__CAT_V__',catVersion).replaceAll('__ORDER_V__',orderVersion));
   const dest=join(out,file); await mkdir(dirname(dest),{recursive:true}); await writeFile(dest,html,'utf8');
 }
 await writeFile(join(out,cssAsset),cssSource,'utf8');
@@ -120,6 +120,13 @@ const bare = path => path.split(/[?#]/)[0].replace(/(.)\/$/,'$1');
 // Une forme qui est déjà l'adresse définitive (ex. /journal/) n'est pas redirigée : jamais de boucle.
 const redirectLines = Object.entries(redirects).flatMap(([file,target])=>sourcesOf(file).filter(src=>bare(src)!==bare(target)).map(src=>`${src} ${target} 301`));
 await writeFile(join(out,'_redirects'),`# Anciennes adresses -> pages définitives (généré par scripts/build-site.mjs)\n${redirectLines.join('\n')}\n`);
+
+// Cache navigateur (Cloudflare Pages lit dist/_headers) : les fichiers dont le nom change à chaque version (feuille de
+// style, script, polices, photos et vidéos envoyées depuis l'admin, nommées par identifiant) sont gardés un an.
+// S'ajoute aux en-têtes déjà écrits dans dist/_headers (sécurité, politique de contenu).
+{ const immutable=['/assets/site.*','/assets/app.*','/assets/fonts/*','/assets/photo/site/*.webp','/assets/video/site/*.mp4','/assets/video/site/*.webm','/assets/video/site/*.mov'].map(p=>`${p}\n  Cache-Control: public, max-age=31536000, immutable`).join('\n');
+  let own=''; try{ own=await readFile(join(out,'_headers'),'utf8'); }catch{}
+  await writeFile(join(out,'_headers'),`${own.trim()?`${own.trim()}\n\n`:''}# Cache long des fichiers versionnés (scripts/build-site.mjs)\n${immutable}\n`); }
 
 const routes=['/','/work/','/projet/le-bol-den-face/',...generated.map(([,,path])=>path),'/services/','/a-propos/','/journal/','/contact/','/mentions-legales/','/confidentialite/','/cookies/','/cgv/','/retractation/'];
 const today=new Date().toISOString().slice(0,10);

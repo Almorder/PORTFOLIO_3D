@@ -135,9 +135,6 @@
       const visible = el('input', { type: 'checkbox', checked: Boolean(p.visible) });
       visible.dataset.focusKey = `${p.key}-visible`;
       visible.addEventListener('change', () => { p.visible = visible.checked; touch(); redraw(); });
-      const featured = el('input', { type: 'checkbox', checked: Boolean(p.featured) });
-      featured.dataset.focusKey = `${p.key}-featured`;
-      featured.addEventListener('change', () => { p.featured = featured.checked; touch(); });
       // Catégories du catalogue (page Work). Vidéo publiée avant les catégories : classement proposé, à vérifier.
       const tags = el('fieldset', { className: 'admin-group vd-tags' }, [el('legend', { textContent: 'Catégories du catalogue' }), ...window.NolanCategories.LIST.map(([value, label]) => {
         const box = el('input', { type: 'checkbox', checked: p.categories.includes(value) });
@@ -166,7 +163,7 @@
         ]),
         tags,
         el('fieldset', { className: 'admin-group pj-media' }, [el('legend', { textContent: 'Vidéo et miniature' }), ...mediaBlock(p)]),
-        el('div', { className: 'ph-card__checks' }, [el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })]), el('label', { className: 'admin-field admin-field--check' }, [featured, el('span', { textContent: 'Mis en avant' })])]),
+        el('div', { className: 'ph-card__checks' }, [el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })])]),
         el('div', { className: 'admin-tools' }, [
           tool('↑', `Monter la vidéo ${name}`, 'up', () => move(index, index - 1), index === 0),
           tool('↓', `Descendre la vidéo ${name}`, 'down', () => move(index, index + 1), index === model.length - 1),

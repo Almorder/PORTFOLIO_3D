@@ -6,7 +6,7 @@ Tout se fait dans l'admin (`/admin/`), puis **Enregistrer et publier**. Le site 
 
 | Dans l'admin | Sur le site |
 |---|---|
-| Projets (les 5 premiers) | Accueil, « Ma sélection » (bento) |
+| Ordre (les 5 premiers projets, vidéos ou tuile) | Accueil, « Ma sélection » (bento) |
 | Projets (tous les visibles) | Work, catalogue ; page `/projet/<adresse>/` si « Page projet au clic » |
 | Vidéos | Accueil, téléphone « Social media videos » ; Work, catalogue |
 | Photos, case « Visible dans le catalogue » | Work, catalogue (clic = photo en grand) |
@@ -32,8 +32,8 @@ Images > **Accueil · Bannière**. Deux emplacements : **Bannière ordinateur (1
 - Export conseillé (Premiere / Media Encoder) : H.264, profil High, débit variable 2 passes, audio désactivé.
 - Le fichier est servi tel quel (aucun réencodage) : la qualité en ligne est celle de l'export. Sans fichier, la bannière garde la vidéo YouTube d'origine.
 
-## Mettre en avant
-Case **Mis en avant** dans Projets, Vidéos et Photos : l'élément passe en tête du catalogue Work et de « Ma sélection » (accueil), puis l'ordre manuel s'applique.
+## Choisir l'ordre
+Rubrique **Ordre** : une seule liste pour tout ce que le site présente (projets, vidéos, photos du catalogue, tuile Photographie). Glisse une ligne ou utilise les flèches, puis « Enregistrer et publier ». L'ordre de la liste = l'ordre du catalogue Work ; les cinq premiers projets, vidéos ou tuile forment « Ma sélection » sur l'accueil (repère « Accueil n° … »). Les médias à l'intérieur d'un projet se rangent dans **Projets** (glisser ou flèches, le premier est la couverture).
 
 ## Ajouter une vidéo courte
 Vidéos > ajouter. Source Instagram (colle le lien de la publication) ou fichier (MP4, MOV, WebM, 50 Mo maximum, exporte en H.264, 1080 x 1920, environ 8 à 12 Mbit/s). Coche ses catégories. Une vidéo Instagram n'est chargée qu'au clic du visiteur ; son lien Instagram reste affiché.

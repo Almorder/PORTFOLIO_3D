@@ -59,6 +59,17 @@ if('requestIdleCallback' in window){
   requestIdleCallback(()=>likely.forEach(prefetchRoute),{timeout:1800});
 }
 
+// Images de fond différées : chargées à l'approche de l'écran (environ un écran d'avance), pas au chargement de la page.
+{
+  const lazy=$$('[data-lazy-bg]');
+  if(lazy.length){
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-bg'); io.unobserve(e.target); } }),{rootMargin:'900px 900px'});
+      lazy.forEach(el=>io.observe(el));
+    } else lazy.forEach(el=>el.classList.add('is-bg'));
+  }
+}
+
 // Scroll progress + scene choreography. Native scroll remains the source of truth.
 const header = $('[data-header]');
 const scenes = $$('.scroll-scene');
@@ -722,7 +733,8 @@ $$('[data-bento-slides]').forEach(box=>{
 $$('[data-bento]').forEach(bento=>{
   const tiles=$$('[data-bento-tile]',bento);
   let order=tiles.map((_,i)=>i);
-  const apply=()=>{order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot;});bento.dispatchEvent(new CustomEvent('bento:focus',{detail:{tile:tiles[order[0]]}}));};
+  // La tuile qui passe en grand reçoit la grande taille d'image (le navigateur charge alors la version nette).
+  const apply=()=>{order.forEach((tileIndex,slot)=>{tiles[tileIndex].dataset.slot=slot; if(slot===0) $$('img[data-sizes-big]',tiles[tileIndex]).forEach(img=>{img.sizes=img.dataset.sizesBig;});});bento.dispatchEvent(new CustomEvent('bento:focus',{detail:{tile:tiles[order[0]]}}));};
   // Double clic sur une tuile : on ouvre directement le projet. Le premier clic peut déjà déplacer la tuile
   // (et la transition masque brièvement la page), donc on retient la tuile visée au premier clic.
   let aimed=null, aimedAt=0;
