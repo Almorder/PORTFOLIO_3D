@@ -15,7 +15,7 @@ export const officialProfiles = [site.instagram, site.youtube].filter(Boolean);
 export const jobTitle = 'Vidéaste, photographe, réalisateur, directeur artistique et stratège de marque';
 
 // Page où chaque offre est décrite sur le site.
-const offerPage = { mariage: '/services/#mariage', demande: '/services/#demande-en-mariage', direction: '/services/#direction-artistique', strategie: '/services/#strategie-de-marque', contenu: '/#pricing', film: '/services/#realisation' };
+const offerPage = { mariage: '/services/#mariage', demande: '/services/#demande-en-mariage', direction: '/services/#direction-artistique', strategie: '/services/#strategie-de-marque', contenu: '/services/#offre-contenu', film: '/services/#realisation' };
 // « 1 500 € » -> 1500 ; « Sur devis » -> null ; « 89 € / h » -> 89 de l'heure.
 const amount = price => { const digits = String(price).replace(/[^\d]/g, ''); return digits ? Number(digits) : null; };
 const perHour = price => /\/\s*h\b/.test(String(price));
