@@ -206,6 +206,8 @@ export function normalizeImages(map) {
 
 // Avis clients : texte et nom obligatoires, nettoyés ; image facultative, seulement une image envoyée depuis l'admin
 // (WebP du stockage site-photos, copiée sur le site), avec son texte alternatif ; aucune adresse d'image libre.
+// Photo de la personne (facultative, bulle ronde à côté de son nom) : même règle, carrée, petite (96 et 192 px) ;
+// décorative (le nom est écrit juste à côté), donc sans texte alternatif.
 // Un avis masqué n'est jamais publié. Aucun avis n'est ajouté ni modifié ici : seulement ceux saisis dans l'admin.
 export function normalizeTestimonials(list) {
   if (!Array.isArray(list)) return null;
@@ -216,7 +218,8 @@ export function normalizeTestimonials(list) {
     if (!quote || !name || seen.has(`${name}|${quote}`)) continue;
     seen.add(`${name}|${quote}`);
     const image = imageOf(t?.image), alt = clean(t?.alt, 300), href = link(t?.link);
-    out.push({ quote, name, role: clean(t?.role, 80), image: image && alt ? image : null, alt: image && alt ? alt : '', link: href, linkLabel: href ? clean(t?.linkLabel, 60) : '' });
+    const photo = imageOf(t?.photo);
+    out.push({ quote, name, role: clean(t?.role, 80), image: image && alt ? image : null, alt: image && alt ? alt : '', ...(photo ? { photo } : {}), link: href, linkLabel: href ? clean(t?.linkLabel, 60) : '' });
   }
   return out;
 }
@@ -326,9 +329,14 @@ for (const post of published.social || []) {
 }
 const keptImages = published.images && {};
 for (const [slot, value] of Object.entries(published.images || {})) if (await copy(value.image, `Image ${slot}`) && (!value.video || await copyVideo(value.video, `de la bannière (${slot})`))) keptImages[slot] = value;
-// Avis : une image qui ne se copie pas est retirée (l'avis reste, sans image).
+// Avis : une image ou une photo qui ne se copie pas est retirée (l'avis reste, sans elle : initiales à la place).
 const keptTestimonials = published.testimonials && [];
-for (const t of published.testimonials || []) keptTestimonials.push(t.image && !await copy(t.image, `Image de l'avis de ${t.name}`) ? { ...t, image: null, alt: '' } : t);
+for (const t of published.testimonials || []) {
+  const image = t.image && await copy(t.image, `Image de l'avis de ${t.name}`) ? t.image : null;
+  const photo = t.photo && await copy(t.photo, `Photo de ${t.name}`) ? t.photo : null;
+  const { photo: _, ...rest } = t;
+  keptTestimonials.push({ ...rest, image, alt: image ? t.alt : '', ...(photo ? { photo } : {}) });
+}
 const photos = normalizePhotos({ items: keptPhotos.map(p => ({ ...p, visible: p.inSection })), tileRank: published.tileRank });
 // published : empreinte de la version source, pour que --check ne relance pas sans fin si un fichier manque.
 const manifest = { snapshot: published.snapshot, published: published.published || published.hash, ...photos, projects: keptProjects, social: keptSocial, images: keptImages, testimonials: keptTestimonials };

@@ -311,6 +311,10 @@ if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-widt
   if(!tms.length) fail('Testimonials: at least one testimonial is required');
   for(const t of tms){ if(!String(t.quote||'').trim()||!String(t.name||'').trim()) fail('Testimonials: each testimonial needs a quote and a name'); if(/[\u2014\u2013]/.test(t.quote+t.name+(t.role||''))) fail('Testimonials: no long dash'); if(t.image&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.image.srcSmall||'')||!String(t.alt||'').trim())) fail('Testimonials: images must be uploaded from the admin, with an alt text'); if(t.link&&!/^(\/(?!\/)|https:\/\/)/.test(t.link)) fail('Testimonials: link must be a site page or https'); }
   for(const t of tms) if(!home.includes(`>${t.name.replace(/&/g,'&amp;')}<`)) fail(`Home: testimonial of ${t.name} missing`);
+  // Bulle à côté du nom : photo envoyée depuis l'admin (servie par le site), sinon initiales ; jamais d'image inventée.
+  for(const t of tms){ if(t.photo&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.photo.srcSmall||'')||!existing.has(t.photo.srcSmall.slice(1))||!existing.has(t.photo.src.slice(1)))) fail(`Testimonials: photo of ${t.name} must be an uploaded file copied on the site`);
+    if(t.photo&&!home.includes(`<span class="tm-avatar"><img src="${t.photo.srcSmall}"`)) fail(`Home: photo bubble of ${t.name} missing`); }
+  if((home.match(/<span class="tm-avatar[" ]/g)||[]).length<tms.length) fail('Home: each testimonial needs its bubble (photo or initials) next to the name');
   if(/"@type":"(Review|AggregateRating)"/.test(home)) fail('Testimonials: no self-served Review/AggregateRating markup (Google rules)'); }
 const heroFile=home.includes('data-hero-file');
 if(heroFile ? !/<video class="v16-hero__file" data-hero-file autoplay muted loop playsinline/.test(home) : (!home.includes('data-hero-video')||home.includes('<iframe class="v16-hero__video"'))) fail('Home: hero video must be a muted self-hosted loop, or the consent-gated YouTube facade');
@@ -372,7 +376,10 @@ if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id=
   for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" role="button" data-cat-filter="${k}" aria-pressed="false"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
   // Aperçus au format réel du média (plus de 4:5 imposé) : chaque carte déclare son ratio.
   if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
-  if(!app.includes("split(',')")||!app.includes('gridRowEnd')) fail('Work: multiple filters (?categorie=a,b) and masonry packing expected');
+  if(!app.includes("split(',')")||!app.includes('bentoPack(')||!app.includes('gridArea')) fail('Work: multiple filters (?categorie=a,b) and bento packing expected');
+  // Bento : chaque case ouvre la visionneuse plein écran ; textes sur la case (révélés au survol), jamais en dessous.
+  if((work.match(/class="cat-card__hit" data-cat-open="(photo|youtube|instagram|file)"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue case opens the fullscreen viewer');
+  if(!work.includes('data-cat-prev')||!work.includes('data-cat-next')||!app.includes("classList.add('is-viewer-open')")) fail('Work: fullscreen viewer needs previous / next and a scroll lock');
   if(work.indexOf('data-cat-grid')>work.indexOf('data-price-proof')||work.indexOf('data-cat-filter')>work.indexOf('data-cat-grid')) fail('Work: filters first, then the catalogue, then the pricing');
   if(!app.includes("history.pushState(null,''")||!app.includes("addEventListener('popstate'")||!app.includes("get('categorie')")) fail('Work: filter must live in the URL (reload, back/forward, share)');
   const { instagramPosts:posts }=await import('../content/instagram.mjs'), items=(work.match(/<li class="cat-item[ "]/g)||[]).length;

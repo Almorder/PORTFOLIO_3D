@@ -1220,6 +1220,51 @@ $$('[data-bento-more]').forEach(more=>{
   more.addEventListener('dblclick',event=>{ const tile=event.target.closest('[data-bento-tile]'); const link=tile&&$('.bento__link',tile); if(link&&!event.target.closest('a')) location.assign(link.href); });
 });
 
+// Work, bento : forme préférée de chaque case d'après le format de son média (largeur / hauteur), en colonnes ×
+// demi-lignes, avec une forme de repli quand la place libre est plus étroite. Un média horizontal prend deux
+// colonnes ; la première case est la grande ; quelques verticaux passent en grand ou en carré pour varier le rythme.
+const bentoShapes=(ratios,C)=>{ let v=0; return ratios.map((a,i)=>{
+  if(i===0&&C>=3) return a>=1.2?[[2,3],[1,2]]:[[2,4],[1,3]];
+  if(a>=1.2) return [[2,2],[1,2]];
+  const k=v++;
+  if(a<0.9) return C>=3&&k%6===3?[[2,4],[1,3]]:k%3===2?[[1,2]]:[[1,3]];
+  return C>=3&&k%4===3?[[2,4],[1,2]]:[[1,2]];
+}); };
+// Placement : chaque case, dans l'ordre, prend la première cellule libre (de gauche à droite, de haut en bas) avec
+// la première forme qui y tient : aucun trou à l'intérieur. Le bas de la grille est mis à niveau en allongeant les
+// cases du dessus ; si cela les déforme, les hauteurs des dernières cases sont ajustées (recherche bornée).
+const bentoTry=(prefs,C)=>{
+  const g=[], at=(r,c)=>g[r]?.[c], set=(r,c,i)=>{ (g[r]||=Array(C).fill(-1))[c]=i; }, free=(r,c)=>c>=0&&c<C&&!(at(r,c)>=0);
+  const pos=[]; let r0=0;
+  prefs.forEach((list,i)=>{
+    let r=r0,c=0; for(;;r++){ c=0; while(c<C&&!free(r,c)) c++; if(c<C) break; } r0=r;
+    let L=0; while(c+L<C&&free(r,c+L)) L++;
+    const [w,h]=list.find(([w])=>w<=L)||[1,list[list.length-1][1]];
+    pos[i]={r,c,w,h}; for(let y=r;y<r+h;y++) for(let x=c;x<c+w;x++) set(y,x,i);
+  });
+  const R=pos.reduce((m,p)=>Math.max(m,p.r+p.h),0);
+  for(let guard=0;guard<C*R+8;guard++){
+    let y=-1,x=-1; for(let ry=0;ry<R&&y<0;ry++) for(let cx=0;cx<C;cx++) if(free(ry,cx)){ y=ry; x=cx; break; }
+    if(y<0) return { pos, R, holes:false };
+    const up=at(y-1,x), left=at(y,x-1); let p=up>=0?pos[up]:null, ok=false;
+    if(p&&p.r+p.h===y){ ok=true; for(let k=p.c;k<p.c+p.w;k++) ok=ok&&free(y,k); if(ok){ for(let k=p.c;k<p.c+p.w;k++) set(y,k,up); p.h++; continue; } }
+    p=left>=0?pos[left]:null;
+    if(p&&p.c+p.w===x){ ok=true; for(let k=p.r;k<p.r+p.h;k++) ok=ok&&free(k,x); if(ok){ for(let k=p.r;k<p.r+p.h;k++) set(k,x,left); p.w++; continue; } }
+    return { pos, R, holes:true };
+  }
+  return { pos, R, holes:true };
+};
+const bentoPack=(prefs,C)=>{
+  const cost=o=>o.holes?1e9:o.pos.reduce((s,p,i)=>s+Math.abs(p.h-prefs[i][0][1])*2+Math.abs(p.w-prefs[i][0][0])*3,0);
+  let best=bentoTry(prefs,C), score=cost(best);
+  const n=prefs.length, k=Math.min(n,C+2), idx=Array.from({length:k},(_,j)=>n-k+j);
+  const variants=idx.map(i=>{ const [w,h]=prefs[i][0]; return [h,h-1,h+1].filter(x=>x>=2&&x<=4).map(x=>[[w,x],...prefs[i].slice(1)]); });
+  const total=variants.reduce((a,v)=>a*v.length,1);
+  for(let m=1;m<total&&score>0;m++){ let q=m; const t=prefs.slice(); idx.forEach((i,j)=>{ const v=variants[j]; t[i]=v[q%v.length]; q=Math.floor(q/v.length); });
+    const o=bentoTry(t,C), c=cost(o); if(c<score){ score=c; best=o; } }
+  return best;
+};
+
 // Work, catalogue : filtres cumulables (une réalisation s'affiche si elle appartient à au moins une catégorie choisie),
 // partageables dans l'adresse (?categorie=mariage,video). Précédent / suivant, rechargement et nouvel onglet gardent
 // le choix ; « Tous » remet à zéro. Sans JavaScript, tout reste affiché. Grille en maçonnerie : chaque carte garde
@@ -1232,12 +1277,42 @@ $$('[data-catalog]').forEach(root=>{
   const read=()=>(new URLSearchParams(location.search).get('categorie')||'').split(',').filter(k=>known.includes(k));
   const urlOf=keys=>keys.length?`${location.pathname}?categorie=${keys.join(',')}`:location.pathname;
   const toggled=(sel,key)=>!key?[]:known.filter(k=>k===key?!sel.includes(k):sel.includes(k));
+  // Bento : cases en colonnes (4, 3 ou 2 selon l'écran) et en demi-lignes (une case « normale » = une colonne sur
+  // deux demi-lignes, à peu près carrée). Chaque réalisation, dans l'ordre réglé dans l'admin, prend la première
+  // place libre avec la forme qui suit son format (bentoShapes). La dernière rangée est mise à niveau : aucun trou.
+  let cells=[], hot=null;
+  const tracks=(n,from,span,k)=>Array.from({length:n},(_,i)=>i>=from&&i<from+span?`${k}fr`:'1fr').join(' ');
   const pack=()=>{
     if(!grid) return;
-    const cs=getComputedStyle(grid), row=parseFloat(cs.getPropertyValue('--row'))||4, gap=parseFloat(cs.columnGap)||0;
-    items.forEach(li=>{ if(li.hidden) return; const h=li.firstElementChild.getBoundingClientRect().height; li.style.gridRowEnd=`span ${Math.max(1,Math.ceil((h+gap)/row))}`; });
+    const cs=getComputedStyle(grid), C=Math.max(1,parseInt(cs.getPropertyValue('--cols'))||4), gap=parseFloat(cs.columnGap)||0;
+    const shown=items.filter(li=>!li.hidden), layout=bentoPack(bentoShapes(shown.map(li=>Number(li.dataset.ratio)||1),C),C);
+    const unit=((grid.clientWidth-gap*(C-1))/C)/2;
+    cells=shown.map((li,i)=>{ const p=layout.pos[i]; li.style.gridArea=`${p.r+1} / ${p.c+1} / span ${p.h} / span ${p.w}`; li.dataset.shape=`${p.w}x${p.h}`; return { li, ...p }; });
+    grid.style.setProperty('--rows',layout.R);
+    grid.style.height=`${layout.R*unit+(layout.R-1)*gap}px`;
+    grid.dataset.cols=C; grid.dataset.rows=layout.R;
+    relax(true);
     grid.classList.add('is-packed');
   };
+  // Survol (ou focus clavier) : la case grandit un peu, ses voisines se resserrent (pistes de la grille animées
+  // en CSS), les autres s'atténuent. Rien de tout cela avec « réduire les animations » : seulement le texte.
+  const relax=instant=>{ hot=null; grid.classList.remove('is-focusing'); cells.forEach(c=>c.li.classList.remove('is-hot'));
+    const C=Number(grid.dataset.cols)||4, R=Number(grid.dataset.rows)||1;
+    if(instant) grid.classList.add('no-track-anim');
+    grid.style.gridTemplateColumns=tracks(C,-1,0,1); grid.style.gridTemplateRows=tracks(R,-1,0,1);
+    if(instant) requestAnimationFrame(()=>grid.classList.remove('no-track-anim')); };
+  const heat=li=>{ const c=cells.find(x=>x.li===li); if(!c||hot===c) return; hot=c;
+    cells.forEach(x=>x.li.classList.toggle('is-hot',x===c)); grid.classList.add('is-focusing');
+    if(reduced) return;
+    const C=Number(grid.dataset.cols)||4, R=Number(grid.dataset.rows)||1;
+    grid.style.gridTemplateColumns=tracks(C,c.c,c.w,c.w>=C?1:1.22); grid.style.gridTemplateRows=tracks(R,c.r,c.h,c.h>=R?1:1.16); };
+  if(grid){
+    const fine=matchMedia('(hover: hover) and (pointer: fine)');
+    grid.addEventListener('pointerover',event=>{ if(!fine.matches||event.pointerType==='touch') return; const li=event.target.closest('.cat-item'); if(li) heat(li); });
+    grid.addEventListener('pointerleave',()=>{ if(!grid.contains(document.activeElement)) relax(); });
+    grid.addEventListener('focusin',event=>{ const li=event.target.closest('.cat-item'); if(li&&event.target.matches(':focus-visible')) heat(li); });
+    grid.addEventListener('focusout',event=>{ if(!grid.contains(event.relatedTarget)) relax(); });
+  }
   const apply=(sel,animate)=>{
     chips.forEach(chip=>{
       const key=chip.dataset.catFilter, on=key?sel.includes(key):!sel.length;
@@ -1267,33 +1342,82 @@ $$('[data-catalog]').forEach(root=>{
   });
   $('[data-cat-reset]',root)?.addEventListener('click',event=>{ event.preventDefault(); choose([]); });
   addEventListener('popstate',()=>apply(read(),true));
-  let resizeTimer=0; addEventListener('resize',()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(pack,120); },{passive:true});
+  let resizeTimer=0, lastWidth=grid?.clientWidth; addEventListener('resize',()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>{ if(grid&&grid.clientWidth!==lastWidth){ lastWidth=grid.clientWidth; pack(); } },120); },{passive:true});
   document.fonts?.ready.then(pack);
   apply(read(),false);
 });
 
-// Work, catalogue : une photo s'ouvre en grand, une vidéo se lit dans une fenêtre (Instagram seulement après ce clic).
+// Work, catalogue : visionneuse plein écran. Le média couvre tout l'écran (photo et vidéo du site en object-fit:
+// cover, YouTube recadré en 16:9 ; sur un écran vertical, la vidéo YouTube garde toute sa largeur sur son affiche
+// floutée). Instagram et YouTube ne se chargent qu'après ce clic ; YouTube attend en plus l'accord du visiteur
+// (bouton « Lire sur YouTube »), sauf s'il a déjà autorisé les vidéos externes. Échap ferme, flèches : précédent /
+// suivant parmi les réalisations affichées (filtres compris), la page ne défile pas, le focus revient à la case.
 $$('[data-cat-viewer]').forEach(viewer=>{
-  const stage=$('[data-cat-stage]',viewer), title=$('[data-cat-title]',viewer);
-  let opener=null;
+  const stage=$('[data-cat-stage]',viewer), title=$('[data-cat-title]',viewer), meta=$('[data-cat-meta]',viewer), count=$('[data-cat-count]',viewer);
+  const link=$('[data-cat-link]',viewer), ext=$('[data-cat-ext]',viewer), prev=$('[data-cat-prev]',viewer), next=$('[data-cat-next]',viewer);
+  let opener=null, current=null;
+  const list=()=>$$('[data-cat-grid] .cat-item:not([hidden]) [data-cat-open]');
+  const el=(tag,props={})=>Object.assign(document.createElement(tag),props);
+  const backdrop=src=>/^(\/assets\/|https:\/\/(img\.youtube|i\.ytimg)\.com\/)/.test(src||'')?el('img',{className:'cat-viewer__backdrop',src,alt:'',decoding:'async'}):null;
+  const youtube=id=>{ const f=el('iframe',{className:'cat-viewer__yt',src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&autoplay=1&playsinline=1`,title:`${current?.dataset.title||'Vidéo'} | YouTube`,allowFullscreen:true,referrerPolicy:'strict-origin-when-cross-origin'});
+    f.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen'; return f; };
+  const build=b=>{
+    const kind=b.dataset.catOpen, src=b.dataset.src||'', poster=b.dataset.poster||'';
+    if(kind==='photo'&&/^\/assets\//.test(src)) return [el('img',{className:'cat-viewer__media',src,alt:b.dataset.alt||'',decoding:'async'})];
+    if(kind==='file'&&/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(src)){ const v=el('video',{className:'cat-viewer__media',src,controls:true,playsInline:true,autoplay:true}); if(/^\/assets\//.test(poster)) v.poster=poster; v.setAttribute('aria-label',b.dataset.title||'Vidéo'); return [v]; }
+    if(kind==='instagram'&&/^[A-Za-z0-9_-]+$/.test(b.dataset.postId||'')){
+      const f=el('iframe',{className:'cat-viewer__ig',src:`https://www.instagram.com/p/${b.dataset.postId}/embed/`,title:`${b.dataset.title||'Publication'} | Instagram`,allowFullscreen:true,referrerPolicy:'strict-origin-when-cross-origin'});
+      return [backdrop(poster),f].filter(Boolean); }
+    if(kind==='youtube'&&/^[\w-]{11}$/.test(b.dataset.videoId||'')){
+      const id=b.dataset.videoId;
+      if(readConsent()==='accepted') return [backdrop(poster),youtube(id)].filter(Boolean);
+      const cover=backdrop(poster); cover?.classList.replace('cat-viewer__backdrop','cat-viewer__media');
+      const play=el('button',{type:'button',className:'cat-viewer__play'}); play.append(el('b',{textContent:'▶'}),el('span',{textContent:'Lire sur YouTube'}));
+      play.firstChild.setAttribute('aria-hidden','true');
+      const note=el('p',{className:'cat-viewer__privacy',textContent:'Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. '}); note.append(el('a',{href:'/cookies/',textContent:'En savoir plus'}));
+      const gate=el('div',{className:'cat-viewer__gate'}); gate.append(play,note);
+      play.addEventListener('click',()=>{ const bg=backdrop(poster); stage.replaceChildren(...[bg,youtube(id)].filter(Boolean)); viewer.dataset.state='playing'; close_.focus(); });
+      return [cover,gate].filter(Boolean); }
+    return null;
+  };
+  const close_=$('[data-cat-close]',viewer);
+  const show=b=>{
+    const nodes=build(b); if(!nodes) return false;
+    current=b; viewer.dataset.kind=b.dataset.catOpen; delete viewer.dataset.state;
+    stage.replaceChildren(...nodes);
+    title.textContent=b.dataset.title||''; meta.textContent=b.dataset.meta||'';
+    const all=list(), i=all.indexOf(b); count.textContent=all.length>1?`${i+1} / ${all.length}`:'';
+    prev.hidden=next.hidden=all.length<2;
+    const href=b.dataset.href||''; link.hidden=!href;
+    if(href){ link.href=href; link.textContent=`${b.dataset.hrefLabel||'Voir le projet'} `; link.append(el('span',{textContent:b.dataset.hrefExt?'↗':'→'})); link.lastChild.setAttribute('aria-hidden','true');
+      if(b.dataset.hrefExt){ link.target='_blank'; link.rel='noopener noreferrer'; } else { link.removeAttribute('target'); link.removeAttribute('rel'); } }
+    const igUrl=b.dataset.ext||''; ext.hidden=!/^https:\/\/www\.instagram\.com\//.test(igUrl); if(!ext.hidden) ext.href=igUrl;
+    const frame=$('.cat-viewer__ig',stage); if(frame) igFrames.set(frame.contentWindow,frame);
+    $('video',stage)?.play().catch(()=>{});
+    return true;
+  };
+  const step=d=>{ const all=list(); if(all.length<2||!current) return; const i=all.indexOf(current); show(all[(i+d+all.length)%all.length]); };
   const close=()=>{ if(viewer.open) viewer.close(); };
-  viewer.addEventListener('close',()=>{ stage.replaceChildren(); viewer.removeAttribute('data-kind'); opener?.focus({preventScroll:true}); });
-  viewer.addEventListener('click',event=>{ if(event.target===viewer) close(); });
-  $('[data-cat-close]',viewer)?.addEventListener('click',close);
-  document.addEventListener('click',event=>{
-    const button=event.target.closest('[data-cat-open]'); if(!button) return;
-    const kind=button.dataset.catOpen; let node=null;
-    if(kind==='photo'&&/^\/assets\//.test(button.dataset.src||'')){ node=document.createElement('img'); node.src=button.dataset.src; node.alt=button.dataset.alt||''; node.decoding='async'; }
-    else if(kind==='instagram'&&/^[A-Za-z0-9_-]+$/.test(button.dataset.postId||'')){
-      node=document.createElement('iframe'); node.src=`https://www.instagram.com/p/${button.dataset.postId}/embed/`; node.title=`${button.dataset.title||'Publication'} | Instagram`;
-      node.allowFullscreen=true; node.referrerPolicy='strict-origin-when-cross-origin';
+  viewer.addEventListener('close',()=>{ stage.replaceChildren(); viewer.removeAttribute('data-kind'); document.documentElement.classList.remove('is-viewer-open'); current=null; opener?.focus({preventScroll:true}); });
+  close_?.addEventListener('click',close);
+  prev.addEventListener('click',()=>step(-1)); next.addEventListener('click',()=>step(1));
+  viewer.addEventListener('keydown',event=>{
+    if(event.key==='Tab'){ // focus piégé : Tab reste dans la visionneuse
+      const f=$$('button,a[href],iframe,video',viewer).filter(n=>!n.closest('[hidden]')&&n.getClientRects().length);
+      const first=f[0], last=f[f.length-1];
+      if(event.shiftKey&&document.activeElement===first){ event.preventDefault(); last?.focus(); }
+      else if(!event.shiftKey&&document.activeElement===last){ event.preventDefault(); first?.focus(); }
+      return;
     }
-    else if(kind==='file'&&/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(button.dataset.src||'')){ node=document.createElement('video'); node.src=button.dataset.src; node.controls=true; node.playsInline=true; node.setAttribute('aria-label',button.dataset.title||'Vidéo'); }
-    if(!node) return;
-    opener=button; viewer.dataset.kind=kind; title.textContent=button.dataset.title||'';
-    stage.replaceChildren(node); viewer.showModal();
-    if(kind==='instagram') igFrames.set(node.contentWindow,node);
-    if(kind==='file') node.play().catch(()=>{});
+    if(event.target.closest?.('video,input,select,textarea')) return;
+    if(event.key==='ArrowLeft'){ event.preventDefault(); step(-1); }
+    if(event.key==='ArrowRight'){ event.preventDefault(); step(1); }
+  });
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-cat-open]'); if(!button||viewer.open) return;
+    if(!show(button)) return;
+    opener=button; document.documentElement.classList.add('is-viewer-open');
+    viewer.showModal(); close_?.focus({preventScroll:true});
   });
 });
 

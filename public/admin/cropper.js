@@ -20,6 +20,7 @@
     project: { title: 'Média du projet', ratios: FREE, previews: [...TILE, { label: 'Page projet', ratio: 0, frame: 'plain' }] },
     photo: { title: 'Photo', ratios: FREE, previews: [{ label: 'Catalogue Work', ratio: 0, frame: 'plain' }, { label: 'Tuile Photographie', ratio: 1, frame: 'tile' }, { label: 'Tuile (téléphone)', ratio: 4 / 5, frame: 'tile' }] },
     testimonial: { title: 'Image de l’avis', ratios: [['Panneau 4:5', 4 / 5]], previews: [{ label: 'Panneau (ordinateur)', ratio: 4 / 5, frame: 'plain' }, { label: 'Panneau (téléphone)', ratio: 16 / 9, frame: 'plain' }] },
+    avatar: { title: 'Photo de la personne', ratios: [['Carré', 1]], previews: [{ label: 'Bulle à côté du nom', ratio: 1, frame: 'avatar' }] },
     social: { title: 'Miniature de la vidéo', ratios: [['Écran du téléphone', PHONE_SCREEN]], previews: [{ label: 'Téléphone', ratio: PHONE_SCREEN, frame: 'phone' }] }
   };
 

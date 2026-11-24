@@ -242,6 +242,8 @@ a.admin-button{display:inline-flex;align-items:center;text-decoration:none}
 .cr-prev--polaroid .cr-prev__canvas{aspect-ratio:4/5;height:auto}
 .cr-prev__caption{position:absolute;left:0;right:0;bottom:6px;text-align:center;font:italic 11px/1 var(--serif,serif);color:#2a211c}
 .cr-prev--card{border-radius:8px}
+.cr-prev--avatar{border-radius:50%}
+.tm-photo{display:block;width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--ad-ivory)}
 .cr-prev__band{position:absolute;left:0;right:0;bottom:0;height:26%;background:#f0ebe2;border-top:1px solid rgba(8,7,6,.15)}
 .cr-prev--folder{border-radius:12px}
 .cr-prev__front{position:absolute;left:0;right:0;bottom:0;top:30%;background:#120403;border-radius:0 10px 0 0}

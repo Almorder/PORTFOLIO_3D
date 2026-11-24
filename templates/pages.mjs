@@ -123,8 +123,8 @@ const projectImageIds = new Set(projects.filter(p=>p.visible).flatMap(p=>(p.medi
 // Format réel de chaque aperçu (largeur / hauteur) : image envoyée, affiche YouTube 16:9, vidéo verticale 9:16 par défaut.
 const ratioOf = (w,h,fallback) => w&&h ? `${w}/${h}` : fallback;
 const catalogItems = featuredFirst([
-  ...featured.map(p=>{ const m=projectMedia(p,false), href=projectHref(p), all=shownMedia(p);
-    return { kind:'project', title:p.title, cats:Cat.project(p), year:p.year||'', type:p.type||'', client:p.client||'', image:m, href, count:all.length>1?mediaCount(all):'', project:p, featured:Boolean(p.featured), rank:rankOf(p) ?? undefined, ratio:ratioOf(m.width,m.height,'16/9') }; }),
+  ...featured.map(p=>{ const m=projectMedia(p,false), href=projectHref(p), all=shownMedia(p), cover=all.find(x=>x.key===p.cover)||all[0];
+    return { kind:'project', title:p.title, cats:Cat.project(p), year:p.year||'', type:p.type||'', client:p.client||'', image:m, cover, href, count:all.length>1?mediaCount(all):'', project:p, featured:Boolean(p.featured), rank:rankOf(p) ?? undefined, ratio:ratioOf(m.width,m.height,'16/9') }; }),
   ...instagramPosts.map(p=>{ const thumb=socialThumb(p); return { kind:'social', title:p.title, cats:Cat.social(p), year:p.year||'', type:p.kind||'Vidéo verticale', client:p.client||'', thumb, post:p, featured:Boolean(p.featured), rank:rankOf(p) ?? undefined,
     ratio: p.source==='file'&&p.video ? ratioOf(p.video.width,p.video.height) : thumb?.width ? ratioOf(thumb.width,thumb.height) : (p.ratio||'9/16') }; }),
   ...photos.filter(ph=>!projectImageIds.has(ph.id)).map(ph=>({ kind:'photo', title:ph.series||'Photographie', cats:Cat.photo(ph), year:ph.year||'', type:ph.place||'', client:'', ph, featured:Boolean(ph.featured), rank:rankOf(ph) ?? undefined, ratio:ratioOf(ph.width,ph.height,'4/5') })),
@@ -332,30 +332,39 @@ export function workPage(){
     url: it.kind==='social' ? (it.post.source==='file' ? `${site.domain}/work/` : igUrl(it.post.id)) : !it.href ? `${site.domain}/work/` : /^https?:/.test(it.href) ? it.href : `${site.domain}${it.href}` }));
   const filters = [['', 'Tous'], ...Cat.LIST].map(([key,label])=>({ key, label, count: key ? catalogCount(key) : catalogItems.length }));
   const chips = cats => cats.map(k=>Cat.label(k)).join(', ');
-  const meta = it => [it.type, it.client, it.year, it.count].filter(Boolean).map(esc).join(' · ');
-  const img = (src, srcset, w, h, alt, sizes='(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw') => `<img src="${esc(src)}"${srcset?` srcset="${esc(srcset)}" sizes="${sizes}"`:''} alt="${esc(alt)}"${w&&h?` width="${w}" height="${h}"`:''} loading="lazy" decoding="async">`;
+  // Bento (src/app.js) : la forme de chaque case suit le format du média ; un média horizontal prend deux colonnes,
+  // la première case est la grande. sizes : la case large occupe l'écran du téléphone ou la moitié de l'écran.
+  const BIG_SIZES='(max-width: 760px) 100vw, 50vw', SMALL_SIZES='(max-width: 760px) 50vw, (max-width: 1100px) 33vw, 25vw';
+  const img = (src, srcset, w, h, alt, sizes) => `<img src="${esc(src)}"${srcset?` srcset="${esc(srcset)}" sizes="${sizes}"`:''} alt="${esc(alt)}"${w&&h?` width="${w}" height="${h}"`:''} loading="lazy" decoding="async">`;
+  // Visionneuse plein écran : tout ce qu'il faut pour montrer le média est porté par le bouton de la case.
+  const attrs = o => Object.entries(o).filter(([,v])=>v!==''&&v!=null).map(([k,v])=>` data-${k}="${esc(v)}"`).join('');
   const card = (it,i) => {
-    let media='', action='', extra='', label='';
+    const [rw,rh]=String(it.ratio).split('/').map(Number), wide=rw/rh>=1.2, sizes=wide||i===0?BIG_SIZES:SMALL_SIZES;
+    let media='', view={}, video=false;
+    const title=it.title, meta=[it.type, it.client, it.year, it.count].filter(Boolean).join(' · ');
     if(it.kind==='project'){
-      const m=it.image; media=img(m.image, m.srcset, m.width, m.height, m.alt);
-      if(it.href){ const ext=/^https?:/.test(it.href); label=ext?'Voir le projet':(it.project.slug==='le-bol-den-face'?'Voir le film':'Voir le projet');
-        action=`<a class="cat-card__hit" href="${esc(it.href)}"${ext?' target="_blank" rel="noopener noreferrer"':''}><span class="sr-only">${esc(label)} : ${esc(it.title)}${ext?' (nouvel onglet)':''}</span></a>`; label+=ext?' ↗':' →'; }
-      else if(m.full){ label='Agrandir'; action=`<button type="button" class="cat-card__hit" data-cat-open="photo" data-src="${esc(m.full)}" data-alt="${esc(m.alt)}" data-title="${esc(it.title)}"><span class="sr-only">Agrandir : ${esc(it.title)}</span></button>`; }
+      const m=it.image, c=it.cover, ext=/^https?:/.test(it.href||'');
+      media=img(m.image, m.srcset, m.width, m.height, m.alt, sizes);
+      const page = it.href ? { href:it.href, 'href-label':ext?'Voir le projet':(it.project.slug==='le-bol-den-face'?'Voir le film':it.count?`Voir le projet · ${it.count}`:'Voir le projet'), ...(ext?{ 'href-ext':'1' }:{}) } : {};
+      if(c?.kind==='youtube'){ video=true; view={ 'cat-open':'youtube', 'video-id':c.videoId, poster:c.img?c.img.src:m.image }; }
+      else if(c?.kind==='file'){ video=true; view={ 'cat-open':'file', src:c.video.src, type:c.video.type, poster:c.img.src }; }
+      else if(c?.kind==='instagram'){ video=true; view={ 'cat-open':'instagram', 'post-id':c.instagramId, poster:c.img.src, ext:igUrl(c.instagramId) }; }
+      else view={ 'cat-open':'photo', src:m.full||m.image, alt:m.alt };
+      view={ ...view, ...page };
     } else if(it.kind==='social'){
-      const p=it.post, t=it.thumb, file=p.source==='file';
-      media=t?img(t.src, t.large?`${t.src} ${t.width||540}w, ${t.large} ${(t.width||540)*2}w`:'', t.width, t.height, `${it.title}, vidéo verticale`):'';
-      label='▶ Lire la vidéo';
-      action=`<button type="button" class="cat-card__hit" data-cat-open="${file?'file':'instagram'}" ${file?`data-src="${esc(p.video.src)}" data-type="${esc(p.video.type)}"`:`data-post-id="${esc(p.id)}"`} data-title="${esc(it.title)}"><span class="sr-only">Lire la vidéo ${esc(it.title)}${file?'':' (chargée depuis Instagram)'}</span></button>`;
-      if(!file) extra=`<a class="cat-card__ext" href="${esc(igUrl(p.id))}" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span><span class="sr-only"> : ${esc(it.title)} (nouvel onglet)</span></a>`;
+      const p=it.post, t=it.thumb, file=p.source==='file'; video=true;
+      media=t?img(t.src, t.large?`${t.src} ${t.width||540}w, ${t.large} ${(t.width||540)*2}w`:'', t.width, t.height, `${it.title}, vidéo verticale`, sizes):'';
+      view=file?{ 'cat-open':'file', src:p.video.src, type:p.video.type, poster:t?.large||t?.src||'' }:{ 'cat-open':'instagram', 'post-id':p.id, poster:t?.large||t?.src||'', ext:igUrl(p.id) };
     } else {
-      const ph=it.ph; media=img(ph.srcSmall||ph.src, ph.srcSmall?`${ph.srcSmall} ${ph.smallWidth}w, ${ph.src} ${ph.width}w`:'', ph.smallWidth||ph.width, ph.smallHeight||ph.height, ph.alt);
-      label='Agrandir'; action=`<button type="button" class="cat-card__hit" data-cat-open="photo" data-src="${esc(ph.src)}" data-alt="${esc(ph.alt)}" data-title="${esc([ph.series,ph.place,ph.year].filter(Boolean).join(' · ')||it.title)}"><span class="sr-only">Agrandir : ${esc(ph.alt)}</span></button>`;
+      const ph=it.ph; media=img(ph.srcSmall||ph.src, ph.srcSmall?`${ph.srcSmall} ${ph.smallWidth}w, ${ph.src} ${ph.width}w`:'', ph.smallWidth||ph.width, ph.smallHeight||ph.height, ph.alt, sizes);
+      view={ 'cat-open':'photo', src:ph.src, alt:ph.alt };
     }
-    const [rw,rh]=String(it.ratio).split('/').map(Number), wide=rw/rh>=1.2;
-    return `<li class="cat-item${wide?' cat-item--wide':''}" data-cats="${esc(it.cats.join(' '))}" style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
+    const label = video ? `Lire la vidéo ${title}${view['cat-open']==='instagram'?' (chargée depuis Instagram)':''}` : `Agrandir : ${title}`;
+    return `<li class="cat-item${wide?' cat-item--wide':''}" data-cats="${esc(it.cats.join(' '))}" data-ratio="${(rw/rh).toFixed(3)}" style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
         <div class="cat-card__media${media?'':' is-blank'}" style="aspect-ratio:${esc(it.ratio)}">${media}</div>
-        <div class="cat-card__body"><h3>${esc(it.title)}</h3>${meta(it)?`<p class="cat-card__meta">${meta(it)}</p>`:''}${it.cats.length?`<p class="cat-card__cats">${esc(chips(it.cats))}</p>`:''}${label?`<span class="cat-card__go" aria-hidden="true">${esc(label)}</span>`:''}</div>
-        ${action}${extra}
+        ${video?'<span class="cat-card__play" aria-hidden="true">▶</span>':''}
+        <div class="cat-card__body">${it.cats.length?`<p class="cat-card__cats">${esc(chips(it.cats))}</p>`:''}<h3>${esc(title)}</h3>${meta?`<p class="cat-card__meta">${esc(meta)}</p>`:''}</div>
+        <button type="button" class="cat-card__hit"${attrs({ ...view, title, meta })}><span class="sr-only">${esc(label)}</span></button>
       </article></li>`;
   };
   return head({title:'Réalisations : Nolan Ribeiro, vidéaste et photographe | Nolan Arc', description:'Toutes les réalisations de Nolan Ribeiro : films, vidéos pour les réseaux sociaux, photographie, mariages et direction artistique, à filtrer par catégorie.', path:'/work/', image:bolPosterAbs, imageWidth:'1280', imageHeight:'720', imageAlt:'Le bol d’en face, court métrage de Nolan Ribeiro', extraSchema:[{ '@type':'ItemList', '@id':`${site.domain}/work/#projets`, name:'Réalisations de Nolan Ribeiro', itemListElement:listed }, ...projectVideos(), ...igVideos(), { '@type':'BreadcrumbList', itemListElement:[{ '@type':'ListItem', position:1, name:'Accueil', item:`${site.domain}/` },{ '@type':'ListItem', position:2, name:'Work', item:`${site.domain}/work/` }] }], bodyClass:'page-work page-fabrica page-v16'}) + header('/work/') + `<main id="main-content" class="fab-work-page v16-work-page wk-page">
@@ -367,7 +376,13 @@ export function workPage(){
       <ul class="cat-grid" data-cat-grid>${catalogItems.map(card).join('')}</ul>
       <p class="cat__empty" data-cat-empty hidden>Rien dans cette catégorie pour l’instant. <a href="/work/" data-cat-reset>Voir toutes les réalisations</a></p>
     </section>
-    <dialog class="cat-viewer" data-cat-viewer aria-labelledby="cat-viewer-title"><div class="cat-viewer__inner"><div class="cat-viewer__stage" data-cat-stage></div><p class="cat-viewer__caption"><strong id="cat-viewer-title" data-cat-title></strong></p><button type="button" class="cat-viewer__close" data-cat-close aria-label="Fermer">×</button></div></dialog>
+    <dialog class="cat-viewer" data-cat-viewer aria-labelledby="cat-viewer-title">
+      <div class="cat-viewer__stage" data-cat-stage></div>
+      <div class="cat-viewer__bar"><p class="cat-viewer__caption"><strong id="cat-viewer-title" data-cat-title></strong><span data-cat-meta></span><span class="cat-viewer__count" data-cat-count></span></p>
+        <div class="cat-viewer__actions"><a class="cat-viewer__link" data-cat-link hidden></a><a class="cat-viewer__link" data-cat-ext target="_blank" rel="noopener noreferrer" hidden>Instagram <span aria-hidden="true">↗</span><span class="sr-only"> (nouvel onglet)</span></a><button type="button" class="cat-viewer__btn" data-cat-close aria-label="Fermer"><span aria-hidden="true">×</span></button></div></div>
+      <button type="button" class="cat-viewer__btn cat-viewer__nav cat-viewer__nav--prev" data-cat-prev aria-label="Réalisation précédente"><span aria-hidden="true">←</span></button>
+      <button type="button" class="cat-viewer__btn cat-viewer__nav cat-viewer__nav--next" data-cat-next aria-label="Réalisation suivante"><span aria-hidden="true">→</span></button>
+    </dialog>
     ${pricingSection({ workCount: catalogCount })}
     <section class="wk-cta" id="contact-cta" aria-labelledby="wk-cta-title">
       <div class="wk-cta__copy motion-reveal"><h2 id="wk-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}.</p><a class="wk-cta__alt" href="/services/">Voir les services <span aria-hidden="true">↗</span></a></div>
