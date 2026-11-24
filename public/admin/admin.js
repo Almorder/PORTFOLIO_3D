@@ -115,7 +115,8 @@
     wrap.append(input, list);
     return wrap;
   };
-  const draw = () => {
+  // Menu (badges compris) : reconstruit à chaque affichage et après chaque enregistrement (refreshNav).
+  const buildNav = () => {
     const nav = el('nav', { className: 'admin-nav' });
     nav.setAttribute('aria-label', 'Sections du tableau de bord');
     let group = '';
@@ -129,6 +130,11 @@
       if (section.id === 'publish' && pending().length) item.append(el('span', { className: 'admin-badge', textContent: String(pending().length) }));
       nav.append(item);
     });
+    return nav;
+  };
+  const refreshNav = () => root.querySelector('.admin-nav')?.replaceWith(buildNav());
+  const draw = () => {
+    const nav = buildNav();
     const side = el('aside', { className: 'admin-side' }, [
       el('div', { className: 'admin-brand' }, [el('strong', { textContent: 'Nolan.Arc' }), el('span', { textContent: 'Tableau de bord' })]),
       cockpit ? searchBox() : null,
@@ -196,7 +202,7 @@
   };
   // Une image peut servir à plusieurs endroits (photo et projet) : on ne supprime jamais un fichier encore utilisé.
   const inUse = id => JSON.stringify(Object.values(state.drafts).map(row => row.data)).includes(id);
-  const saveKey = async (key, data) => { const res = await client.from('content_drafts').upsert({ key, data }); if (!res.error) { try { await load(); } catch {} } return res; };
+  const saveKey = async (key, data) => { const res = await client.from('content_drafts').upsert({ key, data }); if (!res.error) { try { await load(); } catch {} refreshNav(); } return res; };
   let seedCache = null;
   const getSeed = async key => { seedCache = seedCache || await (await fetch('/admin/seed.json', { cache: 'no-store' })).json(); return seedCache[key]; };
   const setDirty = value => { state.dirty = Boolean(value); state.armed = ''; };
@@ -210,7 +216,7 @@
   // Projets de « Ma sélection » (public/admin/projects.js) : éditeur dédié du bloc « projects ».
   const projectsEditor = window.NolanProjects ? window.NolanProjects({ client, el, button, say, heading, card,
     getDraft: () => state.drafts.projects?.data,
-    saveDraft: async data => { const res = await client.from('content_drafts').upsert({ key: 'projects', data }); if (!res.error) { try { await load(); } catch {} } return res; },
+    saveDraft: data => saveKey('projects', data),
     publish: publishVersion, inUse,
     setDirty }) : null;
   // Photos de la page Work (public/admin/photos.js) : envoi des fichiers, ordre, légendes, tuile, destination.
@@ -382,7 +388,7 @@
           ['Déploiements du site (Cloudflare)', 'https://dash.cloudflare.com/?to=/:account/pages'],
           ['Instagram', site.instagram], ['YouTube', site.youtube]
         ].filter(([, href]) => href).map(([text, href]) => el('li', {}, [link(`${text} ↗`, href)])))]),
-        card('Repartir du site actuel', [el('p', { textContent: 'Remplace tous les brouillons par le contenu actuellement en ligne.' }), reset])
+        card('Repartir du site actuel', [reset])
       ])
     ]);
   };

@@ -4,12 +4,12 @@ import { notes } from '../content/journal.mjs';
 import { existsSync } from 'node:fs';
 import { legal } from '../content/legal.mjs';
 import { instagramPosts } from '../content/instagram.mjs';
-import { photos, tilePhotos, tileRank, MIN_PHOTOS } from '../content/photos.mjs';
+import { photos, tilePhotos, tileRank, tileHomeRank, MIN_PHOTOS } from '../content/photos.mjs';
 import { testimonials } from '../content/testimonials.mjs';
 import { siteImage, siteVideo } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
-import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
+import { focusText, morphTestimonials, morphPanel, avatar, bentoFocus, bentoMore } from './showcase.mjs';
 import { weddingWall } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
 import { pricing, pricingHref, pricingMessage, contactTopics, pricingDetails, pricingCommon } from '../content/pricing.mjs';
@@ -95,26 +95,35 @@ const projectItem = (p,i) => {
 // Miniature d'une vidéo sociale : image envoyée depuis l'admin (ou tirée de la vidéo), sinon couverture du code.
 const socialThumb = p => p.image && publicFile(p.image.srcSmall) ? { src:p.image.srcSmall, large:publicFile(p.image.src)?p.image.src:'', width:p.image.smallWidth, height:p.image.smallHeight } : p.cover && publicFile(p.cover) ? { src:p.cover } : null;
 // Ordre du site (admin, rubrique « Ordre ») : le numéro choisi (rank) d'abord ; sans numéro, l'ancienne mise en avant,
-// puis l'ordre de chaque bloc. Même règle pour « Ma sélection » (accueil) et le catalogue Work.
+// puis l'ordre de chaque bloc. Même règle pour le catalogue Work et, sans ordre Accueil, pour « Ma sélection ».
 const featuredFirst = list => list.map((x,i)=>[x,i]).sort(([a,i],[b,j])=>(a.rank??Infinity)-(b.rank??Infinity) || (a.featured?0:1)-(b.featured?0:1) || i-j).map(([x])=>x);
 const rankOf = x => Number.isInteger(x?.rank) ? x.rank : null;
+const homeRankOf = x => Number.isInteger(x?.homeRank) ? x.homeRank : null;
 const workItems = featuredFirst([
-  ...featured.map(p=>({ ...projectItem(p,1), featured:Boolean(p.featured), rank:rankOf(p) ?? undefined })),
+  ...featured.map(p=>({ ...projectItem(p,1), featured:Boolean(p.featured), rank:rankOf(p) ?? undefined, homeRank:homeRankOf(p) })),
   // Tuile « Photographie » : un seul bloc avec toutes les photos cochées « Dans la tuile » (diaporama lent).
   // Elle ouvre la section Photographie si elle existe ; sinon elle s'affiche sans s'ouvrir. Aucune photo : pas de tuile.
   ...(tilePhotos.length ? [{ title:'Photographie', type:'Série photo', tags:['photo'], role:'Photographie', context:[...new Set(tilePhotos.map(p=>p.series).filter(Boolean))].join(', '), year:[...new Set(tilePhotos.map(p=>p.year).filter(Boolean))].sort().join(', '), result:'',
-    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'/work/?categorie=photo', cta:'Voir les photos', featured:tilePhotos.some(p=>p.featured), rank:tileRank ?? undefined }] : []),
+    label:'Photographie', text:'', images:tilePhotos.map(p=>({ src:p.srcSmall||p.src, alt:p.alt, width:p.smallWidth||p.width, height:p.smallHeight||p.height, srcset:p.srcSmall?`${p.srcSmall} ${p.smallWidth}w, ${p.src} ${p.width}w`:'' })), href:'/work/?categorie=photo', cta:'Voir les photos', featured:tilePhotos.some(p=>p.featured), rank:tileRank ?? undefined, homeRank:tileHomeRank }] : []),
   ...instagramPosts.map((p,i)=>{ const thumb=socialThumb(p), file=p.source==='file';
     return { title:p.title, type:'Vidéo verticale', tags:p.tags?.length?p.tags:['reseaux'], role:p.role||'', context:p.client||p.kind||'', year:p.year||'', result:p.result||'',
-    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, featured:Boolean(p.featured), rank:rankOf(p) ?? undefined, ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
+    label:p.kind||'Vidéo verticale', text:p.kind?`${p.kind}, vidéo verticale${file?'':' publiée sur Instagram'}.`:`Vidéo verticale${file?'':' publiée sur Instagram'}.`, image:thumb?.src||'', width:thumb?.width, height:thumb?.height, alt:thumb?`${p.title}, vidéo verticale`:'', href:'#social', cta:'Voir la vidéo', stack:i, featured:Boolean(p.featured), rank:rankOf(p) ?? undefined, homeRank:homeRankOf(p), ...(file?{}:{ instagram:igUrl(p.id) }) }; }),
 ]);
+// « Ma sélection » de l'accueil (5 tuiles) : la liste Accueil de la rubrique « Ordre » (homeRank de 1 à 5), complétée
+// si besoin par l'ordre Work ; sans ordre Accueil enregistré, les cinq premiers de l'ordre Work (comme avant).
+const homeChosen = workItems.filter(it=>it.homeRank!=null).sort((a,b)=>a.homeRank-b.homeRank);
+const homeItems = [...homeChosen, ...workItems.filter(it=>!homeChosen.includes(it))].slice(0,5);
+// Projets au-delà des 5 du bento : dans l'ordre Work, sous le bento (« Voir plus de projets »).
+const moreItems = workItems.filter(it=>it.project&&!homeItems.includes(it));
 // La première tuile du bento est la grande : image en grande taille.
-if (workItems[0]?.project) workItems[0] = { ...projectItem(workItems[0].project,0), featured:workItems[0].featured, rank:workItems[0].rank };
+const large = it => it?.project ? { ...projectItem(it.project,0), featured:it.featured, rank:it.rank, homeRank:it.homeRank } : it;
+if (workItems[0]?.project) workItems[0] = large(workItems[0]);
+if (homeItems.length) homeItems[0] = large(homeItems[0]);
 const ficheFields = [['type','Type'],['role','Rôle'],['context','Contexte'],['client','Client'],['year','Année'],['result','Résultat'],['text','Description']];
 const withFiche = item=>({ ...item, data:Object.fromEntries([['title',item.title],...ficheFields.map(([k])=>[k,item[k]])]) });
-const bentoTiles = workItems.slice(0,5).map(withFiche);
+const bentoTiles = homeItems.map(withFiche);
 // Plus de 5 projets mis en avant : les suivants dans une grille sous le bento, ouverte par « Voir plus de projets ».
-const moreTiles = workItems.slice(5).filter(it=>it.project).map(withFiche);
+const moreTiles = moreItems.map(withFiche);
 
 // Catalogue de la page Work : tous les projets visibles, toutes les vidéos courtes et les photos du catalogue,
 // chacun dans une ou plusieurs catégories (public/admin/categories.js). Mêmes données que l'accueil (admin).
@@ -669,7 +678,7 @@ export function contactPage(){
       <header class="cx-proof__head"><span class="eyebrow">Avant d’écrire</span><h2 id="cx-proof-title" class="cx-proof__title">Les infos utiles.</h2></header>
       <article class="cx-proof__card"><small>Les prix</small><ul class="cx-prices">${priceMarks}</ul><p>Le reste se fixe au devis, après un premier échange. <a href="/#pricing">Voir les offres</a></p></article>
       <article class="cx-proof__card"><small>Le délai</small><p class="cx-proof__big">48 h</p><p>Je lis chaque message moi-même et je réponds sous 48 h ouvrées, avec les premières questions utiles.</p></article>
-      <article class="cx-proof__card cx-proof__quote"><small>Un retour</small><blockquote>« ${esc(quote.quote)} »</blockquote><footer><strong>${esc(quote.name)}</strong>${quote.role?`<span>${esc(quote.role)}</span>`:''}</footer><button type="button" class="morph-hit" data-morph-open="morph-panel-0" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(quote.name)}"></button></article>
+      <article class="cx-proof__card cx-proof__quote"><small>Un retour</small><blockquote>« ${esc(quote.quote)} »</blockquote><footer><span class="tm-who">${avatar(quote)}<strong>${esc(quote.name)}</strong></span>${quote.role?`<span>${esc(quote.role)}</span>`:''}</footer><button type="button" class="morph-hit" data-morph-open="morph-panel-0" aria-haspopup="dialog" aria-label="Ouvrir le retour de ${esc(quote.name)}"></button></article>
     </section>
     ${morphPanel(quote,0)}
     ${faqAccordion(site.faqs.contact,{id:'faq-contact',eyebrow:'FAQ Contact',title:'FAQ.',intro:'Ce qu’il est utile de savoir avant d’envoyer votre message.'})}

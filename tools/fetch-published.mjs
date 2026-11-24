@@ -26,6 +26,9 @@ import '../public/admin/categories.js';
 // Catégories du catalogue cochées dans l'admin : gardées seulement si elles existent ; absentes, le site les déduit.
 // Place choisie dans l'admin (rubrique « Ordre ») : un entier de 1 à 999, sinon rien.
 const rankOf = value => Number.isInteger(value) && value >= 1 && value <= 999 ? { rank: value } : {};
+// Place dans « Ma sélection » de l'accueil (rubrique « Ordre », liste Accueil) : de 1 à 5, sinon rien. Aucune place
+// enregistrée : l'accueil reprend les cinq premiers de l'ordre Work (comme avant).
+const homeRankOf = value => Number.isInteger(value) && value >= 1 && value <= 5 ? { homeRank: value } : {};
 const categoriesOf = value => Array.isArray(value) ? { categories: globalThis.NolanCategories.valid(value) } : {};
 
 const root = new URL('../', import.meta.url).pathname;
@@ -67,8 +70,8 @@ export function normalizePhotos(draft) {
     list.push({ ...image, alt, series: clean(it.series, 80), place: clean(it.place, 80), year: yearOf(it.year), inSection, inTile, ...categoriesOf(it.categories), ...(it.featured === true ? { featured: true } : {}), ...rankOf(it.rank) });
   }
   // Place de la tuile Photographie (rubrique « Ordre »).
-  const tile = rankOf(draft?.tileRank).rank;
-  return { items: list, ...(tile ? { tileRank: tile } : {}) };
+  const tile = rankOf(draft?.tileRank).rank, tileHome = homeRankOf(draft?.tileHomeRank).homeRank;
+  return { items: list, ...(tile ? { tileRank: tile } : {}), ...(tileHome ? { tileHomeRank: tileHome } : {}) };
 }
 
 // Projets : seuls les champs éditables passent. Les champs techniques (adresse de la page, affiche, statut)
@@ -121,7 +124,7 @@ export function normalizeProjects(list) {
     const media = (Array.isArray(p.media) ? p.media : legacyMedia(p)).slice(0, 24).map(normalizeMedia).filter(m => m && !keys.has(m.key) && keys.add(m.key));
     const cover = media.find(m => m.key === p.cover) || media[0] || null;
     out.push({
-      slug, title, visible: p.visible === true, ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}), ...rankOf(p.rank),
+      slug, title, visible: p.visible === true, ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}), ...rankOf(p.rank), ...homeRankOf(p.homeRank),
       territory: TERRITORIES.includes(p.territory) ? p.territory : '',
       type: clean(p.type, 80), role: clean(p.role, 80), context: clean(p.context, 120), client: clean(p.client, 80),
       year: yearOf(p.year), result: clean(p.result, 200), link: link(p.link), summary: clean(p.summary, 400),
@@ -171,7 +174,7 @@ export function normalizeSocial(list) {
     seen.add(key);
     const legacyCover = /^\/assets\/work\/[\w-]+\.(jpe?g|png|webp)$/.test(p.cover || '') ? p.cover : '';
     out.push({
-      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80), ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}), ...rankOf(p.rank), ...rankOf(p.rank),
+      key, source: file ? 'file' : 'instagram', id, title, kind: clean(p.kind, 80), ...categoriesOf(p.categories), ...(p.featured === true ? { featured: true } : {}), ...rankOf(p.rank), ...homeRankOf(p.homeRank),
       ratio: video ? ratioOf(video.width, video.height) : /^\d{1,4}\/\d{1,4}$/.test(p.ratio || '') ? p.ratio : '9/16',
       tags: (Array.isArray(p.tags) ? p.tags : ['reseaux']).filter(t => TAGS.includes(t)).slice(0, 5),
       client: clean(p.client, 80), role: clean(p.role, 80), year: yearOf(p.year), result: clean(p.result, 200),
@@ -206,8 +209,8 @@ export function normalizeImages(map) {
 
 // Avis clients : texte et nom obligatoires, nettoyés ; image facultative, seulement une image envoyée depuis l'admin
 // (WebP du stockage site-photos, copiée sur le site), avec son texte alternatif ; aucune adresse d'image libre.
-// Photo de la personne (facultative, bulle ronde à côté de son nom) : même règle, carrée, petite (96 et 192 px) ;
-// décorative (le nom est écrit juste à côté), donc sans texte alternatif.
+// Bulle ronde à côté du nom : l'image de l'avis, ou sa bulle recadrée dans l'admin (photo), gardée seulement si elle
+// vient du même original que l'image publiée ; une ancienne photo envoyée à part est ignorée. Décorative, sans alt.
 // Un avis masqué n'est jamais publié. Aucun avis n'est ajouté ni modifié ici : seulement ceux saisis dans l'admin.
 export function normalizeTestimonials(list) {
   if (!Array.isArray(list)) return null;
@@ -218,8 +221,9 @@ export function normalizeTestimonials(list) {
     if (!quote || !name || seen.has(`${name}|${quote}`)) continue;
     seen.add(`${name}|${quote}`);
     const image = imageOf(t?.image), alt = clean(t?.alt, 300), href = link(t?.link);
-    const photo = imageOf(t?.photo);
-    out.push({ quote, name, role: clean(t?.role, 80), image: image && alt ? image : null, alt: image && alt ? alt : '', ...(photo ? { photo } : {}), link: href, linkLabel: href ? clean(t?.linkLabel, 60) : '' });
+    const kept = image && alt ? image : null, ph = imageOf(t?.photo);
+    const photo = kept?.source && ph?.source?.id === kept.source.id ? ph : null;
+    out.push({ quote, name, role: clean(t?.role, 80), image: kept, alt: kept ? alt : '', ...(photo ? { photo } : {}), link: href, linkLabel: href ? clean(t?.linkLabel, 60) : '' });
   }
   return out;
 }
@@ -227,7 +231,7 @@ export function normalizeTestimonials(list) {
 const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex').slice(0, 16);
 const prepare = (photos, projects, social = null, images = null, testimonials = null) => {
   const p = normalizePhotos(photos), pr = normalizeProjects(projects), so = normalizeSocial(social), im = normalizeImages(images), te = normalizeTestimonials(testimonials);
-  return { ...p, projects: pr, social: so, images: im, testimonials: te, hash: fingerprint({ list: p.items, ...(p.tileRank ? { tileRank: p.tileRank } : {}), projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}), ...(te ? { testimonials: te } : {}) }) };
+  return { ...p, projects: pr, social: so, images: im, testimonials: te, hash: fingerprint({ list: p.items, ...(p.tileRank ? { tileRank: p.tileRank } : {}), ...(p.tileHomeRank ? { tileHomeRank: p.tileHomeRank } : {}), projects: pr, ...(so ? { social: so } : {}), ...(im && Object.keys(im).length ? { images: im } : {}), ...(te ? { testimonials: te } : {}) }) };
 };
 
 const getJson = async (url, headers = {}) => {
@@ -246,7 +250,7 @@ async function latestSnapshot() {
 async function liveManifest() {
   const m = await getJson(`${liveUrl}${WEB_PATH}manifest.json`);
   const social = Array.isArray(m.social) ? m.social.map(p => ({ ...p, coverImage: p.image, video: p.video })) : null;
-  const live = prepare({ items: (m.items || []).map(p => ({ ...p, visible: p.inSection ?? true, inTile: p.inTile ?? true })), tileRank: m.tileRank }, m.projects ?? null, social, m.images ?? null, m.testimonials ?? null);
+  const live = prepare({ items: (m.items || []).map(p => ({ ...p, visible: p.inSection ?? true, inTile: p.inTile ?? true })), tileRank: m.tileRank, tileHomeRank: m.tileHomeRank }, m.projects ?? null, social, m.images ?? null, m.testimonials ?? null);
   return { snapshot: m.snapshot || null, ...live, published: /^[a-f0-9]{16}$/.test(m.published || '') ? m.published : live.hash };
 }
 const signature = (body, kind) => kind === 'webp'
@@ -329,15 +333,15 @@ for (const post of published.social || []) {
 }
 const keptImages = published.images && {};
 for (const [slot, value] of Object.entries(published.images || {})) if (await copy(value.image, `Image ${slot}`) && (!value.video || await copyVideo(value.video, `de la bannière (${slot})`))) keptImages[slot] = value;
-// Avis : une image ou une photo qui ne se copie pas est retirée (l'avis reste, sans elle : initiales à la place).
+// Avis : une image ou une bulle qui ne se copie pas est retirée (l'avis reste : bulle tirée de l'image, sinon initiales).
 const keptTestimonials = published.testimonials && [];
 for (const t of published.testimonials || []) {
   const image = t.image && await copy(t.image, `Image de l'avis de ${t.name}`) ? t.image : null;
-  const photo = t.photo && await copy(t.photo, `Photo de ${t.name}`) ? t.photo : null;
+  const photo = image && t.photo && await copy(t.photo, `Bulle de ${t.name}`) ? t.photo : null;
   const { photo: _, ...rest } = t;
   keptTestimonials.push({ ...rest, image, alt: image ? t.alt : '', ...(photo ? { photo } : {}) });
 }
-const photos = normalizePhotos({ items: keptPhotos.map(p => ({ ...p, visible: p.inSection })), tileRank: published.tileRank });
+const photos = normalizePhotos({ items: keptPhotos.map(p => ({ ...p, visible: p.inSection })), tileRank: published.tileRank, tileHomeRank: published.tileHomeRank });
 // published : empreinte de la version source, pour que --check ne relance pas sans fin si un fichier manque.
 const manifest = { snapshot: published.snapshot, published: published.published || published.hash, ...photos, projects: keptProjects, social: keptSocial, images: keptImages, testimonials: keptTestimonials };
 const write = (file, data) => writeFile(join(root, 'content', file), JSON.stringify({ snapshot: manifest.snapshot, ...data }, null, 1) + '\n');

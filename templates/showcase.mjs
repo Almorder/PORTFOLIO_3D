@@ -19,9 +19,10 @@ const media=(t,cls)=>t.image&&t.image.srcSmall
   ? `<span class="${cls}"><img src="${esc(t.image.srcSmall)}" srcset="${esc(t.image.srcSmall)} ${t.image.smallWidth}w, ${esc(t.image.src)} ${t.image.width}w" sizes="(max-width: 760px) 90vw, 420px" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async"></span>`
   : `<span class="${cls} is-blank" aria-hidden="true">${initial(t.name)}</span>`;
 
-// Bulle ronde à côté du nom : « Photo de la personne » si elle est remplie dans l'admin (facultative, 96 et 192 px,
-// carrée), sinon l'image de l'avis déjà envoyée (celle du panneau, en petite taille, recadrée en rond vers le haut,
-// là où se trouve le visage), sinon ses initiales. Décorative (le nom est écrit juste à côté) : alt vide.
+// Bulle ronde à côté du nom, sur les cartes : l'image de l'avis (celle du panneau, en petite taille, cadrée en rond
+// vers le haut, là où se trouve le visage), ou sa bulle recadrée dans l'admin (photo, tirée du même original,
+// 96 et 192 px), sinon ses initiales. Décorative (le nom est écrit juste à côté) : alt vide.
+// Le panneau ouvert n'a pas de bulle : l'image y est déjà en grand.
 const initials=name=>String(name).trim().split(/[\s'’-]+/).filter(w=>/^\p{L}/u.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||(String(name).trim()[0]||'·').toUpperCase();
 export const avatar=(t,cls='')=>t.photo&&t.photo.srcSmall
   ? `<span class="tm-avatar${cls}"><img src="${esc(t.photo.srcSmall)}" srcset="${esc(t.photo.srcSmall)} ${t.photo.smallWidth}w, ${esc(t.photo.src)} ${t.photo.width}w" sizes="44px" alt="" width="${t.photo.smallWidth}" height="${t.photo.smallHeight}" loading="lazy" decoding="async"></span>`
@@ -35,7 +36,7 @@ export const morphPanel=(t,i)=>`<dialog class="morph-panel" id="morph-panel-${i}
           ${media(t,'morph-panel__media')}
           <div class="morph-panel__body">
             <blockquote>« ${esc(t.quote)} »</blockquote>
-            <p class="morph-panel__who">${avatar(t,' tm-avatar--panel')}<span class="morph-panel__id"><strong id="morph-name-${i}">${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</span></p>
+            <p class="morph-panel__who"><span class="morph-panel__id"><strong id="morph-name-${i}">${esc(t.name)}</strong>${t.role?`<span>${esc(t.role)}</span>`:''}</span></p>
             ${t.link?`<a class="morph-panel__link" href="${esc(t.link)}"${/^https?:/.test(t.link)?' target="_blank" rel="noopener noreferrer"':''}>${esc(t.linkLabel||'Voir le projet')} <span aria-hidden="true">↗</span></a>`:''}
           </div>
           <button type="button" class="morph-panel__close" data-morph-close aria-label="Fermer">×</button>

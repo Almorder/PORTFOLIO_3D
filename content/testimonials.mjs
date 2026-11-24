@@ -10,7 +10,7 @@ try { published = JSON.parse(readFileSync(new URL('./testimonials.published.json
 // Liste de départ (code) : même forme que la version publiée, sans image (aucune adresse libre).
 const fromCode = site.testimonials.map(({ quote, name, role = '', link = '', linkLabel = '' }) => ({ quote, name, role, image: null, alt: '', photo: null, link, linkLabel }));
 export const testimonials = Array.isArray(published) && published.length ? published : fromCode;
-// Brouillon de l'admin (import) : l'image garde son identifiant et ses dimensions, rien d'autre.
-// Photo de la personne (bulle à côté de son nom) : même règle.
-const draftImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight } : null;
+// Brouillon de l'admin (import) : l'image garde son identifiant, ses dimensions, son original et son recadrage
+// (pour recadrer de nouveau, image et bulle). Bulle recadrée (photo) : même règle.
+const draftImage = i => i ? { id: i.id, width: i.width, height: i.height, smallWidth: i.smallWidth, smallHeight: i.smallHeight, ...(i.source ? { source: i.source } : {}), ...(i.crop ? { crop: i.crop } : {}) } : null;
 export const testimonialsDraft = testimonials.map(({ image, photo, ...t }) => ({ ...t, image: draftImage(image), photo: draftImage(photo), visible: true }));

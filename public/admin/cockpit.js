@@ -339,7 +339,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
     const firstMsg = dueMessages()[0];
     const stat = (value, label, sub, target) => {
       const node = button('', 'admin-stat', () => go(target), `${label} : ${value}`);
-      node.append(el('strong', { textContent: value }), el('span', { textContent: label }), sub ? el('small', { className: 'ck-stat-sub', textContent: sub }) : null);
+      node.append(...[el('strong', { textContent: value }), el('span', { textContent: label }), sub ? el('small', { className: 'ck-stat-sub', textContent: sub }) : null].filter(Boolean));
       return node;
     };
     const quick = el('div', { className: 'ck-quick' }, [
@@ -430,7 +430,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
       ]);
     }));
     return el('div', {}, [
-      bar2('Demandes et projets', 'Chaque demande avance d’une colonne à l’autre jusqu’au paiement. Change l’étape depuis la carte.',
+      bar2('Demandes et projets', '',
         button(S.showLost ? 'Masquer les perdues' : 'Voir les perdues', 'admin-mini', () => { S.showLost = !S.showLost; go('demandes'); }), button('+ Nouvelle demande', 'admin-button', () => open('deal', null))),
       board
     ]);
@@ -570,7 +570,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
     };
     search.addEventListener('input', render); render();
     return el('div', {}, [
-      bar2('Clients', `${S.contacts.length} client(s). Clique sur un nom pour ouvrir sa fiche : projets, documents, messages.`, button('+ Nouveau client', 'admin-button', () => open('contact', null))),
+      bar2('Clients', `${S.contacts.length} client(s)`, button('+ Nouveau client', 'admin-button', () => open('contact', null))),
       v2Notice(),
       search,
       el('div', { className: 'ck-table-wrap' }, [el('table', { className: 'ck-table' }, [el('thead', {}, [el('tr', {}, ['Client', 'Type', 'Coordonnées', 'Projets', 'Prochain message', 'Encaissé'].map(h => el('th', { scope: 'col', textContent: h })))]), tbody])])
@@ -701,7 +701,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
     };
     search.addEventListener('input', render); render();
     return el('div', {}, [
-      bar2('Documents', 'Classés par client puis par projet. Clique sur un numéro pour le modifier, même s’il est envoyé.', button('+ Nouveau document', 'admin-button', () => open('newdoc', {}))),
+      bar2('Documents', '', button('+ Nouveau document', 'admin-button', () => open('newdoc', {}))),
       S.needsDocs ? card('Une étape avant de créer des documents', [setupStep('documents_schema.sql')], 'admin-card--wide ck-mb') : null,
       el('div', { className: 'nd-tools' }, [search, tabBar]),
       tree
@@ -1156,7 +1156,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
       el('span', { className: 'jm-node__top' }, [el('strong', { textContent: extra.title || r.step.label }), ...chans.map(ch => pill(CHANNELS[ch], `ch-${ch}`))]),
       el('span', { className: 'jm-node__when' }, [el('b', { textContent: 'Quand : ' }), el('span', { textContent: extra.when || r.step.when })]),
       el('span', { className: 'jm-node__why' }, [el('b', { textContent: 'Pourquoi : ' }), el('span', { textContent: extra.why || r.step.why })]),
-      contact ? el('span', { className: 'jm-node__state' }, [el('span', { className: 'ck-dot' }), el('span', { textContent: r.sent ? `Envoyé le ${shortDate(r.sent.sent_at)}` : stateLabel[r.state] })]) : null
+      ...(contact ? [el('span', { className: 'jm-node__state' }, [el('span', { className: 'ck-dot' }), el('span', { textContent: r.sent ? `Envoyé le ${shortDate(r.sent.sent_at)}` : stateLabel[r.state] })])] : [])
     );
     return b;
   };
@@ -1197,9 +1197,9 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
       ...MSG().steps.map(step => el('section', {}, [el('h4', { textContent: step.label }), el('ul', { className: 'ck-list' }, MSG().messages.filter(m => m.step === step.id).map(m => el('li', {}, [button(m.label, 'ck-link', () => open('message', { msg: m.id, contact: contact?.id, deal: deal?.id })), pill(CHANNELS[m.channel], `ch-${m.channel}`), m.branch ? pill(m.branch === 'datee' ? 'Prestation datée' : 'Mission continue') : null, el('small', { textContent: m.when })])))]))]);
     const legend = el('ul', { className: 'jm-legend' }, ['now', 'sent', 'later', 'missed', 'na'].map(k => el('li', { className: `is-${k}` }, [el('span', { className: 'ck-dot' }), el('span', { textContent: stateLabel[k] })])));
     return el('div', {}, [
-      bar2('Messages', 'La carte du parcours : quoi envoyer, quand et pourquoi. Choisis un client pour voir où il en est, puis clique sur une étape.', contact ? back(fullName(contact), 'contact', contact.id) : null),
+      bar2('Messages', '', contact ? back(fullName(contact), 'contact', contact.id) : null),
       v2Notice(),
-      card('Pour quel client ?', [pick.node, contact ? el('p', { className: 'ck-hint', textContent: `${deal ? `Projet : ${deal.title} (${STAGE[deal.stage].label}). ` : 'Aucun projet en cours. '}Parcours ${j.branch === 'mission' ? 'mission continue' : 'prestation datée'}.` }) : el('p', { className: 'ck-hint', textContent: 'Sans client, la carte sert de mode d’emploi ; les messages s’ouvrent avec des variables à compléter.' })], 'admin-card--wide ck-mb'),
+      card('Pour quel client ?', [pick.node, contact ? el('p', { className: 'ck-hint', textContent: `${deal ? `Projet : ${deal.title} (${STAGE[deal.stage].label}). ` : 'Aucun projet en cours. '}Parcours ${j.branch === 'mission' ? 'mission continue' : 'prestation datée'}.` }) : null], 'admin-card--wide ck-mb'),
       contact ? legend : null,
       tree,
       library
@@ -1284,7 +1284,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
     };
     const suggestions = S.deals.filter(d => ['signe', 'production'].includes(d.stage) && d.event_date && d.event_date >= t && !S.events.some(e => e.deal_id === d.id));
     return el('div', {}, [
-      bar2('Agenda', 'Tournages, livraisons et rendez-vous. Chaque événement peut s’ajouter à Google Agenda en un clic.', button('+ Événement', 'admin-button', () => open('event', null))),
+      bar2('Agenda', '', button('+ Événement', 'admin-button', () => open('event', null))),
       suggestions.length ? card('Projets signés sans date dans l’agenda', [el('ul', { className: 'ck-list' }, suggestions.map(d => el('li', {}, [button(`${d.title} : ${longDate(d.event_date)}`, 'ck-link', () => open('event', { deal: d.id })), el('span', { textContent: 'Planifier' })])))], 'admin-card--wide ck-mb') : null,
       months.size ? el('div', { className: 'ck-agenda' }, [...months.entries()].sort().map(([k, list]) => el('section', {}, [
         el('h3', { textContent: new Date(`${k}-01T12:00:00`).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) }),
@@ -1354,7 +1354,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
       download(`livre-des-recettes-${y}.csv`, csv); say(`${rows.length} encaissement(s) exporté(s).`, 'ok');
     });
     return el('div', {}, [
-      bar2('Finances', 'Chiffre d’affaires encaissé (régime micro : ce qui compte, c’est la date d’encaissement).', yearPick, exportBook),
+      bar2('Finances', '', yearPick, exportBook),
       el('div', { className: 'admin-stats' }, [
         el('div', { className: 'admin-stat' }, [el('strong', { textContent: money(total) }), el('span', { textContent: `encaissés en ${y}` })]),
         el('div', { className: 'admin-stat' }, [el('strong', { textContent: goal ? `${Math.round(total / goal * 100)} %` : 'Aucun' }), el('span', { textContent: `de l’objectif (${money(goal)})` })]),
@@ -1417,7 +1417,7 @@ window.NolanCockpit = ({ client, root, el, button, link, say, heading, card, go,
       await load(); setDirty(false); go('reglages'); say('Réglages enregistrés.', 'ok');
     });
     return el('div', {}, [
-      bar2('Réglages', 'Objectifs, taux, coordonnées imprimées sur tes documents et liens de tes messages. Visibles par toi seul, jamais publiés sur le site.', submit),
+      bar2('Réglages', '', submit),
       el('div', { className: 'admin-grid' }, forms.map(([title, f]) => card(title, [f.node], 'admin-card--wide')))
     ]);
   });
