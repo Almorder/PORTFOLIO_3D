@@ -12,12 +12,12 @@
       { slot: 'home.dims.strategie', label: 'Dossier Stratégie de marque', origin: '/assets/da/texture-c.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' }
     ] },
     { group: 'Services · Aperçu', slots: [
-      { slot: 'services.reel.strategie', label: 'Ligne Stratégie de marque', origin: '/assets/da/texture-c.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' }
+      { slot: 'services.reel.strategie', label: 'Panneau Stratégie de marque', origin: '/assets/da/texture-c.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' }
     ] },
     { group: 'Accueil · Mariage', slots: [
-      { slot: 'home.wedding.0', label: 'Polaroïd 1 (Film de mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },
-      { slot: 'home.wedding.1', label: 'Polaroïd 2 (Demande en mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },
-      { slot: 'home.wedding.2', label: 'Polaroïd 3 (Le jour J)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true }
+      { slot: 'home.wedding.0', label: 'Mariage 1 (Film de mariage)', origin: '/assets/da/texture.webp', preset: 'wedding', format: 'Vertical 4:5, au moins 1200 px de haut.', alt: true },
+      { slot: 'home.wedding.1', label: 'Mariage 2 (Demande en mariage)', origin: '/assets/da/texture-c.webp', preset: 'wedding', format: 'Vertical 4:5, au moins 1200 px de haut.', alt: true },
+      { slot: 'home.wedding.2', label: 'Mariage 3 (Le jour J)', origin: '/assets/da/texture-b.webp', preset: 'wedding', format: 'Vertical 4:5, au moins 1200 px de haut.', alt: true }
     ] },
     { group: 'Accueil · Cartes des tarifs', slots: [
       { slot: 'home.cards.mariage', label: 'Carte A♣ · Film de mariage', origin: '/assets/cards/mariage.webp', preset: 'card', format: 'Recto de carte vertical 2:3 (290 × 430 au minimum, idéal 1000 × 1480 px). Le bas est couvert par le bandeau des infos.' },

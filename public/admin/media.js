@@ -15,7 +15,8 @@
     photo: { large: [1600, 200 * 1024], small: [800, 90 * 1024] },
     cover: { large: [1080, 160 * 1024], small: [540, 70 * 1024] },
     folder: { large: [1200, 180 * 1024], small: [640, 80 * 1024] },
-    polaroid: { large: [900, 150 * 1024], small: [480, 70 * 1024] },
+    // Accueil, Mariage : le cadre (4:5) mesure jusqu'à 470 px de large, net sur écran haute densité.
+    wedding: { large: [1200, 170 * 1024], small: [640, 80 * 1024] },
     card: { large: [1000, 140 * 1024], small: [480, 60 * 1024] },
     // Affiche de la bannière de l'accueil : première image vue (LCP), nette en grand écran, légère sur téléphone.
     banner: { large: [2560, 420 * 1024], small: [1080, 150 * 1024] },

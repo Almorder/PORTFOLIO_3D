@@ -441,38 +441,42 @@ export function projectPages(){
   return projects.filter(p=>p.visible&&p.slug!=='le-bol-den-face'&&pageOf.get(p.slug)&&shownMedia(p).length).map(p=>{ const path=pageOf.get(p.slug); return [`${path.slice(1)}index.html`, generatedProjectPage(p,path), path]; });
 }
 
-// Page Services : quatre besoins, six offres, la marche à suivre, les avis, la FAQ.
-// Tout le contenu vient de ce qui est déjà publié : offres et prix (content/pricing.mjs), besoins de l'accueil
-// (dimNeeds), réalisations du catalogue Work (mêmes données que l'admin), CGV (acompte), Contact (48 h),
-// avis (content/testimonials.mjs) et FAQ Services (content/site.mjs). Sans média réel, l'emplacement disparaît.
-// Les ancres #realisation, #mariage, #direction-artistique et #strategie-de-marque (lignes des besoins) et
-// #demande-en-mariage (billet) restent : l'accueil, les polaroids et le schéma des offres y renvoient.
+// Page Services : un besoin = un onglet, un seul panneau visible (texte à gauche, réalisations à droite).
+// Parcours en trois clics : choisir son besoin, « Demander un devis » (Contact avec l'offre déjà choisie), envoyer.
+// Tout le contenu vient de ce qui est déjà publié : offres et prix (content/pricing.mjs), phrases des trois
+// dimensions de l'accueil (expertiseTabs), réalisations du catalogue Work (mêmes données que l'admin), CGV, FAQ.
+// Ancres reçues de l'accueil, de la section mariage et du schéma des offres : #realisation, #mariage,
+// #direction-artistique, #strategie-de-marque (panneaux), #offre-contenu, #demande-en-mariage… (offres) ;
+// src/app.js ouvre l'onglet qui les contient. Sans JavaScript, tous les panneaux s'affichent l'un sous l'autre.
 const svOffer = key => pricing.find(o=>o.key===key);
 // Vidéo Instagram de la demande en mariage : volontairement absente de cette page.
 const svHidden = new Set([weddingOffers.demande.instagramId]);
+const exp = key => expertiseTabs.find(x=>x.key===key);
+// Délai de livraison maximal annoncé par Nolan pour toutes les prestations livrées (la session de stratégie n'en a pas).
+const svDelay = ['Livraison', '1 mois et demi max'];
 const svNeeds = [
-  { id:'realisation', key:'realisation', name:'Réalisation', file:'REALISATION_REEL.MOV', keys:['Film de marque','Court métrage','Réseaux sociaux'],
-    need:dimNeeds.realisation.need, text:dimNeeds.realisation.text,
-    get:['Une seule direction, de la préparation à la livraison','Le tournage seul ou le montage seul, si c’est ce qu’il vous faut','Des fichiers pensés pour leur support final'],
-    offers:['contenu','film'], work:['video','reseaux-sociaux'], max:3 },
-  { id:'mariage', key:'mariage', name:'Mariage', file:'MARIAGE_REEL.MOV', keys:['Film de mariage','Demande','Photo'],
-    need:'Un jour qui ne se rejoue pas.', text:`${svOffer('mariage').text} ${svOffer('demande').text}`,
-    get:[...pricingDetails.mariage.includes, ...(pricingDetails.mariage.deliverables||[])].slice(0,3),
-    offers:['mariage','demande'], work:['mariage'], max:3 },
-  { id:'direction-artistique', key:'direction', name:'Direction artistique', file:'DIRECTION_ARTISTIQUE.MOV', keys:['Direction visuelle','Cohérence','Système créatif'],
-    need:dimNeeds.direction.need, text:dimNeeds.direction.text,
-    get:['La direction visuelle, la cohérence de marque ou un système créatif que votre équipe applique ensuite','Sans réalisation vidéo, si vous le souhaitez','Des choix créatifs plus simples, une identité qui se reconnaît'],
-    offers:['direction'], work:['direction-artistique'], max:1 },
-  { id:'strategie-de-marque', key:'strategie', name:'Stratégie de marque', file:'STRATEGIE_SESSION.MOV', keys:['Audit','Priorisation','Session'],
-    need:dimNeeds.strategie.need, text:dimNeeds.strategie.text,
-    get:[pricingDetails.strategie.includes[0], pricingDetails.strategie.includes[1], 'Un accompagnement plus large, chiffré sur devis'],
+  { id:'realisation', key:'realisation', name:'Réalisation', title:exp('realisation').headline, line:exp('realisation').value,
+    price:{ from:true, value:svOffer('contenu').price }, facts:[svDelay],
+    includes:[pricingDetails.film.includes[1], pricingDetails.film.scope[0], pricingDetails.contenu.includes[0]],
+    offers:['film','contenu'], work:['video','reseaux-sociaux'], max:2 },
+  { id:'mariage', key:'mariage', name:'Mariage', title:'Un jour qui ne se rejoue pas.', line:svOffer('mariage').text,
+    price:{ from:true, value:svOffer('mariage').price }, facts:[svDelay],
+    includes:[...pricingDetails.mariage.includes, ...pricingDetails.mariage.deliverables],
+    offers:['mariage','demande'], work:['mariage'], max:2 },
+  { id:'direction-artistique', key:'direction', name:'Direction artistique', title:exp('direction').headline, line:exp('direction').value,
+    price:{ from:true, value:svOffer('direction').price }, facts:[svDelay],
+    includes:[pricingDetails.direction.includes[0], ...pricingDetails.direction.scope],
+    offers:['direction'], work:['direction-artistique'], max:1, only:/^fragments d.ailleurs$/i },
+  { id:'strategie-de-marque', key:'strategie', name:'Stratégie de marque', title:exp('strategie').headline, line:exp('strategie').value,
+    price:{ from:false, value:svOffer('strategie').price }, facts:[['Durée','1 h']],
+    includes:[...pricingDetails.strategie.includes, 'Un accompagnement plus large, chiffré sur devis'],
     offers:['strategie'], work:[], max:0 },
 ];
-// Miniature réelle d'une réalisation du catalogue (projet, vidéo courte ou photo), sinon null.
+// Miniature réelle d'une réalisation du catalogue (projet, vidéo courte ou photo), en deux tailles si possible.
 const svThumb = it => {
-  if(it.kind==='project'&&it.image?.image) return { src:it.image.image, alt:it.image.alt||it.title, w:it.image.width, h:it.image.height };
-  if(it.kind==='social'&&it.thumb) return { src:it.thumb.src, alt:`${it.title}, vidéo verticale`, w:it.thumb.width, h:it.thumb.height };
-  if(it.kind==='photo') { const ph=it.ph; return { src:ph.srcSmall||ph.src, alt:ph.alt||it.title, w:ph.smallWidth||ph.width, h:ph.smallHeight||ph.height }; }
+  if(it.kind==='project'&&it.image?.image) return { src:it.image.image, srcset:it.image.srcset||'', alt:it.image.alt||it.title };
+  if(it.kind==='social'&&it.thumb) return { src:it.thumb.src, srcset:it.thumb.large?`${it.thumb.src} ${it.thumb.width||540}w, ${it.thumb.large} ${(it.thumb.width||540)*2}w`:'', alt:`${it.title}, vidéo verticale` };
+  if(it.kind==='photo') { const ph=it.ph; return { src:ph.srcSmall||ph.src, srcset:ph.srcSmall?`${ph.srcSmall} ${ph.smallWidth}w, ${ph.src} ${ph.width}w`:'', alt:ph.alt||it.title }; }
   return null;
 };
 // Réalisations d'un besoin : vrais éléments du catalogue, chacun avec son lien Work (page projet ou catégorie).
@@ -480,160 +484,71 @@ const svProofs = n => {
   const out=[], seen=new Set();
   for(const c of n.work) for(const it of catalogItems.filter(x=>x.cats.includes(c))){
     const id=it.kind==='social'?it.post.id:it.kind==='photo'?it.ph.id:it.project.slug;
-    if(out.length>=n.max||seen.has(id)||(it.kind==='social'&&svHidden.has(it.post.id))) continue;
+    if(out.length>=n.max||seen.has(id)||(it.kind==='social'&&svHidden.has(it.post.id))||(n.only&&!n.only.test(it.title))) continue;
     const t=svThumb(it); if(!t) continue;
-    // Une photo seule porte sa description ; une vidéo courte renvoie à sa catégorie la plus précise.
     const title=it.kind==='photo'&&it.ph.alt?it.ph.alt:it.title, meta=it.kind==='photo'?['Photo',it.type,it.year]:[it.type,it.client,it.year];
     const cat=it.kind==='social'&&it.cats.includes('reseaux-sociaux')?'reseaux-sociaux':c;
-    seen.add(id); out.push({ ...t, title, meta:meta.filter(Boolean).join(' · '), href:(it.kind==='project'&&it.href)||catalogHref(cat), video:it.kind==='social'&&it.post.source==='file'&&it.post.video?.src?it.post.video:null });
+    seen.add(id); out.push({ ...t, title, meta:meta.filter(Boolean).join(' · '), href:(it.kind==='project'&&it.href)||catalogHref(cat) });
   }
   return out;
 };
-// Aperçu du lecteur : la première réalisation, sinon l'image choisie dans l'admin (Services · Aperçu, puis le dossier de l'accueil).
-const svPreview = (n, proofs) => {
-  if(proofs[0]) return proofs[0];
-  const s=siteImage(`services.reel.${n.key}`)||siteImage(`home.dims.${n.key}`); return s ? { src:s.image.srcSmall, alt:'', w:s.image.smallWidth, h:s.image.smallHeight, video:null } : null;
-};
-const svImg = (t, cls) => `<img class="${cls}" src="${esc(t.src)}" alt="${esc(t.alt)}"${t.w&&t.h?` width="${t.w}" height="${t.h}"`:''} loading="lazy" decoding="async">`;
-const svArrow = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const svImg = (t, sizes) => `<img src="${esc(t.src)}"${t.srcset?` srcset="${esc(t.srcset)}" sizes="${sizes}"`:''} alt="${esc(t.alt)}" loading="lazy" decoding="async">`;
+const svPrice = p => `${p.from?'dès ':''}${p.value}`;
+const svOfferId = key => key==='demande' ? 'demande-en-mariage' : `offre-${key}`;
+const svGo = (o, quiet) => `<a class="srv-go${quiet?' srv-go--quiet':''}" href="${esc(pricingHref(o))}">Demander un devis<span class="sr-only"> : ${esc(o.title)}</span> <span aria-hidden="true">↗</span></a>`;
 
-// 1. Héros : le mot « Services. » sert de fenêtre sur des photos publiées (vidéo de la bannière si elle est publiée).
-const svHeroMedia = () => {
-  const v = siteVideo('home.hero.desktop') || siteVideo('home.hero.mobile');
-  if(v) return `<span class="sv-mask__media" aria-hidden="true"><img class="sv-mask__layer is-still" src="${esc(v.image.srcSmall)}" alt="" width="${v.image.smallWidth}" height="${v.image.smallHeight}" decoding="async"><video class="sv-mask__layer" data-sv-mask-video muted loop playsinline disablepictureinpicture preload="none" data-src="${esc(v.video.src)}" data-type="${esc(v.video.type)}"></video></span>`;
-  const shots = photos.slice(0,3);
-  if(!shots.length) return '';
-  return `<span class="sv-mask__media" aria-hidden="true">${shots.map((ph,i)=>`<img class="sv-mask__layer sv-mask__layer--${i}" src="${esc(ph.src)}" alt="" width="${ph.width}" height="${ph.height}" decoding="async"${i?' loading="lazy"':' fetchpriority="high"'}>`).join('')}</span>`;
-};
-
-// 2. Une ligne par besoin : titre, trois mots-clés, aperçu (lecteur flottant sur ordinateur), panneau dépliant.
-const svRow = n => {
-  const proofs=svProofs(n), prev=svPreview(n,proofs), all=n.work.filter(c=>catalogCount(c)), total=all.reduce((s,c)=>s+catalogCount(c),0);
-  const from=n.offers.map(svOffer).find(o=>o.from)||svOffer(n.offers[0]);
-  return `<li class="sv-row" id="${n.id}" data-reel-row data-file="${esc(n.file)}"${prev?` data-preview="${esc(prev.src)}"`:''}${prev?.video?` data-preview-video="${esc(prev.video.src)}"`:''}>
-        <h3 class="sv-row__head"><button type="button" class="sv-row__btn" id="sv-btn-${n.id}" aria-expanded="false" aria-controls="sv-panel-${n.id}" data-reel-btn>
-          <span class="sv-row__title">${esc(n.name)}</span>
-          <span class="sv-row__keys" aria-hidden="true">${n.keys.map(k=>`<span>${esc(k)}</span>`).join('')}</span>
-          <span class="sv-row__pill" aria-hidden="true">${svArrow}</span>
-        </button></h3>
-        <div class="sv-row__panel" id="sv-panel-${n.id}" role="region" aria-labelledby="sv-btn-${n.id}" data-reel-panel>
-          <div class="sv-row__clip"><div class="sv-row__inner">
-            ${prev?`<figure class="sv-row__media" aria-hidden="true">${svImg({ ...prev, alt:'' },'sv-row__media-img')}</figure>`:''}
-            <div class="sv-row__need"><p class="sv-row__q">${esc(n.need)}</p><p>${esc(n.text)}</p><a class="sv-row__price" href="#tarifs-${n.id}">${from.from?'À partir de ':''}${esc(from.price)} <span aria-hidden="true">↓</span></a></div>
-            <div class="sv-row__get"><h4>Vous obtenez</h4><ul>${n.get.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
-            ${proofs.length?`<div class="sv-row__proof"><h4>${proofs.length>1?'Réalisations':'Réalisation'}</h4><ul>${proofs.map(p=>`<li><a href="${esc(p.href)}">${svImg(p,'sv-row__thumb')}<span><strong>${esc(p.title)}</strong>${p.meta?`<small>${esc(p.meta)}</small>`:''}</span></a></li>`).join('')}</ul>${total>proofs.length?all.map(c=>`<a class="sv-row__all" href="${catalogHref(c)}">${esc(Cat.label(c))} dans Work <sup>${catalogCount(c)}</sup> <span aria-hidden="true">↗</span></a>`).join(''):''}</div>`:''}
-          </div></div>
+// Panneau d'un besoin. Plusieurs offres : une ligne chacune (nom, prix, devis). Une seule : un bouton.
+const svPanel = (n, i) => {
+  const proofs=svProofs(n), offers=n.offers.map(svOffer), main=offers[0], cats=n.work.filter(c=>catalogCount(c));
+  const still = !proofs.length ? (siteImage(`services.reel.${n.key}`)||siteImage(`home.dims.${n.key}`)) : null;
+  const media = proofs.length
+    ? `<ul class="srv-media${proofs.length>1?' srv-media--two':''}">${proofs.map(p=>`<li><a href="${esc(p.href)}"><span class="srv-media__img">${svImg(p, proofs.length>1?'(max-width: 760px) 45vw, 22vw':'(max-width: 760px) 90vw, 44vw')}</span><span class="srv-media__cap"><strong>${esc(p.title)}</strong>${p.meta?`<small>${esc(p.meta)}</small>`:''}</span></a></li>`).join('')}</ul>
+      ${cats.length?`<a class="srv-more" href="${catalogHref(cats[0])}">Voir les réalisations <span aria-hidden="true">↗</span></a>`:''}`
+    : `<figure class="srv-media srv-media--still"><span class="srv-media__img">${still?`<img src="${esc(still.image.srcSmall)}" srcset="${esc(still.image.srcSmall)} ${still.image.smallWidth}w, ${esc(still.image.src)} ${still.image.width}w" sizes="(max-width: 760px) 90vw, 44vw" alt="" loading="lazy" decoding="async">`:'<i class="srv-media__da" aria-hidden="true"></i>'}</span></figure>`;
+  const action = offers.length>1
+    ? `<ul class="srv-offers">${offers.map((o,k)=>`<li id="${svOfferId(o.key)}"><span class="srv-offers__name">${esc(o.title)}</span><span class="srv-offers__price">${o.from?'dès ':''}${esc(o.price)}</span>${svGo(o,k>0)}</li>`).join('')}</ul>`
+    : `<div class="srv-single" id="${svOfferId(main.key)}">${svGo(main)}</div>`;
+  return `<section class="srv-panel" id="${n.id}" role="tabpanel" aria-labelledby="srv-tab-${n.id}" tabindex="0" data-srv-panel data-price="${esc(svPrice(n.price))}" data-href="${esc(pricingHref(main))}" data-name="${esc(n.name)}"${i?' hidden':''}>
+        <div class="srv-panel__text">
+          <h2>${esc(n.title)}</h2>
+          <p class="srv-panel__line">${esc(n.line)}</p>
+          <dl class="srv-facts"><div><dt>${n.price.from?'À partir de':'Tarif'}</dt><dd>${esc(n.price.value)}</dd></div>${n.facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+          <h3 class="srv-inc-title">Inclus</h3>
+          <ul class="srv-inc">${n.includes.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+          ${action}
+          <p class="srv-reply">${esc(site.responseTime)}</p>
         </div>
-      </li>`;
+        <div class="srv-panel__media">${media}</div>
+      </section>`;
 };
-
-// 3. Billets : corps (offre) et talon (prix) ; tirer le talon, ou l'activer au clavier, ouvre Contact avec l'offre choisie.
-// Délai de livraison maximal annoncé par Nolan pour toutes les prestations livrées (la session de stratégie n'en a pas).
-const svDelay = ['Livraison', '1 mois et demi max'];
-const svFacts = {
-  mariage:[['Durée', weddingOffers.mariage.facts[1][0]], ['Film final', weddingOffers.mariage.facts[0][0]], svDelay],
-  demande:[svDelay],
-  contenu:[['Format', pricingDetails.contenu.deliverables[0]], svDelay],
-  film:[svDelay],
-  direction:[svDelay],
-  strategie:[['Durée','1 h']],
-};
-const svTicket = key => { const o=svOffer(key), id=key==='demande'?'demande-en-mariage':`offre-${key}`, digits=o.price.replace(/[^\d ]/g,'').trim(), facts=svFacts[key]||[];
-  const line=(pricingDetails[key]?.includes||[])[0]||o.text, label=o.from?'À partir de':'Tarif', verb=o.cta.charAt(0).toLowerCase()+o.cta.slice(1);
-  return `<li class="sv-ticket" id="${id}" data-ticket>
-          <div class="sv-ticket__body">
-            ${digits?`<span class="sv-ticket__mark" aria-hidden="true">${esc(digits)}</span>`:''}
-            <p class="sv-ticket__cat">${esc(o.tag)}</p>
-            <h4 class="sv-ticket__name">${esc(o.title)}</h4>
-            <p class="sv-ticket__inc">${esc(line)}</p>
-            ${facts.length?`<dl class="sv-ticket__facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:''}
-          </div>
-          <a class="sv-ticket__stub" href="${esc(pricingHref(o))}" data-ticket-stub aria-label="${esc(o.cta)} : ${esc(o.title)}, ${esc(label.toLowerCase())} ${esc(o.price)}">
-            <span class="sv-ticket__from">${esc(label)}</span>
-            <strong class="sv-ticket__price">${esc(o.price)}</strong>
-            <span class="sv-ticket__tear">Détacher pour ${esc(verb)} <i aria-hidden="true">→</i></span>
-          </a>
-        </li>`; };
-
-// 4. Comment ça se passe : quatre étapes réelles (Contact, devis, CGV, FAQ).
-const svSteps = [
-  { title:'Premier échange', text:['Vous décrivez le projet : une idée, une date ou un problème suffit.', `${site.responseTime}, avec mes premières questions.`], tags:['Sans brief complet','48 h ouvrées'] },
-  { title:'Devis et acompte', text:['On fixe le périmètre, les livrables, le calendrier, le prix et les droits.', 'La commande est validée à la signature et à l’acompte de 40 % ; une date n’est bloquée qu’à ce moment.'], tags:['Devis signé','Acompte de 40 %'] },
-  { title:'Tournage ou séance', text:['Le tournage, la séance photo ou la session de travail a lieu à la date convenue.', 'Pour une prestation datée, le solde est réglé avant son début.'], tags:['Date convenue','Solde avant la prestation'] },
-  { title:'Livraison et allers-retours', text:['Livraison en un mois et demi au plus. Les allers-retours inclus sont ceux prévus au devis.', 'Je garde une copie de sécurité des fichiers finaux pendant six mois après la livraison.'], tags:['Livraison 1 mois et demi max','Allers-retours au devis','Copie de sécurité 6 mois','Sources non livrées'] },
-];
-
-// 5. Avis : mêmes avis que l'accueil, textes inchangés, en pile de cartes.
-const svQuote = (t,i,n) => `<li class="sv-quote" data-quote="${i}" style="--i:${i}">
-          <blockquote><p>${esc(t.quote)}</p></blockquote>
-          <p class="sv-quote__who">${t.image?`<img src="${esc(t.image.srcSmall)}" alt="${esc(t.alt||'')}" width="${t.image.smallWidth}" height="${t.image.smallHeight}" loading="lazy" decoding="async">`:''}<span><strong>${esc(t.name)}</strong>${t.role?`<small>${esc(t.role)}</small>`:''}</span></p>
-          <span class="sv-quote__n" aria-hidden="true">${i+1} / ${n}</span>
-        </li>`;
 
 export function servicesPage(){
-  const faqs = site.faqs.services;
-  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande dès 250 €, contenu et direction artistique dès 200 €, stratégie de marque à 89 € / h.',path:'/services/',extraSchema:faqSchema(faqs,'/services/'),bodyClass:'page-services page-fabrica page-v16 page-sv'}) + header('/services/') + `<main id="main-content" class="sv-page">
-    <section class="sv-hero" aria-labelledby="sv-title">
-      <h1 class="sv-mask" id="sv-title">${svHeroMedia()}<span class="sv-mask__word">Services<span class="sv-mask__dot-hole">.</span></span><span class="sv-mask__dot" aria-hidden="true">Services<b>.</b></span></h1>
-      <p class="sv-hero__lead">Quatre façons de travailler ensemble, chacune avec son prix de départ.</p>
-      <nav class="sv-hero__nav" aria-label="Choisir votre besoin"><ul>${svNeeds.map(n=>`<li><a href="#${n.id}">${esc(n.name)} <span aria-hidden="true">↓</span></a></li>`).join('')}</ul></nav>
-    </section>
+  const faqs = site.faqs.services, first = svNeeds[0], firstOffer = svOffer(first.offers[0]);
+  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande dès 250 €, contenu et direction artistique dès 200 €, stratégie de marque à 89 € / h.',path:'/services/',extraSchema:faqSchema(faqs,'/services/'),bodyClass:'page-services page-fabrica page-v16 page-srv'}) + header('/services/') + `<main id="main-content" class="srv-page">
+    <header class="srv-head">
+      <h1>Services<span class="title-dot">.</span></h1>
+      <p>Quatre façons de travailler ensemble, chacune avec son prix de départ.</p>
+    </header>
 
-    <section class="sv-reel" aria-labelledby="sv-reel-title" data-reel>
-      <h2 class="sv-h2" id="sv-reel-title">Partez de votre besoin<span class="sv-dot">.</span></h2>
-      <ul class="sv-reel__list" data-reel-list>
-      ${svNeeds.map(svRow).join('\n      ')}
-      </ul>
-      <div class="sv-player" aria-hidden="true" data-reel-player>
-        <div class="sv-player__bar"><span class="sv-player__lights"><i></i><i></i><i></i></span><span class="sv-player__file" data-player-file></span><span class="sv-player__rec">● PLAY</span></div>
-        <div class="sv-player__screen"><img data-player-img alt="" decoding="async"><video data-player-video muted loop playsinline disablepictureinpicture preload="none"></video></div>
-        <div class="sv-player__tc"><span>IN <b>00:00:00:00</b></span><span>OUT <b data-player-out>00:00:00:00</b></span></div>
+    <div class="srv" id="besoins" data-srv>
+      <div class="srv-tabs" role="tablist" aria-label="Choisir votre besoin" data-srv-tabs>
+        ${svNeeds.map((n,i)=>`<a class="srv-tab" role="tab" id="srv-tab-${n.id}" href="#${n.id}" aria-controls="${n.id}" aria-selected="${i?'false':'true'}"${i?' tabindex="-1"':''} data-srv-tab>${esc(n.name)}</a>`).join('')}
+        <span class="srv-tabs__ink" aria-hidden="true" data-srv-ink></span>
       </div>
+      ${svNeeds.map(svPanel).join('\n      ')}
+      <p class="srv-terms">${esc(pricingCommon[0])}. <a href="/cgv/">Conditions générales de vente</a></p>
+    </div>
+
+    <section class="srv-faq" id="faq-services" aria-labelledby="srv-faq-title">
+      <h2 id="srv-faq-title">Questions<span class="title-dot">.</span></h2>
+      ${faqs.map(f=>`<details class="srv-q"><summary>${esc(f.question)}<i aria-hidden="true"></i></summary><p>${esc(f.answer)}</p></details>`).join('\n      ')}
+      <p class="srv-other">Un autre besoin&nbsp;? <a href="/contact/">Écrivez-moi</a></p>
     </section>
 
-    <section class="sv-tickets" id="tarifs" aria-labelledby="sv-tickets-title">
-      <header class="sv-tickets__head"><h2 class="sv-h2" id="sv-tickets-title">Tarifs<span class="sv-dot">.</span></h2><p>Les prix de départ publiés. Le périmètre exact est fixé au devis.</p></header>
-      ${svNeeds.map(n=>`<div class="sv-tickets__group" id="tarifs-${n.id}">
-        <h3 class="sv-tickets__need"><a href="#${n.id}">${esc(n.name)}</a></h3>
-        <ul class="sv-tickets__list">
-        ${n.offers.map(svTicket).join('\n        ')}
-        </ul>
-      </div>`).join('\n      ')}
-      <div class="sv-tickets__common"><ul>${pricingCommon.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><a href="/cgv/">Conditions générales de vente <span aria-hidden="true">↗</span></a></div>
-    </section>
-
-    ${testimonials.length?`<section class="sv-quotes" id="avis" aria-labelledby="sv-quotes-title" data-quote-deck>
-      <h2 class="sv-h2" id="sv-quotes-title">Avis<span class="sv-dot">.</span></h2>
-      <div class="sv-quotes__stage">
-        <ul class="sv-quotes__deck" data-quote-stack tabindex="0" role="group" aria-roledescription="pile d’avis" aria-label="Avis clients, flèches gauche et droite pour changer">
-        ${testimonials.map((t,i)=>svQuote(t,i,testimonials.length)).join('\n        ')}
-        </ul>
-        <div class="sv-quotes__nav"><button type="button" data-quote-prev aria-label="Avis précédent">←</button><span data-quote-count aria-live="polite">1 / ${testimonials.length}</span><button type="button" data-quote-next aria-label="Avis suivant">→</button></div>
-      </div>
-    </section>`:''}
-
-    <section class="sv-steps" id="deroulement" aria-labelledby="sv-steps-title" data-steps>
-      <div class="sv-steps__pin">
-        <h2 class="sv-h2" id="sv-steps-title">Comment ça se passe<span class="sv-dot">.</span></h2>
-        <div class="sv-steps__arc" aria-hidden="true"><div class="sv-steps__wheel" data-steps-wheel>${svSteps.map((s,i)=>`<span class="sv-steps__pip" data-steps-pip="${i}" style="--a:${i*30}deg"><b>${String(i+1).padStart(2,'0')}</b></span>`).join('')}</div></div>
-        <ol class="sv-steps__list">${svSteps.map((s,i)=>`<li class="sv-step${i?'':' is-active'}" data-step="${i}"><span class="sv-step__n" aria-hidden="true">${String(i+1).padStart(2,'0')}</span><h3>${esc(s.title)}</h3>${s.text.map(t=>`<p>${esc(t)}</p>`).join('')}<ul class="sv-step__tags">${s.tags.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></li>`).join('')}</ol>
-      </div>
-    </section>
-
-    <section class="sv-faq" id="faq-services" aria-labelledby="sv-faq-title" data-fold>
-      <h2 class="sv-h2" id="sv-faq-title">Questions<span class="sv-dot">.</span></h2>
-      <div class="sv-faq__list">${faqs.map((f,i)=>`<div class="sv-fold${i?'':' is-open'}" data-fold-item>
-        <h3><button type="button" id="sv-q-${i}" aria-expanded="${i?'false':'true'}" aria-controls="sv-a-${i}" data-fold-btn><span>${esc(f.question)}</span><i aria-hidden="true"></i></button></h3>
-        <div class="sv-fold__panel" id="sv-a-${i}" role="region" aria-labelledby="sv-q-${i}"><div class="sv-fold__clip"><p>${esc(f.answer)}</p></div></div>
-      </div>`).join('')}</div>
-    </section>
-
-    <section class="sv-end" aria-labelledby="sv-end-title">
-      <h2 id="sv-end-title">Un projet en tête<span class="sv-dot">&nbsp;?</span></h2>
-      <p>Une idée, une date ou un problème à résoudre suffit. ${esc(site.responseTime)}.</p>
-      <a class="sv-end__go" href="/contact/"><span>Me décrire le projet</span>${svArrow}</a>
-      <a class="sv-end__alt" href="/work/">Voir les réalisations <span aria-hidden="true">↗</span></a>
-    </section>
+    <div class="srv-bar" data-srv-bar hidden>
+      <p><small data-srv-bar-name>${esc(first.name)}</small><span data-srv-bar-price>${esc(svPrice(first.price))}</span></p>
+      <a class="srv-go" href="${esc(pricingHref(firstOffer))}" data-srv-bar-go>Demander un devis <span aria-hidden="true">↗</span></a>
+    </div>
   </main>` + footer();
 }
 

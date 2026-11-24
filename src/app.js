@@ -1700,112 +1700,68 @@ $$('[data-hold-confirm]').forEach(button=>{
   }));
 }
 
-// Services (/services/) : lignes des besoins avec lecteur flottant, billets à détacher, roue des étapes,
-// pile d'avis, FAQ dépliante. Rien n'est écrit en HTML : seulement des classes, attributs et textContent.
-if($('.sv-page')){
-  const fine=matchMedia('(hover:hover) and (pointer:fine) and (min-width:900px)');
-
-  // Héros : vidéo de la bannière dans les lettres, si elle est publiée (chargée seulement sans mouvement réduit).
-  const maskVideo=$('[data-sv-mask-video]');
-  if(maskVideo&&!reduced){ const s=document.createElement('source'); s.src=maskVideo.dataset.src; s.type=maskVideo.dataset.type; maskVideo.append(s); maskVideo.load(); maskVideo.addEventListener('playing',()=>maskVideo.classList.add('is-on'),{once:true}); maskVideo.play().catch(()=>{}); }
-
-  // Lignes des besoins : un clic ouvre la ligne (une seule ouverte) ; le survol à la souris montre le lecteur.
-  const list=$('[data-reel-list]');
-  if(list){
-    const rows=$$('[data-reel-row]',list);
-    const setOpen=(row,open)=>{ row.classList.toggle('is-open',open); $('[data-reel-btn]',row).setAttribute('aria-expanded',String(open)); const p=$('[data-reel-panel]',row); p.toggleAttribute('inert',!open); };
-    rows.forEach(r=>setOpen(r,false));
-    const openOnly=(row,open=true)=>rows.forEach(r=>setOpen(r,r===row&&open));
-    rows.forEach(r=>$('[data-reel-btn]',r).addEventListener('click',()=>openOnly(r,!r.classList.contains('is-open'))));
-    // Arrivée par une ancre (#realisation…) ou l'ancien paramètre ?expertise= : la ligne s'ouvre.
-    const fromLocation=()=>{
-      const legacy={realisation:'realisation',direction:'direction-artistique',strategie:'strategie-de-marque'}[new URLSearchParams(location.search).get('expertise')];
-      const id=decodeURIComponent(location.hash.slice(1))||legacy; const row=rows.find(r=>r.id===id);
-      if(row){ openOnly(row); if(!location.hash&&legacy) requestAnimationFrame(()=>row.scrollIntoView({block:'start',behavior:reduced?'auto':'smooth'})); }
-    };
-    fromLocation(); addEventListener('hashchange',fromLocation);
-
-    const player=$('[data-reel-player]'), img=$('[data-player-img]',player), vid=$('[data-player-video]',player), file=$('[data-player-file]',player), out=$('[data-player-out]',player);
-    let tx=0,ty=0,x=0,y=0,raf=0,t0=0,hot=null;
-    const tc=ms=>{ const f=Math.floor(ms/40), p=n=>String(n).padStart(2,'0'); return `${p(Math.floor(f/90000))}:${p(Math.floor(f/1500)%60)}:${p(Math.floor(f/25)%60)}:${p(f%25)}`; };
-    const tick=now=>{ const k=reduced?1:.18; x+=(tx-x)*k; y+=(ty-y)*k; player.style.setProperty('--px',`${x}px`); player.style.setProperty('--py',`${y}px`); player.style.transform=`translate3d(${x}px,${y}px,0) scale(${hot?1:.86}) rotate(${reduced?0:clamp((tx-x)*.04,-6,6)}deg)`; out.textContent=tc(now-t0); raf=hot?requestAnimationFrame(tick):0; };
-    const place=e=>{ const w=player.offsetWidth||260, h=player.offsetHeight||360; tx=Math.min(e.clientX+24,innerWidth-w-12); ty=clamp(e.clientY-h/2,12,innerHeight-h-12); };
-    const enter=(row,e)=>{
-      if(!fine.matches||row.classList.contains('is-open')) return leave();
-      if(hot!==row){ hot=row; t0=performance.now(); file.textContent=row.dataset.file||''; const src=row.dataset.preview||''; if(src&&img.getAttribute('src')!==src) img.src=src; img.hidden=!src;
-        if(row.dataset.previewVideo&&!reduced){ if(vid.getAttribute('src')!==row.dataset.previewVideo) vid.src=row.dataset.previewVideo; vid.classList.add('is-on'); vid.play().catch(()=>{}); } else { vid.pause(); vid.classList.remove('is-on'); } }
-      rows.forEach(r=>r.classList.toggle('is-hot',r===row)); list.classList.add('is-hovering');
-      if(e){ place(e); if(!player.classList.contains('is-on')){ x=tx; y=ty; } }
-      player.classList.add('is-on'); if(!raf) raf=requestAnimationFrame(tick);
-    };
-    const leave=()=>{ hot=null; player.classList.remove('is-on'); list.classList.remove('is-hovering'); rows.forEach(r=>r.classList.remove('is-hot')); vid.pause(); };
-    const sync=()=>document.documentElement.classList.toggle('js-reel-hover',fine.matches);
-    sync(); fine.addEventListener?.('change',()=>{ sync(); leave(); });
-    rows.forEach(r=>{ const head=$('.sv-row__head',r);
-      head.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse') enter(r,e); });
-      head.addEventListener('pointermove',e=>{ if(e.pointerType!=='mouse') return; if(hot!==r) enter(r,e); else place(e); });
-      head.addEventListener('pointerleave',leave);
-      $('[data-reel-btn]',r).addEventListener('click',()=>{ if(r.classList.contains('is-open')) leave(); });
+// Services (/services/) : un onglet par besoin, un seul panneau visible. Bascule sans rechargement, l'adresse suit
+// (#realisation…), flèches du clavier sur les onglets, barre « Demander un devis » collante sur téléphone.
+// Rien n'est écrit en HTML : seulement des attributs, styles et textContent.
+const srv=$('[data-srv]');
+if(srv){
+  const list=$('[data-srv-tabs]',srv), tabs=$$('[data-srv-tab]',srv), panels=tabs.map(t=>document.getElementById(t.getAttribute('aria-controls'))), ink=$('[data-srv-ink]',srv);
+  const bar=$('[data-srv-bar]'), barName=$('[data-srv-bar-name]'), barPrice=$('[data-srv-bar-price]'), barGo=$('[data-srv-bar-go]');
+  let cur=Math.max(0,tabs.findIndex(t=>t.getAttribute('aria-selected')==='true'));
+  const placeInk=()=>{ const t=tabs[cur]; ink.style.setProperty('--x',`${t.offsetLeft}px`); ink.style.setProperty('--w',`${t.offsetWidth}px`); };
+  const select=(i,{focus=false,url=true}={})=>{
+    cur=i;
+    tabs.forEach((t,k)=>{ const on=k===i; t.setAttribute('aria-selected',String(on)); t.tabIndex=on?0:-1; panels[k].hidden=!on; });
+    placeInk();
+    // L'onglet choisi reste visible dans la rangée qui défile (téléphone), sans faire bouger la page.
+    const t=tabs[i], l=list.scrollLeft, r=l+list.clientWidth;
+    if(t.offsetLeft<l||t.offsetLeft+t.offsetWidth>r) list.scrollTo({left:t.offsetLeft-24,behavior:reduced?'auto':'smooth'});
+    if(focus) t.focus();
+    if(url&&location.hash!==`#${panels[i].id}`) history.replaceState(null,'',`#${panels[i].id}`);
+    const p=panels[i]; if(barName) barName.textContent=p.dataset.name; if(barPrice) barPrice.textContent=p.dataset.price; if(barGo) barGo.href=p.dataset.href;
+  };
+  tabs.forEach((t,i)=>{
+    t.addEventListener('click',e=>{ if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return; e.preventDefault(); select(i); });
+    t.addEventListener('keydown',e=>{
+      const n=tabs.length, k={ArrowRight:(i+1)%n,ArrowLeft:(i-1+n)%n,Home:0,End:n-1}[e.key];
+      if(k===undefined) return; e.preventDefault(); select(k,{focus:true});
     });
-    addEventListener('scroll',()=>{ if(hot) leave(); },{passive:true});
-  }
-
-  // Billets : tirer le talon vers l'extérieur le détache (ou un clic, ou Entrée), puis Contact s'ouvre avec l'offre.
-  $$('[data-ticket]').forEach(ticket=>{
-    const stub=$('[data-ticket-stub]',ticket); let sx=0,sy=0,dx=0,id=null,moved=false,done=false;
-    const go=()=>{ if(done) return; done=true; if(reduced){ location.assign(stub.href); return; } ticket.classList.remove('is-pulling'); ticket.classList.add('is-tearing'); stub.style.transform=''; requestAnimationFrame(()=>ticket.classList.add('is-torn')); setTimeout(()=>location.assign(stub.href),620); };
-    stub.addEventListener('pointerdown',e=>{ if(e.button!==0||reduced) return; id=e.pointerId; sx=e.clientX; sy=e.clientY; dx=0; moved=false; });
-    stub.addEventListener('pointermove',e=>{ if(e.pointerId!==id) return; const ddx=e.clientX-sx, ddy=e.clientY-sy;
-      if(!moved){ if(Math.abs(ddx)<6) return; if(Math.abs(ddy)>Math.abs(ddx)){ id=null; return; } moved=true; stub.setPointerCapture?.(id); ticket.classList.add('is-pulling'); }
-      dx=Math.max(0,ddx); const r=Math.min(dx*.12,16), lift=Math.min(dx*.18,18); stub.style.transform=`translate3d(${dx*.55}px,${lift}px,0) rotate(${r}deg)`; if(dx>34) ticket.classList.add('is-tearing'); else ticket.classList.remove('is-tearing');
-      if(dx>96){ id=null; go(); } });
-    const release=e=>{ if(e.pointerId!==id) return; id=null; if(!moved) return; ticket.classList.remove('is-pulling','is-tearing'); stub.style.transform=''; };
-    stub.addEventListener('pointerup',release); stub.addEventListener('pointercancel',release);
-    stub.addEventListener('click',e=>{ if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button) return; if(moved){ e.preventDefault(); moved=false; return; } if(reduced) return; e.preventDefault(); go(); });
-    stub.addEventListener('dragstart',e=>e.preventDefault());
-    addEventListener('pageshow',e=>{ if(e.persisted){ done=false; ticket.classList.remove('is-torn','is-tearing','is-pulling'); stub.style.transform=''; } });
   });
-
-  // Avis : la carte du dessus se fait glisser ; boutons et flèches du clavier font de même.
-  const deckRoot=$('[data-quote-deck]');
-  if(deckRoot){
-    const stack=$('[data-quote-stack]',deckRoot), cards=$$('[data-quote]',stack), count=$('[data-quote-count]',deckRoot); let top=0, busy=false;
-    deckRoot.classList.add('is-deck');
-    const render=()=>{ cards.forEach((c,i)=>{ const d=(i-top+cards.length)%cards.length; c.style.setProperty('--d',String(Math.min(d,3))); c.dataset.depth=String(d); c.classList.toggle('is-far',d>2); c.setAttribute('aria-hidden',String(d!==0)); c.toggleAttribute('inert',d!==0); }); count.textContent=`${top+1} / ${cards.length}`; };
-    const step=(dir,fromX=0)=>{ if(busy) return; const card=cards[dir>0?top:(top-1+cards.length)%cards.length];
-      if(dir>0){ busy=!reduced; card.style.setProperty('--out',`${fromX<0?-130:130}%`); card.style.setProperty('--out-r',`${fromX<0?-14:14}deg`); card.classList.add('is-out'); const after=()=>{ card.classList.remove('is-out'); card.style.removeProperty('--dx'); card.style.removeProperty('--r'); top=(top+1)%cards.length; render(); busy=false; }; reduced?after():setTimeout(after,380); }
-      else { top=(top-1+cards.length)%cards.length; render(); } };
-    $('[data-quote-next]',deckRoot).addEventListener('click',()=>step(1));
-    $('[data-quote-prev]',deckRoot).addEventListener('click',()=>step(-1));
-    stack.addEventListener('keydown',e=>{ if(e.key==='ArrowRight'){ e.preventDefault(); step(1); } if(e.key==='ArrowLeft'){ e.preventDefault(); step(-1); } });
-    let sx=0,sy=0,pid=null,drag=false,card=null;
-    stack.addEventListener('pointerdown',e=>{ card=e.target.closest('[data-quote]'); if(!card||card.dataset.depth!=='0'||e.button!==0||busy) return; pid=e.pointerId; sx=e.clientX; sy=e.clientY; drag=false; });
-    stack.addEventListener('pointermove',e=>{ if(e.pointerId!==pid) return; const dx=e.clientX-sx, dy=e.clientY-sy;
-      if(!drag){ if(Math.abs(dx)<6) return; if(Math.abs(dy)>Math.abs(dx)){ pid=null; return; } drag=true; stack.setPointerCapture?.(pid); card.classList.add('is-drag'); }
-      card.style.setProperty('--dx',`${dx}px`); card.style.setProperty('--r',`${dx*.05}deg`); });
-    const end=e=>{ if(e.pointerId!==pid) return; pid=null; if(!drag) return; drag=false; card.classList.remove('is-drag'); const dx=parseFloat(card.style.getPropertyValue('--dx'))||0;
-      if(Math.abs(dx)>90) step(1,dx); else { card.style.removeProperty('--dx'); card.style.removeProperty('--r'); } };
-    stack.addEventListener('pointerup',end); stack.addEventListener('pointercancel',end);
-    render();
+  // Arrivée par une ancre (#mariage, #demande-en-mariage, #offre-contenu…) ou l'ancien paramètre ?expertise= : l'onglet s'ouvre.
+  const fromLocation=scroll=>{
+    const legacy={realisation:'realisation',direction:'direction-artistique',strategie:'strategie-de-marque'}[new URLSearchParams(location.search).get('expertise')];
+    const id=decodeURIComponent(location.hash.slice(1))||legacy, el=id&&document.getElementById(id), panel=el?.closest?.('[data-srv-panel]');
+    if(!panel) return;
+    select(panels.indexOf(panel),{url:false});
+    if(scroll) requestAnimationFrame(()=>(el===panel?srv:el).scrollIntoView({block:'start',behavior:'instant'}));
+  };
+  fromLocation(true); addEventListener('hashchange',()=>fromLocation(true));
+  srv.classList.add('is-ready');
+  // Rangée qui défile (téléphone) : le bord droit s'estompe tant qu'il reste des onglets à droite.
+  const edge=()=>list.classList.toggle('is-end',list.scrollLeft+list.clientWidth>=list.scrollWidth-4);
+  list.addEventListener('scroll',edge,{passive:true});
+  addEventListener('resize',()=>{ placeInk(); edge(); }); document.fonts?.ready.then(placeInk); placeInk(); edge();
+  // Barre collante : seulement pendant que les onglets sont à l'écran (masquée en CSS sur ordinateur).
+  if(bar&&'IntersectionObserver' in window){
+    bar.hidden=false;
+    new IntersectionObserver(([e])=>bar.classList.toggle('is-on',e.isIntersecting),{rootMargin:'-30% 0px -20% 0px'}).observe(srv);
   }
-
-  // Comment ça se passe : sur ordinateur, la roue tourne avec le défilement et l'étape en face s'affiche.
-  const steps=$('[data-steps]');
-  if(steps){
-    const wide=matchMedia('(min-width:900px)'), wheel=$('[data-steps-wheel]',steps), pips=$$('[data-steps-pip]',steps), items=$$('[data-step]',steps); let on=false, raf=0, cur=-1;
-    const set=i=>{ if(i===cur) return; cur=i; items.forEach((s,k)=>s.classList.toggle('is-active',k===i)); pips.forEach((p,k)=>p.classList.toggle('is-active',k===i)); };
-    const frame=()=>{ raf=0; const r=steps.getBoundingClientRect(), span=r.height-innerHeight, p=span>0?clamp(-r.top/span):0, n=items.length;
-      wheel.style.setProperty('--rot',`${-p*(n-1)*30}deg`); set(Math.min(n-1,Math.floor(p*n))); };
-    const onScroll=()=>{ if(on&&!raf) raf=requestAnimationFrame(frame); };
-    const mode=()=>{ on=wide.matches&&!reduced; steps.classList.toggle('is-pinned',on); if(on) frame(); else { wheel.style.removeProperty('--rot'); cur=-1; items.forEach(s=>s.classList.remove('is-active')); } };
-    mode(); wide.addEventListener?.('change',mode); addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
-  }
-
-  // FAQ : une seule réponse ouverte, le panneau se déplie.
-  $$('[data-fold]').forEach(root=>{
-    const items=$$('[data-fold-item]',root);
-    const set=(item,open)=>{ item.classList.toggle('is-open',open); const b=$('[data-fold-btn]',item); b.setAttribute('aria-expanded',String(open)); $('.sv-fold__panel',item).toggleAttribute('inert',!open); };
-    items.forEach(it=>set(it,it.classList.contains('is-open')));
-    items.forEach(it=>$('[data-fold-btn]',it).addEventListener('click',()=>{ const next=!it.classList.contains('is-open'); items.forEach(o=>set(o,o===it&&next)); }));
-  });
 }
+
+// Accueil, section Mariage : un seul cadre, trois intitulés qui choisissent la photo (survol, clic, toucher, clavier).
+$$('[data-wed]').forEach(root=>{
+  const picks=$$('[data-wed-pick]',root), shots=$$('[data-wed-shot]',root), go=$('[data-wed-go]',root), goName=$('[data-wed-go-name]',root);
+  let cur=0;
+  const show=i=>{
+    if(i===cur&&picks[i].getAttribute('aria-pressed')==='true') return; cur=i;
+    picks.forEach((p,k)=>p.setAttribute('aria-pressed',String(k===i)));
+    shots.forEach((s,k)=>{ s.classList.toggle('is-on',k===i); s.setAttribute('aria-hidden',String(k!==i)); });
+    if(go){ go.href=picks[i].dataset.href; if(goName) goName.textContent=$('.wed__label',picks[i]).textContent; }
+  };
+  picks.forEach((p,i)=>{
+    p.addEventListener('click',()=>show(i));
+    p.addEventListener('focus',()=>show(i));
+    p.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse') show(i); });
+    p.addEventListener('keydown',e=>{ const n=picks.length, k={ArrowDown:(i+1)%n,ArrowRight:(i+1)%n,ArrowUp:(i-1+n)%n,ArrowLeft:(i-1+n)%n}[e.key]; if(k===undefined) return; e.preventDefault(); picks[k].focus(); });
+  });
+});

@@ -1,5 +1,5 @@
 // Admin Nolan Arc : recadrage d'une image avant l'envoi, dans le format exact du composant qui l'affichera.
-// Fenêtre principale = ce qui sera envoyé ; aperçus = le composant du site (polaroïd, carte, dossier, tuile,
+// Fenêtre principale = ce qui sera envoyé ; aperçus = le composant du site (cadre Mariage, carte, dossier, tuile,
 // téléphone), recadré comme le fait le site (object-fit: cover, centré). Glisser pour déplacer, molette,
 // curseur ou pincement pour zoomer ; clavier : flèches (Maj : plus vite), + et -, 0 pour recentrer.
 // Sans bibliothèque. Aucune donnée n'est injectée en HTML.
@@ -14,7 +14,7 @@
   const FREE = [['Format d’origine', 0], ['Paysage 3:2', 3 / 2], ['Paysage 16:9', 16 / 9], ['Carré', 1], ['Portrait 4:5', 4 / 5], ['Vertical 9:16', 9 / 16]];
   const FORMATS = {
     folder: { title: 'Dossier « Trois dimensions »', ratios: [['Dossier 4:4,75', 4 / 4.75]], previews: [{ label: 'Ordinateur et téléphone', ratio: 4 / 4.75, frame: 'folder' }, { label: 'Tablette (dossier large)', ratio: 2.05, frame: 'folder' }] },
-    polaroid: { title: 'Polaroïd', ratios: [['Polaroïd 4:5', 4 / 5]], previews: [{ label: 'Polaroïd', ratio: 4 / 5, frame: 'polaroid' }] },
+    wedding: { title: 'Accueil, section Mariage', ratios: [['Cadre 4:5', 4 / 5]], previews: [{ label: 'Cadre (ordinateur et téléphone)', ratio: 4 / 5, frame: 'wedding' }] },
     card: { title: 'Carte des tarifs', ratios: [['Carte 2:3', 290 / 430]], previews: [{ label: 'Recto (le bas porte les infos)', ratio: 290 / 430, frame: 'card' }] },
     cardBack: { title: 'Dos des cartes', ratios: [['Carte 2:3', 290 / 430]], previews: [{ label: 'Dos', ratio: 290 / 430, frame: 'plain' }] },
     project: { title: 'Média du projet', ratios: FREE, previews: [...TILE, { label: 'Page projet', ratio: 0, frame: 'plain' }] },
@@ -53,7 +53,7 @@
     if (ratioSel) { ratioSel.value = String(Math.max(0, F.ratios.findIndex(([, r]) => r === s.R))); ratioSel.setAttribute('aria-label', 'Format'); }
     const previews = F.previews.map(p => {
       const c = h('canvas', { className: 'cr-prev__canvas' });
-      const box = h('div', { className: `cr-prev cr-prev--${p.frame}` }, [c, p.frame === 'polaroid' ? h('span', { className: 'cr-prev__caption', textContent: 'Film de mariage' }) : null, p.frame === 'card' ? h('span', { className: 'cr-prev__band' }) : null, p.frame === 'folder' ? h('span', { className: 'cr-prev__front' }) : null, p.frame === 'tile' ? h('span', { className: 'cr-prev__title', textContent: 'Titre du projet' }) : null]);
+      const box = h('div', { className: `cr-prev cr-prev--${p.frame}` }, [c, p.frame === 'card' ? h('span', { className: 'cr-prev__band' }) : null, p.frame === 'folder' ? h('span', { className: 'cr-prev__front' }) : null, p.frame === 'tile' ? h('span', { className: 'cr-prev__title', textContent: 'Titre du projet' }) : null]);
       return { p, c, box, fig: h('figure', { className: 'cr-prev__fig' }, [box, h('figcaption', { textContent: p.label })]) };
     });
     const draw = () => {
