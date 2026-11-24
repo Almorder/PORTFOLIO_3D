@@ -601,7 +601,8 @@ $$('[data-instagram-post]').forEach(card=>{
     cover.replaceChildren(iframe);
     if(card.classList.contains('ig-phone')||card.classList.contains('ps-card')){
       // Dans un téléphone, le lecteur garde sa largeur native (326 px) et se met à l'échelle de l'écran.
-      const fit=()=>cover.style.setProperty('--ig-s',(cover.clientWidth/326).toFixed(4));
+      // Hauteur posée en pixels : calc(100% / échelle) n'était pas appliqué et le lecteur ne remplissait que 57 % de l'écran.
+      const fit=()=>{ const k=(cover.offsetWidth+1)/326; cover.style.setProperty('--ig-s',k.toFixed(4)); iframe.style.height=`${Math.ceil(cover.clientHeight/k)+1}px`; };
       fit(); if('ResizeObserver' in window) new ResizeObserver(fit).observe(cover);
     } else igFrames.set(iframe.contentWindow,iframe);
   });
