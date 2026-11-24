@@ -1220,49 +1220,19 @@ $$('[data-bento-more]').forEach(more=>{
   more.addEventListener('dblclick',event=>{ const tile=event.target.closest('[data-bento-tile]'); const link=tile&&$('.bento__link',tile); if(link&&!event.target.closest('a')) location.assign(link.href); });
 });
 
-// Work, bento : forme préférée de chaque case d'après le format de son média (largeur / hauteur), en colonnes ×
-// demi-lignes, avec une forme de repli quand la place libre est plus étroite. Un média horizontal prend deux
-// colonnes ; la première case est la grande ; quelques verticaux passent en grand ou en carré pour varier le rythme.
-const bentoShapes=(ratios,C)=>{ let v=0; return ratios.map((a,i)=>{
-  if(i===0&&C>=3) return a>=1.2?[[2,3],[1,2]]:[[2,4],[1,3]];
-  if(a>=1.2) return [[2,2],[1,2]];
-  const k=v++;
-  if(a<0.9) return C>=3&&k%6===3?[[2,4],[1,3]]:k%3===2?[[1,2]]:[[1,3]];
-  return C>=3&&k%4===3?[[2,4],[1,2]]:[[1,2]];
-}); };
-// Placement : chaque case, dans l'ordre, prend la première cellule libre (de gauche à droite, de haut en bas) avec
-// la première forme qui y tient : aucun trou à l'intérieur. Le bas de la grille est mis à niveau en allongeant les
-// cases du dessus ; si cela les déforme, les hauteurs des dernières cases sont ajustées (recherche bornée).
-const bentoTry=(prefs,C)=>{
-  const g=[], at=(r,c)=>g[r]?.[c], set=(r,c,i)=>{ (g[r]||=Array(C).fill(-1))[c]=i; }, free=(r,c)=>c>=0&&c<C&&!(at(r,c)>=0);
-  const pos=[]; let r0=0;
-  prefs.forEach((list,i)=>{
-    let r=r0,c=0; for(;;r++){ c=0; while(c<C&&!free(r,c)) c++; if(c<C) break; } r0=r;
-    let L=0; while(c+L<C&&free(r,c+L)) L++;
-    const [w,h]=list.find(([w])=>w<=L)||[1,list[list.length-1][1]];
-    pos[i]={r,c,w,h}; for(let y=r;y<r+h;y++) for(let x=c;x<c+w;x++) set(y,x,i);
-  });
-  const R=pos.reduce((m,p)=>Math.max(m,p.r+p.h),0);
-  for(let guard=0;guard<C*R+8;guard++){
-    let y=-1,x=-1; for(let ry=0;ry<R&&y<0;ry++) for(let cx=0;cx<C;cx++) if(free(ry,cx)){ y=ry; x=cx; break; }
-    if(y<0) return { pos, R, holes:false };
-    const up=at(y-1,x), left=at(y,x-1); let p=up>=0?pos[up]:null, ok=false;
-    if(p&&p.r+p.h===y){ ok=true; for(let k=p.c;k<p.c+p.w;k++) ok=ok&&free(y,k); if(ok){ for(let k=p.c;k<p.c+p.w;k++) set(y,k,up); p.h++; continue; } }
-    p=left>=0?pos[left]:null;
-    if(p&&p.c+p.w===x){ ok=true; for(let k=p.r;k<p.r+p.h;k++) ok=ok&&free(k,x); if(ok){ for(let k=p.r;k<p.r+p.h;k++) set(k,x,left); p.w++; continue; } }
-    return { pos, R, holes:true };
-  }
-  return { pos, R, holes:true };
-};
-const bentoPack=(prefs,C)=>{
-  const cost=o=>o.holes?1e9:o.pos.reduce((s,p,i)=>s+Math.abs(p.h-prefs[i][0][1])*2+Math.abs(p.w-prefs[i][0][0])*3,0);
-  let best=bentoTry(prefs,C), score=cost(best);
-  const n=prefs.length, k=Math.min(n,C+2), idx=Array.from({length:k},(_,j)=>n-k+j);
-  const variants=idx.map(i=>{ const [w,h]=prefs[i][0]; return [h,h-1,h+1].filter(x=>x>=2&&x<=4).map(x=>[[w,x],...prefs[i].slice(1)]); });
-  const total=variants.reduce((a,v)=>a*v.length,1);
-  for(let m=1;m<total&&score>0;m++){ let q=m; const t=prefs.slice(); idx.forEach((i,j)=>{ const v=variants[j]; t[i]=v[q%v.length]; q=Math.floor(q/v.length); });
-    const o=bentoTry(t,C), c=cost(o); if(c<score){ score=c; best=o; } }
-  return best;
+// Work, bento : chaque case a exactement le format de son média (data-ratio = largeur / hauteur publiées : photo,
+// affiche YouTube, miniature ou fichier vidéo des vidéos sociales), donc jamais de recadrage. Un média horizontal
+// (ou un élément mis en avant dans l'admin) prend deux colonnes, les autres une. Dans l'ordre réglé dans l'admin,
+// chaque case se pose sous la colonne (ou la paire de colonnes) la plus courte : c'est la grille qui s'adapte aux
+// formats, quitte à laisser de petits trous sous une case large.
+const bentoPack=(ratios,spans,C,colW,gap)=>{
+  const cols=Array(C).fill(0);
+  const pos=ratios.map((a,i)=>{ const w=Math.min(C,spans[i]); let c0=0, top=Infinity;
+    for(let c=0;c+w<=C;c++){ const t=Math.max(...cols.slice(c,c+w)); if(t<top-.5){ top=t; c0=c; } }
+    const width=colW*w+gap*(w-1), height=width/a;
+    for(let c=c0;c<c0+w;c++) cols[c]=top+height+gap;
+    return { left:c0*(colW+gap), top, width, height }; });
+  return { pos, height:Math.max(0,Math.max(...cols)-gap) };
 };
 
 // Work, catalogue : filtres cumulables (une réalisation s'affiche si elle appartient à au moins une catégorie choisie),
@@ -1277,35 +1247,22 @@ $$('[data-catalog]').forEach(root=>{
   const read=()=>(new URLSearchParams(location.search).get('categorie')||'').split(',').filter(k=>known.includes(k));
   const urlOf=keys=>keys.length?`${location.pathname}?categorie=${keys.join(',')}`:location.pathname;
   const toggled=(sel,key)=>!key?[]:known.filter(k=>k===key?!sel.includes(k):sel.includes(k));
-  // Bento : cases en colonnes (4, 3 ou 2 selon l'écran) et en demi-lignes (une case « normale » = une colonne sur
-  // deux demi-lignes, à peu près carrée). Chaque réalisation, dans l'ordre réglé dans l'admin, prend la première
-  // place libre avec la forme qui suit son format (bentoShapes). La dernière rangée est mise à niveau : aucun trou.
-  let cells=[], hot=null;
-  const tracks=(n,from,span,k)=>Array.from({length:n},(_,i)=>i>=from&&i<from+span?`${k}fr`:'1fr').join(' ');
+  // Bento : colonnes (4, 3 ou 2 selon l'écran), cases au format exact de leur média (bentoPack), posées en absolu.
+  let cells=[];
   const pack=()=>{
     if(!grid) return;
     const cs=getComputedStyle(grid), C=Math.max(1,parseInt(cs.getPropertyValue('--cols'))||4), gap=parseFloat(cs.columnGap)||0;
-    const shown=items.filter(li=>!li.hidden), layout=bentoPack(bentoShapes(shown.map(li=>Number(li.dataset.ratio)||1),C),C);
-    const unit=((grid.clientWidth-gap*(C-1))/C)/2;
-    cells=shown.map((li,i)=>{ const p=layout.pos[i]; li.style.gridArea=`${p.r+1} / ${p.c+1} / span ${p.h} / span ${p.w}`; li.dataset.shape=`${p.w}x${p.h}`; return { li, ...p }; });
-    grid.style.setProperty('--rows',layout.R);
-    grid.style.height=`${layout.R*unit+(layout.R-1)*gap}px`;
-    grid.dataset.cols=C; grid.dataset.rows=layout.R;
-    relax(true);
+    const colW=(grid.clientWidth-gap*(C-1))/C, shown=items.filter(li=>!li.hidden);
+    const spans=shown.map(li=>C>=2&&((Number(li.dataset.ratio)||1)>=1.2||'featured' in li.dataset)?2:1);
+    const layout=bentoPack(shown.map(li=>Number(li.dataset.ratio)||1),spans,C,colW,gap);
+    cells=shown.map((li,i)=>{ const p=layout.pos[i]; Object.assign(li.style,{ left:`${p.left}px`, top:`${p.top}px`, width:`${p.width}px`, height:`${p.height}px` }); return { li }; });
+    grid.style.height=`${layout.height}px`;
+    relax();
     grid.classList.add('is-packed');
   };
-  // Survol (ou focus clavier) : la case grandit un peu, ses voisines se resserrent (pistes de la grille animées
-  // en CSS), les autres s'atténuent. Rien de tout cela avec « réduire les animations » : seulement le texte.
-  const relax=instant=>{ hot=null; grid.classList.remove('is-focusing'); cells.forEach(c=>c.li.classList.remove('is-hot'));
-    const C=Number(grid.dataset.cols)||4, R=Number(grid.dataset.rows)||1;
-    if(instant) grid.classList.add('no-track-anim');
-    grid.style.gridTemplateColumns=tracks(C,-1,0,1); grid.style.gridTemplateRows=tracks(R,-1,0,1);
-    if(instant) requestAnimationFrame(()=>grid.classList.remove('no-track-anim')); };
-  const heat=li=>{ const c=cells.find(x=>x.li===li); if(!c||hot===c) return; hot=c;
-    cells.forEach(x=>x.li.classList.toggle('is-hot',x===c)); grid.classList.add('is-focusing');
-    if(reduced) return;
-    const C=Number(grid.dataset.cols)||4, R=Number(grid.dataset.rows)||1;
-    grid.style.gridTemplateColumns=tracks(C,c.c,c.w,c.w>=C?1:1.22); grid.style.gridTemplateRows=tracks(R,c.r,c.h,c.h>=R?1:1.16); };
+  // Survol (ou focus clavier) : la case grandit un peu sans changer de format, les autres s'atténuent.
+  const relax=()=>{ grid.classList.remove('is-focusing'); cells.forEach(c=>c.li.classList.remove('is-hot')); };
+  const heat=li=>{ if(li.classList.contains('is-hot')) return; cells.forEach(x=>x.li.classList.toggle('is-hot',x.li===li)); grid.classList.add('is-focusing'); };
   if(grid){
     const fine=matchMedia('(hover: hover) and (pointer: fine)');
     grid.addEventListener('pointerover',event=>{ if(!fine.matches||event.pointerType==='touch') return; const li=event.target.closest('.cat-item'); if(li) heat(li); });
@@ -1347,9 +1304,9 @@ $$('[data-catalog]').forEach(root=>{
   apply(read(),false);
 });
 
-// Work, catalogue : visionneuse plein écran. Le média couvre tout l'écran (photo et vidéo du site en object-fit:
-// cover, YouTube recadré en 16:9 ; sur un écran vertical, la vidéo YouTube garde toute sa largeur sur son affiche
-// floutée). Instagram et YouTube ne se chargent qu'après ce clic ; YouTube attend en plus l'accord du visiteur
+// Work, catalogue : visionneuse plein écran. Le média s'affiche entier (photo et vidéo à leur format, YouTube en
+// 16:9), le plus grand possible avec une petite marge, coins arrondis, sur une version floutée et assombrie de
+// lui-même (jamais d'aplat noir autour). Curseur normal du système dans la visionneuse (voir styles.css). Instagram et YouTube ne se chargent qu'après ce clic ; YouTube attend en plus l'accord du visiteur
 // (bouton « Lire sur YouTube »), sauf s'il a déjà autorisé les vidéos externes. Échap ferme, flèches : précédent /
 // suivant parmi les réalisations affichées (filtres compris), la page ne défile pas, le focus revient à la case.
 $$('[data-cat-viewer]').forEach(viewer=>{
@@ -1363,13 +1320,15 @@ $$('[data-cat-viewer]').forEach(viewer=>{
     f.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen'; return f; };
   const build=b=>{
     const kind=b.dataset.catOpen, src=b.dataset.src||'', poster=b.dataset.poster||'';
-    if(kind==='photo'&&/^\/assets\//.test(src)) return [el('img',{className:'cat-viewer__media',src,alt:b.dataset.alt||'',decoding:'async'})];
-    if(kind==='file'&&/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(src)){ const v=el('video',{className:'cat-viewer__media',src,controls:true,playsInline:true,autoplay:true}); if(/^\/assets\//.test(poster)) v.poster=poster; v.setAttribute('aria-label',b.dataset.title||'Vidéo'); return [v]; }
+    // Format du média (largeur / hauteur publiées, comme dans la grille) : la visionneuse le garde entier.
+    stage.style.setProperty('--ar',String(Number(b.closest('.cat-item')?.dataset.ratio)||16/9));
+    if(kind==='photo'&&/^\/assets\//.test(src)) return [backdrop(src),el('img',{className:'cat-viewer__media',src,alt:b.dataset.alt||'',decoding:'async'})].filter(Boolean);
+    if(kind==='file'&&/^\/assets\/video\/site\/[a-z0-9-]+\.(mp4|mov|webm)$/.test(src)){ const v=el('video',{className:'cat-viewer__media',src,controls:true,playsInline:true,autoplay:true}); if(/^\/assets\//.test(poster)) v.poster=poster; v.setAttribute('aria-label',b.dataset.title||'Vidéo'); return [backdrop(poster),v].filter(Boolean); }
     if(kind==='instagram'&&/^[A-Za-z0-9_-]+$/.test(b.dataset.postId||'')){
       const f=el('iframe',{className:'cat-viewer__ig',src:`https://www.instagram.com/p/${b.dataset.postId}/embed/`,title:`${b.dataset.title||'Publication'} | Instagram`,allowFullscreen:true,referrerPolicy:'strict-origin-when-cross-origin'});
       return [backdrop(poster),f].filter(Boolean); }
     if(kind==='youtube'&&/^[\w-]{11}$/.test(b.dataset.videoId||'')){
-      const id=b.dataset.videoId;
+      const id=b.dataset.videoId; stage.style.setProperty('--ar',String(16/9));
       if(readConsent()==='accepted') return [backdrop(poster),youtube(id)].filter(Boolean);
       const cover=backdrop(poster); cover?.classList.replace('cat-viewer__backdrop','cat-viewer__media');
       const play=el('button',{type:'button',className:'cat-viewer__play'}); play.append(el('b',{textContent:'▶'}),el('span',{textContent:'Lire sur YouTube'}));
@@ -1377,7 +1336,7 @@ $$('[data-cat-viewer]').forEach(viewer=>{
       const note=el('p',{className:'cat-viewer__privacy',textContent:'Ce geste autorise le chargement du lecteur YouTube et de ses traceurs pour cette lecture. '}); note.append(el('a',{href:'/cookies/',textContent:'En savoir plus'}));
       const gate=el('div',{className:'cat-viewer__gate'}); gate.append(play,note);
       play.addEventListener('click',()=>{ const bg=backdrop(poster); stage.replaceChildren(...[bg,youtube(id)].filter(Boolean)); viewer.dataset.state='playing'; close_.focus(); });
-      return [cover,gate].filter(Boolean); }
+      return [backdrop(poster),cover,gate].filter(Boolean); }
     return null;
   };
   const close_=$('[data-cat-close]',viewer);
@@ -1871,21 +1830,3 @@ if(srv){
     new IntersectionObserver(([e])=>bar.classList.toggle('is-on',e.isIntersecting),{rootMargin:'-30% 0px -20% 0px'}).observe(srv);
   }
 }
-
-// Accueil, section Mariage : un seul cadre, trois intitulés qui choisissent la photo (survol, clic, toucher, clavier).
-$$('[data-wed]').forEach(root=>{
-  const picks=$$('[data-wed-pick]',root), shots=$$('[data-wed-shot]',root), go=$('[data-wed-go]',root), goName=$('[data-wed-go-name]',root);
-  let cur=0;
-  const show=i=>{
-    if(i===cur&&picks[i].getAttribute('aria-pressed')==='true') return; cur=i;
-    picks.forEach((p,k)=>p.setAttribute('aria-pressed',String(k===i)));
-    shots.forEach((s,k)=>{ s.classList.toggle('is-on',k===i); s.setAttribute('aria-hidden',String(k!==i)); });
-    if(go){ go.href=picks[i].dataset.href; if(goName) goName.textContent=$('.wed__label',picks[i]).textContent; }
-  };
-  picks.forEach((p,i)=>{
-    p.addEventListener('click',()=>show(i));
-    p.addEventListener('focus',()=>show(i));
-    p.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse') show(i); });
-    p.addEventListener('keydown',e=>{ const n=picks.length, k={ArrowDown:(i+1)%n,ArrowRight:(i+1)%n,ArrowUp:(i-1+n)%n,ArrowLeft:(i-1+n)%n}[e.key]; if(k===undefined) return; e.preventDefault(); picks[k].focus(); });
-  });
-});

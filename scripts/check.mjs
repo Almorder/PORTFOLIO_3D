@@ -94,13 +94,17 @@ for(const m of gearHtml.matchAll(/<img src="([^"]+)"/g)){
 for(const file of ['assets/gear/desk.webp','assets/gear/desk-900.webp','assets/da/texture.webp','assets/da/texture-wide.webp']) if(!existing.has(file)) fail(`Home: visual asset missing (${file})`);
 // Mariage : jamais de cadre vide en ligne ; chaque photo déclarée doit exister et être décrite.
 const {weddingPhotos}=await import('../content/wedding.mjs');
-// Section Mariage : un cadre, trois images (admin home.wedding.0/1/2) décrites, trois intitulés qui les choisissent, plus de polaroïds.
-{ const wall=home.slice(home.indexOf('class="wedding-wall'),home.indexOf('</section>',home.indexOf('class="wedding-wall')));
-  const shots=[...wall.matchAll(/<(img|span) class="wed__shot[^"]*" data-wed-shot([^>]*)>/g)], picks=[...wall.matchAll(/<button type="button" class="wed__pick" aria-pressed="(true|false)" aria-controls="wed-frame" data-wed-pick data-href="([^"]+)"><span class="wed__n" aria-hidden="true">0\d<\/span><span class="wed__label">([^<]+)</g)];
-  if(!wall||shots.length!==3||picks.length!==3||/polaroid/.test(wall+css)) fail('Home: wedding section shows one frame, three images and three title selectors (no polaroid)');
-  if(picks.map(p=>p[3]).join('|')!=='Film de mariage|Demande en mariage|Le jour J'||picks.map(p=>p[2]).join('|')!=='/services/#mariage|/services/#demande-en-mariage|/services/#mariage'||picks.filter(p=>p[1]==='true').length!==1) fail('Home: wedding selectors keep their titles and Services links');
-  for(const [,tag,attrs] of shots) if(tag==='img'){ const src=attrs.match(/src="([^"]+)"/)?.[1]||'', alt=attrs.match(/alt="([^"]*)"/)?.[1]||''; if(!existing.has(src.slice(1))||!alt.trim()) fail(`Home: wedding image missing or without alt text (${src})`); }
-  if(!app.includes("$$('[data-wed]')")||!app.includes("addEventListener('pointerenter'")||!css.includes('.wed__shot.is-on{opacity:1}')) fail('Home: wedding selectors change the image on hover, click, tap and keyboard'); }
+// Section Mariage : trois photos en éventail (admin home.wedding.0/1/2), coins arrondis et format 4:5, sans cadre
+// polaroïd ; un intitulé court par photo ; seul autre texte : le grand titre et « Voir les formules mariage ».
+{ const at=home.indexOf('class="wedding-wall'), wall=home.slice(at,home.indexOf('</section>',at));
+  const cards=[...wall.matchAll(/<a class="wed-card" href="([^"]+)"><span class="wed-card__img">(<img [^>]*>|<span class="wed-card__da"[^>]*><\/span>)<\/span><span class="wed-card__cap">([^<]+)<\/span>/g)];
+  if(!wall||cards.length!==3||/polaroid|wed__|data-wed|<button/.test(wall)||/polaroid|\.wed__/.test(css)) fail('Home: wedding section shows three overlapping photos (no polaroid frame, no selector)');
+  if(cards.map(c=>c[3]).join('|')!=='Film de mariage|Demande en mariage|Le jour J') fail('Home: wedding photos keep their short titles');
+  if(cards.some(c=>c[1]!=='/work/?categorie=mariage')) fail('Home: wedding photos must open the Work catalogue filtered on Mariage');
+  for(const [,,tag] of cards) if(tag.startsWith('<img')){ const src=tag.match(/src="([^"]+)"/)?.[1]||'', alt=tag.match(/alt="([^"]*)"/)?.[1]||''; if(!existing.has(src.slice(1))||!alt.trim()) fail(`Home: wedding image missing or without alt text (${src})`); }
+  const links=[...wall.matchAll(/<a class="([^"]*)"/g)].map(m=>m[1]).filter(c=>c!=='wed-card');
+  if(links.join()!=='wedding-wall__cta'||!/<a class="wedding-wall__cta" href="\/services\/#mariage">Voir les formules mariage /.test(wall)) fail('Home: « Voir les formules mariage » is the only call to action of the wedding section');
+  if(!css.includes('.wed-card__img{position:relative;display:block;aspect-ratio:4/5;border-radius:inherit;overflow:hidden')) fail('Home: wedding photos keep the 4:5 rounded frame'); }
 for(const photo of weddingPhotos){
   if(!existing.has(String(photo.src).replace(/^\//,''))) fail(`Wedding: missing photo file ${photo.src}`);
   if(!photo.alt) fail(`Wedding: photo ${photo.src} needs an alt description`);
@@ -319,7 +323,9 @@ if(!home.includes('is-sony')||!css.includes('.v16-logo-card.is-sony img{max-widt
   for(const t of tms) if(!home.includes(`>${t.name.replace(/&/g,'&amp;')}<`)) fail(`Home: testimonial of ${t.name} missing`);
   // Bulle à côté du nom : photo envoyée depuis l'admin (servie par le site), sinon initiales ; jamais d'image inventée.
   for(const t of tms){ if(t.photo&&(!/^\/assets\/photo\/site\/[a-z0-9-]+-s\.webp$/.test(t.photo.srcSmall||'')||!existing.has(t.photo.srcSmall.slice(1))||!existing.has(t.photo.src.slice(1)))) fail(`Testimonials: photo of ${t.name} must be an uploaded file copied on the site`);
-    if(t.photo&&!home.includes(`<span class="tm-avatar"><img src="${t.photo.srcSmall}"`)) fail(`Home: photo bubble of ${t.name} missing`); }
+    if(t.photo&&!home.includes(`<span class="tm-avatar"><img src="${t.photo.srcSmall}"`)) fail(`Home: photo bubble of ${t.name} missing`);
+    // Sans « Photo de la personne », la bulle reprend l'image de l'avis (petite taille publiée).
+    if(!t.photo&&t.image&&!home.includes(`<span class="tm-avatar is-cover"><img src="${t.image.srcSmall}"`)) fail(`Home: bubble of ${t.name} must use the testimonial image`); }
   if((home.match(/<span class="tm-avatar[" ]/g)||[]).length<tms.length) fail('Home: each testimonial needs its bubble (photo or initials) next to the name');
   if(/"@type":"(Review|AggregateRating)"/.test(home)) fail('Testimonials: no self-served Review/AggregateRating markup (Google rules)'); }
 const heroFile=home.includes('data-hero-file');
@@ -367,7 +373,7 @@ if(!home.includes('id="selection"')||!/class="home-catalog[\s"][\s\S]*?href="\/w
   for(let i=1;i<order.length;i++) if(at(order[i-1])<0||at(order[i])<at(order[i-1])) fail(`Home: section order broken (${order[i-1]} must come before ${order[i]})`);
   const between=home.slice(at('class="v16-testimonials"'),home.lastIndexOf('<section',at('id="faq-home"'))); if(/<section\b/.test(between.slice(between.indexOf('</section>')+10))) fail('Home: testimonials must sit right above the FAQ');
   if(/v16-hero__veil|gradient-motion-bg/.test(home.slice(at('class="v16-hero"'),at('class="hero-copy"')))) fail('Home: banner must show the video as shot (no veil, no colour layer)');
-  { const frame=home.match(/<a class="wed__frame" id="wed-frame" href="([^"]+)"/); if(!frame||frame[1]!=='/work/?categorie=mariage') fail('Home: the wedding frame must open the Work catalogue filtered on Mariage'); } }
+}
 // Média réel : image du code (card.image), image envoyée depuis l'admin (copiée dans le site) ou vidéo YouTube / Instagram
 // (la page n'affiche ces projets qu'avec une image servie par le site, voir templates/pages.mjs).
 const realMedia=p=>(p.card&&p.card.image&&!/unsplash|temporaire/i.test(p.card.image+' '+(p.card.alt||'')))||(p.image&&existing.has(String(p.image.srcSmall||'').slice(1)))||/^[\w-]{11}$/.test(p.videoId||'')||(p.mediaKind==='instagram'&&p.instagramId&&p.image);
@@ -382,7 +388,10 @@ if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id=
   for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" role="button" data-cat-filter="${k}" aria-pressed="false"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
   // Aperçus au format réel du média (plus de 4:5 imposé) : chaque carte déclare son ratio.
   if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
-  if(!app.includes("split(',')")||!app.includes('bentoPack(')||!app.includes('gridArea')) fail('Work: multiple filters (?categorie=a,b) and bento packing expected');
+  if(!app.includes("split(',')")||!app.includes('bentoPack(')) fail('Work: multiple filters (?categorie=a,b) and bento packing expected');
+  // Bento : chaque case au format exact de son média (aucun recadrage) ; la visionneuse montre le média entier.
+  if(!/width=colW\*w\+gap\*\(w-1\), height=width\/a/.test(app)||!css.includes('.cat-grid.is-packed .cat-item{position:absolute}')) fail('Work: bento cells must take the exact ratio of their media');
+  if(!/\.cat-viewer__media,\.cat-viewer__yt\{[^}]*object-fit:contain/.test(css)||!css.includes('.has-custom-cursor.is-viewer-open .custom-cursor{display:none}')) fail('Work: viewer shows the whole media and the system cursor');
   // Bento : chaque case ouvre la visionneuse plein écran ; textes sur la case (révélés au survol), jamais en dessous.
   if((work.match(/class="cat-card__hit" data-cat-open="(photo|youtube|instagram|file)"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue case opens the fullscreen viewer');
   if(!work.includes('data-cat-prev')||!work.includes('data-cat-next')||!app.includes("classList.add('is-viewer-open')")) fail('Work: fullscreen viewer needs previous / next and a scroll lock');

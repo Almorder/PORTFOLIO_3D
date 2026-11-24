@@ -97,7 +97,7 @@
         el('div', { className: 'pj-grid' }, [field('Nom (obligatoire)', text(t, 'name', i, { max: 80, required: true })), field('Contexte (facultatif)', text(t, 'role', i, { max: 80, placeholder: 'Film de mariage, marque…' }))]),
         el('div', { className: 'pj-grid' }, [field('Lien (facultatif)', text(t, 'link', i, { max: 300, placeholder: 'https://… ou /projet/…/' })), field('Texte du lien', text(t, 'linkLabel', i, { max: 60, placeholder: 'Voir le projet' }))]),
         el('fieldset', { className: 'admin-group pj-media' }, [
-          el('legend', { textContent: 'Photo de la personne' }),
+          el('legend', { textContent: 'Photo de la personne (facultatif, sinon l’image de l’avis)' }),
           photoFig,
           el('div', { className: 'admin-tools' }, [photoFile, el('label', { htmlFor: photoId, className: 'admin-mini ph-drop__btn', textContent: busy === i ? 'Envoi en cours…' : t.photo ? 'Remplacer la photo' : 'Envoyer une photo' }),
             t.photo ? tool('Recadrer', `Recadrer la photo de ${who}`, 'photocrop', async () => {

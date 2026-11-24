@@ -360,7 +360,7 @@ export function workPage(){
       view={ 'cat-open':'photo', src:ph.src, alt:ph.alt };
     }
     const label = video ? `Lire la vidéo ${title}${view['cat-open']==='instagram'?' (chargée depuis Instagram)':''}` : `Agrandir : ${title}`;
-    return `<li class="cat-item${wide?' cat-item--wide':''}" data-cats="${esc(it.cats.join(' '))}" data-ratio="${(rw/rh).toFixed(3)}" style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
+    return `<li class="cat-item${wide?' cat-item--wide':''}" data-cats="${esc(it.cats.join(' '))}" data-ratio="${(rw/rh).toFixed(3)}"${it.featured?' data-featured':''} style="--i:${i}"><article class="cat-card cat-card--${it.kind}">
         <div class="cat-card__media${media?'':' is-blank'}" style="aspect-ratio:${esc(it.ratio)}">${media}</div>
         ${video?'<span class="cat-card__play" aria-hidden="true">▶</span>':''}
         <div class="cat-card__body">${it.cats.length?`<p class="cat-card__cats">${esc(chips(it.cats))}</p>`:''}<h3>${esc(title)}</h3>${meta?`<p class="cat-card__meta">${esc(meta)}</p>`:''}</div>
