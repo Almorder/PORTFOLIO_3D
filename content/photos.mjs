@@ -21,8 +21,10 @@ export const photos = items.filter(inSection);
 // Tuile « Photographie » de Ma sélection : un seul bloc, toutes les photos cochées « Dans la tuile », dans l'ordre.
 // Aucune photo cochée : pas de tuile.
 export const tilePhotos = items.filter(inTile);
+// Place de la tuile Photographie dans « Ma sélection » (admin, rubrique « Ordre »), sinon null.
+export const tileRank = Number.isInteger(published.tileRank) ? published.tileRank : null;
 
 // Même liste, au format du brouillon de l'admin (pour « Importer le contenu actuel du site »).
-export const photoDraft = { items: items.map(({ id, width, height, smallWidth, smallHeight, source, crop, alt, series, place, year, ...p }) => ({ id, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}), alt, series, place, year, visible: inSection(p), inTile: inTile(p), ...(Array.isArray(p.categories) ? { categories: p.categories } : {}), ...(p.featured ? { featured: true } : {}) })) };
+export const photoDraft = { ...(tileRank ? { tileRank } : {}), items: items.map(({ id, width, height, smallWidth, smallHeight, source, crop, alt, series, place, year, ...p }) => ({ id, width, height, smallWidth, smallHeight, ...(source ? { source } : {}), ...(crop ? { crop } : {}), alt, series, place, year, visible: inSection(p), inTile: inTile(p), ...(Array.isArray(p.categories) ? { categories: p.categories } : {}), ...(p.featured ? { featured: true } : {}), ...(Number.isInteger(p.rank) ? { rank: p.rank } : {}) })) };
 
 export const MIN_PHOTOS = 1;

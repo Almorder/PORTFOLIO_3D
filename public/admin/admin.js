@@ -30,6 +30,7 @@
     { id: 'instagram', label: 'Vidéos', group: 'Site' },
     { id: 'testimonials', label: 'Avis', group: 'Site' },
     { id: 'images', label: 'Images', group: 'Site' },
+    { id: 'order', label: 'Ordre', group: 'Site' },
     { id: 'publish', label: 'Mise en ligne', group: 'Site' },
     { id: 'site', label: 'Textes et chiffres', group: 'Non publié' },
     { id: 'legal', label: 'Infos légales', group: 'Non publié' }
@@ -219,6 +220,8 @@
     // Projet photo créé depuis une photo : ajouté (masqué) à la fin des projets de « Ma sélection ».
     addProjects: async list => { const current = state.drafts.projects?.data || await getSeed('projects') || []; const res = await saveKey('projects', [...structuredClone(current), ...list]); if (!res.error) projectsEditor?.reset(); return res; } }) : null;
 
+  // Ordre du site (public/admin/order.js) : un seul ordre pour le catalogue Work et « Ma sélection ».
+  const orderView = window.NolanOrder ? window.NolanOrder({ ...shared, getDraft: key => state.drafts[key]?.data, saveKey, afterSave: () => resetEditors() }) : null;
   const VIEWS = {};
   if (cockpit) Object.assign(VIEWS, cockpit.views);
   if (photos) VIEWS.photos = photos.view;
@@ -226,6 +229,7 @@
   if (videosEditor) VIEWS.instagram = videosEditor.view;
   if (imagesView) VIEWS.images = imagesView.view;
   if (testimonialsEditor) VIEWS.testimonials = testimonialsEditor.view;
+  if (orderView) VIEWS.order = orderView.view;
   VIEWS.overview = () => VIEWS.publish();
   // ---------------------------------------------------------------- Éditeur (formulaire généré depuis les données)
   const FIELD_LABELS = { image: 'Image du projet (adresse de l’image)', link: 'Lien (adresse, facultatif)', linkLabel: 'Texte du lien', manifesto: 'Phrase de l’accueil (lue mot à mot)', title: 'Titre', type: 'Type', role: 'Rôle', year: 'Année', context: 'Contexte', location: 'Lieu', format: 'Format', camera: 'Caméra', visible: 'Visible sur le site', videoId: 'Identifiant vidéo YouTube', poster: 'Image d’affiche (adresse)', summary: 'Résumé', contextText: 'Texte de contexte', intent: 'Intention', decisions: 'Décisions', text: 'Texte', quote: 'Citation', name: 'Nom', territory: 'Territoire', id: 'Identifiant de la publication', kind: 'Précision', ratio: 'Format (ex. 9/16)', label: 'Libellé', value: 'Valeur', suffix: 'Suffixe', question: 'Question', answer: 'Réponse', clients: 'Marques accompagnées', proofStats: 'Chiffres clés', faqs: 'Questions fréquentes', home: 'Accueil', services: 'Services', contact: 'Contact', legalName: 'Nom légal', principle: 'Signature', email: 'Email', responseTime: 'Délai de réponse', calendly: 'Lien Calendly', instagram: 'Lien Instagram', youtube: 'Lien YouTube', professionalAddress: 'Adresse professionnelle', professionalPhone: 'Téléphone professionnel', mediator: 'Médiateur de la consommation', host: 'Hébergeur', address: 'Adresse', website: 'Site web', phone: 'Téléphone', card: 'Carte', image: 'Image', alt: 'Description de l’image', slug: 'Identifiant (non modifiable)', href: 'Adresse de la page (non modifiable)' };

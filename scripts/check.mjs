@@ -1,5 +1,6 @@
 import { readFile as readFileRaw, readdir, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { legalRequiredFields } from '../content/legal.mjs';
 import { site as siteData } from '../content/site.mjs';
@@ -9,6 +10,7 @@ const root=new URL('../',import.meta.url).pathname;
 const dist=join(root,'dist');
 const errors=[];
 const fail=(message)=>errors.push(message);
+const require_=f=>{ try{ return readFileSync(join(root,'public/admin',f),'utf8'); }catch{ return ''; } };
 // Les espaces insécables posés au build (« 1 500 € ») se comparent comme des espaces simples.
 const readFile=async(file,enc)=>{const text=await readFileRaw(file,enc);return file.toString().endsWith('.html')?text.replace(/[\u00a0\u202f]/g,' '):text;};
 
@@ -167,7 +169,7 @@ if((await readFile(join(dist,'sitemap.xml'),'utf8')).includes('/admin')) fail('A
   if(!/values \('site-videos', 'site-videos', true, 52428800,/.test(msql)||(msql.match(/bucket_id = 'site-videos' and \(select public\.is_admin\(\)\)/g)||[]).length<5||/to (anon|public)\b/.test(msql)||!/'photos','images'\)/.test(msql)) fail('Medias: site-videos bucket and images draft must be admin-only');
   if(!fn.includes('/rest/v1/rpc/is_admin')||!fn.includes('GITHUB_DISPATCH_TOKEN')||/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_/.test(fn)) fail('Medias: publish-site must check is_admin and read its token from the Supabase secrets');
   if(!existing.has('version.json')) fail('Medias: version.json missing (the admin shows when a version is online)');
-  for(const [,src] of (await readFile(join(dist,'index.html'),'utf8')).matchAll(/background-image:url\('([^']+)'\)/g)) if(!existing.has(src.slice(1))) fail(`Home: replaced image missing (${src})`);
+  for(const [,src] of (await readFile(join(dist,'index.html'),'utf8')).matchAll(/(?:background-image:|--bg:[^"]*?)url\('([^']+)'\)/g)) if(!existing.has(src.slice(1))) fail(`Home: replaced image missing (${src})`);
   if(/<img[^>]+supabase\.co/i.test(workHtml)) fail('Photos: visitors must never load a photo from Supabase');
   // Projets de « Ma sélection » publiés depuis l'admin : image servie par le site (seule exception, l'affiche
   // YouTube du film tant qu'elle n'est pas copiée), texte alternatif présent, aucun lecteur chargé d'avance.
@@ -346,11 +348,11 @@ if(home.indexOf('id="social"')<home.indexOf('id="selection"')||home.indexOf('id=
   if(!work.includes('data-catalog')||!/<div class="cat-filters" role="group"[^>]*><a href="\/work\/" role="button" data-cat-filter="" aria-pressed="true">Tous/.test(work)) fail('Work: catalogue with « Tous » pressed by default expected (toggle buttons, aria-pressed)');
   for(const k of KEYS) if(!work.includes(`href="/work/?categorie=${k}" role="button" data-cat-filter="${k}" aria-pressed="false"`)&&!work.includes(`data-cat-filter-empty="${k}"`)) fail(`Work: filter ${k} missing`);
   // Aperçus au format réel du média (plus de 4:5 imposé) : chaque carte déclare son ratio.
-  if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item"/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
+  if((work.match(/class="cat-card__media[^"]*" style="aspect-ratio:\d+\/\d+"/g)||[]).length!==(work.match(/<li class="cat-item[ "]/g)||[]).length) fail('Work: every catalogue preview needs its real aspect ratio');
   if(!app.includes("split(',')")||!app.includes('gridRowEnd')) fail('Work: multiple filters (?categorie=a,b) and masonry packing expected');
   if(work.indexOf('data-cat-grid')>work.indexOf('data-price-proof')||work.indexOf('data-cat-filter')>work.indexOf('data-cat-grid')) fail('Work: filters first, then the catalogue, then the pricing');
   if(!app.includes("history.pushState(null,''")||!app.includes("addEventListener('popstate'")||!app.includes("get('categorie')")) fail('Work: filter must live in the URL (reload, back/forward, share)');
-  const { instagramPosts:posts }=await import('../content/instagram.mjs'), items=(work.match(/<li class="cat-item"/g)||[]).length;
+  const { instagramPosts:posts }=await import('../content/instagram.mjs'), items=(work.match(/<li class="cat-item[ "]/g)||[]).length;
   if(items<posts.length+projectData.filter(p=>p.visible&&p.slug==='le-bol-den-face').length) fail('Work: every social video and every visible project belongs to the catalogue');
   for(const m of work.matchAll(/data-cats="([^"]*)"/g)) if(m[1]&&m[1].split(' ').some(k=>!KEYS.includes(k))) fail(`Work: unknown category ${m[1]}`);
   const price=h=>{ const i=h.indexOf('<section class="price-proof"'); return h.slice(i,h.indexOf('</section>',h.indexOf('data-price-details',i))).replace(/<header class="price-proof__head[\s\S]*?<\/header>/,''); };
@@ -506,6 +508,15 @@ for(const file of htmls){ const html=await readFile(file,'utf8'), rel=relative(d
   if(links.length<5) fail('llms.txt: Markdown links expected (bare URLs are not read as links)');
   for(const [,label,href] of links){ if(!href.startsWith(siteData.domain)) continue; const path=new URL(href).pathname; const f=path.endsWith('/')?`${path.slice(1)}index.html`:path.slice(1); if(!existing.has(f)) fail(`llms.txt: link « ${label} » points to a missing page ${href}`); }
   for(const sec of t.split(/^## /m).slice(1)) if(!/\]\(https?:/.test(sec)) fail(`llms.txt: section « ${sec.split('\n')[0]} » must list links`); }
+
+// Lot 3 : polices servies par le site, cache des fichiers versionnés, images de fond différées, ordre de l'admin.
+{ if(/fonts\.googleapis\.com\/css|rel="preconnect" href="https:\/\/fonts/.test(home)) fail('Fonts: the DA fonts are self-hosted (no Google Fonts request)');
+  for(const f of ['dm-sans-latin-opsz-normal','yrsa-latin-wght-normal','yrsa-latin-wght-italic','syne-latin-wght-normal']) if(!existing.has(`assets/fonts/${f}.woff2`)||!home.includes(`/assets/fonts/${f}.woff2`)) fail(`Fonts: ${f}.woff2 missing`);
+  if(!/font-display:swap/.test(home)) fail('Fonts: font-display swap expected');
+  const hd=await readFile(join(dist,'_headers'),'utf8').catch(()=>''); if(!/\/assets\/site\.\*\n\s+Cache-Control: public, max-age=31536000, immutable/.test(hd)) fail('Cache: versioned assets need a long cache (dist/_headers)');
+  if(/style="background-image:url\(/.test(home)) fail('Home: below-the-fold background images must be deferred (data-lazy-bg)');
+  if(!adminHtml.includes('/admin/order.js?v=')||!(await readFile(join(root,'public/admin/admin.js'),'utf8')).includes("id: 'order'")) fail('Admin: « Ordre » section expected');
+  if(/Mis en avant/.test(['projects.js','videos.js','photos.js'].map(f=>require_(f)).join(''))) fail('Admin: the « Mis en avant » box was replaced by « Ordre »'); }
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 if(/mediator:\s*\{[\s\S]*?name:\s*''/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — consumer mediator is not configured; complete adhesion before concluding B2C contracts.');
 if(/publicLegalContactsConfirmed:\s*false/.test(legalSource)) console.warn('LEGAL ACTION REQUIRED — public professional address and phone are not confirmed; add publishable business contact details before release.');

@@ -288,10 +288,6 @@
       const visible = el('input', { type: 'checkbox', checked: Boolean(p.visible) });
       visible.dataset.focusKey = `${p.slug}-visible`;
       visible.addEventListener('change', () => { p.visible = visible.checked; touch(); redraw(); });
-      // Mis en avant : en tête du catalogue Work et de « Ma sélection » (accueil), puis l'ordre ci-dessous.
-      const featured = el('input', { type: 'checkbox', checked: Boolean(p.featured) });
-      featured.dataset.focusKey = `${p.slug}-featured`;
-      featured.addEventListener('change', () => { p.featured = featured.checked; touch(); });
       const tool = (label, aria, key, action, disabled) => { const b = button(label, 'admin-mini', action, aria); b.dataset.focusKey = `${p.slug}-${key}`; b.disabled = Boolean(disabled); return b; };
       const name = p.title || 'Projet sans titre';
       const del = tool('Supprimer', `Supprimer le projet ${name}`, 'del', () => {
@@ -324,7 +320,7 @@
         mediaBlock(p),
         pageBlock(p),
         page,
-        el('div', { className: 'ph-card__checks' }, [el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })]), el('label', { className: 'admin-field admin-field--check' }, [featured, el('span', { textContent: 'Mis en avant' })])]),
+        el('div', { className: 'ph-card__checks' }, [el('label', { className: 'admin-field admin-field--check' }, [visible, el('span', { textContent: 'Visible sur le site' })])]),
         el('div', { className: 'admin-tools' }, [
           tool('↑', `Monter le projet ${name}`, 'up', () => move(index, index - 1), index === 0),
           tool('↓', `Descendre le projet ${name}`, 'down', () => move(index, index + 1), index === model.length - 1),
