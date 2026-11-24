@@ -73,10 +73,6 @@ if(!/cloudflareinsights\.com\/beacon\.min\.js/.test(app)||!app.includes('nolanar
 for(const [field,value] of legalRequiredFields) if(!String(value||'').trim()) fail(`legal.mjs: required ${field} empty`);
 if(css.includes('var(--ember-soft;')) fail('styles.css: malformed CSS variable');
 { const bare=css.replace(/\/\*[\s\S]*?\*\//g,''); if((bare.match(/\{/g)||[]).length!==(bare.match(/\}/g)||[]).length) fail('styles.css: unbalanced braces (everything after the gap is ignored by browsers)'); if(/^(<<<<<<<|=======|>>>>>>>)/m.test(css)) fail('styles.css: merge conflict markers'); }
-for(const source of [pagesSource,siteSource,legalSource]){
-  if(/1\s+all[eé]e\s+Mirabeau/i.test(source)) fail('Privacy: private street address found in source');
-  if(/(?:\+33\s*\(0\)?\s*7|07[ .-]?82[ .-]?04[ .-]?89[ .-]?25|0782048925)/i.test(source)) fail('Privacy: private phone number found in source');
-}
 
 const home=await readFile(join(dist,'index.html'),'utf8');
 if(!/1\u202f500\u00a0€/.test(await readFileRaw(join(dist,'index.html'),'utf8'))) fail('Build: prices must keep non-breaking spaces (no « 1 / 500 € » line break)');
@@ -201,6 +197,33 @@ for(const f of ['index.html','404.html','admin/index.html','contact/index.html',
   if(!/persist-credentials:\s*false/.test(wf)) fail('Security: checkout must not persist credentials');
   const sec=await readFile(join(dist,'.well-known/security.txt'),'utf8').catch(()=>'');
   const exp=sec.match(/^Expires: (.+)$/m); if(!/^Contact: /m.test(sec)||!exp||new Date(exp[1])<new Date()) fail('Security: security.txt missing or expired'); }
+// Sécurité (audit du 24/11/2026) : en-têtes HTTP, fichiers publiés, secrets, base de données, formulaire, admin.
+{ // 1. En-têtes Cloudflare Pages : présents, et même politique de contenu qu'en balise meta (plus frame-ancestors).
+  const hdr=await readFile(join(dist,'_headers'),'utf8').catch(()=>''), meta=(home.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)||[])[1]||'';
+  for(const h of ['Strict-Transport-Security: max-age=','X-Content-Type-Options: nosniff','X-Frame-Options: SAMEORIGIN','Referrer-Policy: strict-origin-when-cross-origin','Permissions-Policy: camera=()','! Access-Control-Allow-Origin']) if(!hdr.includes(h)) fail(`Security: dist/_headers lacks « ${h} »`);
+  const cspHeader=(hdr.match(/^\s+Content-Security-Policy: (.+)$/m)||[])[1]||'';
+  if(!meta||cspHeader!==`${meta.replaceAll('&#039;',"'")}; frame-ancestors 'self'`) fail('Security: the CSP header (dist/_headers) must equal the meta CSP plus frame-ancestors \'self\'');
+  if(/Referrer-Policy: (no-referrer|same-origin)\b/.test(hdr)) fail('Security: Referrer-Policy too strict, YouTube embeds would stop playing');
+  // 2. Rien d'interne dans ce qui est publié (sources, SQL, documentation, cartes de code, secrets locaux).
+  for(const f of existing) if(/(^|\/)(\.env|\.git|node_modules)(\/|$|\.)|\.(map|sql|ts|mjs|md|pem|key|log)$|(^|\/)package(-lock)?\.json$/.test(f)) fail(`Security: internal file published: ${f}`);
+  // 3. Aucun secret dans le dépôt ni dans le site (jetons GitHub, clés secrètes Supabase, JWT, clés privées, deploy hooks).
+  const secretRe=/\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sb_secret_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|deploy_hooks\/[0-9a-f-]{20,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}/;
+  let tracked=[]; try{ tracked=execFileSync('git',['-C',root,'ls-files'],{encoding:'utf8'}).split('\n').filter(Boolean).map(f=>join(root,f)); }catch{}
+  for(const f of [...tracked,...files]){ if(/\.(png|jpe?g|webp|avif|gif|ico|woff2?|mp4|mov|webm|pdf)$/i.test(f)) continue; const t=await readFileRaw(f,'utf8').catch(()=>''); if(secretRe.test(t)) fail(`Security: secret-like value in ${relative(root,f)}`); }
+  // 4. Base : RLS sur chaque table, fonctions SECURITY DEFINER à search_path vide, rien d'écrivable par anon.
+  const sqlFiles=(await readdir(join(root,'supabase'))).filter(f=>f.endsWith('.sql')), sql=(await Promise.all(sqlFiles.map(f=>readFile(join(root,'supabase',f),'utf8')))).join('\n').replace(/--[^\n]*/g,'');
+  for(const [,t] of sql.matchAll(/create table if not exists (public\.\w+)/gi)) if(!new RegExp(`alter table ${t.replace('.','\\.')} enable row level security|'${t.split('.')[1]}'[^\\n]*\\]\\s*loop`,'i').test(sql)) fail(`Security: ${t} without row level security`);
+  for(const [fn] of sql.matchAll(/create or replace function[\s\S]*?\$\$/gi)) if(/security definer/i.test(fn)&&!/set search_path = ''/i.test(fn)) fail(`Security: SECURITY DEFINER function without an empty search_path: ${fn.match(/function ([\w.]+)/)[1]}`);
+  if(/grant (?!select on public\.content_snapshots to anon)[^;]*\bto anon\b|for (all|insert|update|delete) to (anon|public)\b|create (or replace )?function public\.increment_page_view/i.test(sql)) fail('Security: the database must give anon read access to published snapshots only');
+  // 5. Fonction de mise en ligne : CORS limité au site, administrateur seulement.
+  const fn=await readFile(join(root,'supabase/functions/publish-site/index.ts'),'utf8');
+  if(!/const ORIGINS = \['https:\/\/nolanarc\.com', 'https:\/\/www\.nolanarc\.com'\]/.test(fn)||/Access-Control-Allow-Origin':\s*'\*'/.test(fn)||!/ORIGINS\.includes\(origin\) \? origin : ORIGINS\[0\]/.test(fn)) fail('Security: publish-site CORS must allow nolanarc.com only');
+  // 6. Formulaire : champ piège, longueurs bornées, envoi nettoyé. Admin : aucun HTML injecté, aucun journal de débogage.
+  if(!app.includes(`form.querySelector('[name="_honey"]')?.value) return;`)||!app.includes('f.maxLength=LIMITS[f.name]||200')||!app.includes(".slice(0,k==='message'?5000:500)")) fail('Security: contact form must drop bots and bound every field');
+  for(const f of (await readdir(join(root,'public/admin'))).filter(f=>f.endsWith('.js')&&f!=='supabase.js')){ const t=await readFile(join(root,'public/admin',f),'utf8');
+    if(/\.innerHTML\s*=|insertAdjacentHTML|outerHTML\s*=|document\.write|\beval\(|new Function\(/.test(t)) fail(`Security: admin/${f} must build the page with textContent, never with HTML strings`);
+    if(/console\.(log|debug)|debugger/.test(t)) fail(`Security: admin/${f} contains debug output`); }
+  if(/console\.(log|debug)|debugger/.test(app)) fail('Security: app.js contains debug output'); }
 const cookiesHtml=await readFile(join(dist,'cookies/index.html'),'utf8');
 // Pages légales : fiche en bref, sommaire, date à jour, vérification publique de l'entreprise.
 for(const f of ['mentions-legales','confidentialite','cgv','cookies','retractation']){ const h=await readFile(join(dist,f,'index.html'),'utf8'); if(!h.includes('class="lg-brief"')||!h.includes('data-legal-toc')||!h.includes('aria-current="page"')||!/Mise à jour le \d/.test(h)) fail(`Legal: ${f} must keep its summary, table of contents and update date`); }
@@ -399,11 +422,20 @@ for(const page of [contact,home]) if(!page.includes('data-contact-dialog')||!/ro
 if(!app.includes("e.key==='Escape'){e.preventDefault();close()")||!app.includes('role="alert"')) fail('Contact V2: dialog must close on Escape and failures must be announced');
 
 
-// Public privacy preference.
-for(const html of [home,work,project,services,about,journal,contact,privacy]){
-  if(/1\s+all[eé]e\s+Mirabeau/i.test(html)) fail('Privacy V17: street address exposed in built HTML');
-  if(/(?:\+33\s*\(0\)?\s*7|07[ .-]?82[ .-]?04[ .-]?89[ .-]?25|0782048925)/i.test(html)) fail('Privacy V17: phone exposed in built HTML');
-}
+// Vie privée : aucun numéro de téléphone ni adresse postale française dans ce qui est publié ou dans les contenus
+// du dépôt (public), sauf les coordonnées professionnelles validées (content/legal.mjs). Contrôle générique : le
+// dépôt ne contient jamais la donnée qu'il protège.
+{ const { legal:legalData }=await import('../content/legal.mjs');
+  const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  const digits=t=>norm(t).replace(/^\s*\+33\s*(\(0\)\s*)?/,'0').replace(/\D/g,'');
+  const okPhone=digits(legalData.professionalPhone), okAddress=norm(legalData.professionalAddress);
+  const phoneRe=/(?:\+33\s*(?:\(0\)\s*)?|\b0)[1-9](?:[\s.\-  ]?\d{2}){4}\b/g;
+  const streetRe=/\b\d{1,4}(?:\s?(?:bis|ter))?,?\s+(?:rue|allee|avenue|boulevard|impasse|chemin|quai|place|square|route|cours|passage|villa|residence|sentier)\s+[a-z][a-z' -]{2,}/g;
+  const sources=files.filter(f=>/\.(html|js|json|txt|css|xml|webmanifest)$/.test(f)).map(f=>[relative(dist,f),f]);
+  for(const dir of ['content','templates','src','public']) for(const f of await walk(join(root,dir))) if(/\.(mjs|js|html|css|json|txt)$/.test(f)) sources.push([relative(root,f),f]);
+  for(const [rel,f] of sources){ if(/(^|\/)supabase\.js$/.test(rel)) continue; const t=norm(await readFileRaw(f,'utf8'));
+    for(const m of t.match(phoneRe)||[]) if(!okPhone||digits(m)!==okPhone) { fail(`Privacy: phone number in ${rel}`); break; }
+    for(const m of t.match(streetRe)||[]) if(!okAddress||!okAddress.includes(m.trim())) { fail(`Privacy: street address in ${rel}`); break; } } }
 
 // Component engines and design system.
 if(!app.includes('easeOutExpo')||!app.includes('IntersectionObserver')) fail('Animated Stats Pro: scroll/count engine missing');

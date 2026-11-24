@@ -277,6 +277,9 @@ $$('[data-copy-ig]').forEach(link=>link.addEventListener('click',async()=>{
 // Contact intent adapts only from the URL or an explicit click on the current page.
 const form=$('[data-contact-form]');
 if(form){
+  // Longueurs maximales : un message reste lisible, un robot ne peut pas envoyer un roman (vérifié aussi à l'envoi).
+  const LIMITS={message:5000,email:254};
+  $$('input:not([type="hidden"]),textarea',form).forEach(f=>{ if(f.maxLength<0) f.maxLength=LIMITS[f.name]||200; });
   const buttons=$$('[data-form-intent]',form);
   const input=$('[data-intent-input]',form);
   const message=form.querySelector('textarea[name="message"]');
@@ -325,10 +328,13 @@ if(form){
     e.preventDefault();
     const submit=$('[data-submit]',form); const status=$('[data-form-status]',form);
     if(!form.reportValidity()) return;
+    // Champ piège rempli : c'est un robot. Rien n'est envoyé (FormSubmit le filtre aussi de son côté).
+    if(form.querySelector('[name="_honey"]')?.value) return;
     // Anti-rafale : un envoi toutes les 30 secondes au plus depuis cette page.
     const nowTs=Date.now(); if(form.lastSent&&nowTs-form.lastSent<30000){ if(status) status.textContent='Message déjà envoyé. Patientez quelques secondes avant d’en renvoyer un.'; return; }
     submit.disabled=true; submit.dataset.original=submit.innerHTML; submit.textContent='Envoi…'; status.textContent=''; status.classList.remove('is-error');
-    const payload=Object.fromEntries(new FormData(form).entries());
+    // Texte seul, sans caractères de contrôle, longueur bornée.
+    const payload=Object.fromEntries([...new FormData(form).entries()].filter(([,v])=>typeof v==='string').map(([k,v])=>[k,v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g,'').trim().slice(0,k==='message'?5000:500)]));
     try{
       const res=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({success:res.ok}));
