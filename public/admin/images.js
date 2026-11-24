@@ -11,6 +11,9 @@
       { slot: 'home.dims.direction', label: 'Dossier Direction artistique', origin: '/assets/da/texture-b.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' },
       { slot: 'home.dims.strategie', label: 'Dossier Stratégie de marque', origin: '/assets/da/texture-c.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' }
     ] },
+    { group: 'Services · Aperçu', slots: [
+      { slot: 'services.reel.strategie', label: 'Ligne Stratégie de marque', origin: '/assets/da/texture-c.webp', preset: 'folder', format: 'Vertical 4:5, au moins 1200 px de haut.' }
+    ] },
     { group: 'Accueil · Mariage', slots: [
       { slot: 'home.wedding.0', label: 'Polaroïd 1 (Film de mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },
       { slot: 'home.wedding.1', label: 'Polaroïd 2 (Demande en mariage)', origin: '', preset: 'polaroid', format: 'Carré ou vertical 4:5, au moins 900 px.', alt: true },

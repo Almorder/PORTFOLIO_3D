@@ -489,10 +489,10 @@ const svProofs = n => {
   }
   return out;
 };
-// Aperçu du lecteur : la première réalisation, sinon l'image choisie pour ce besoin dans l'admin (accueil).
+// Aperçu du lecteur : la première réalisation, sinon l'image choisie dans l'admin (Services · Aperçu, puis le dossier de l'accueil).
 const svPreview = (n, proofs) => {
   if(proofs[0]) return proofs[0];
-  const s=siteImage(`home.dims.${n.key}`); return s ? { src:s.image.srcSmall, alt:'', w:s.image.smallWidth, h:s.image.smallHeight, video:null } : null;
+  const s=siteImage(`services.reel.${n.key}`)||siteImage(`home.dims.${n.key}`); return s ? { src:s.image.srcSmall, alt:'', w:s.image.smallWidth, h:s.image.smallHeight, video:null } : null;
 };
 const svImg = (t, cls) => `<img class="${cls}" src="${esc(t.src)}" alt="${esc(t.alt)}"${t.w&&t.h?` width="${t.w}" height="${t.h}"`:''} loading="lazy" decoding="async">`;
 const svArrow = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -528,9 +528,14 @@ const svRow = n => {
 };
 
 // 3. Billets : corps (offre) et talon (prix) ; tirer le talon, ou l'activer au clavier, ouvre Contact avec l'offre choisie.
+// Délai de livraison maximal annoncé par Nolan pour toutes les prestations livrées (la session de stratégie n'en a pas).
+const svDelay = ['Livraison', '1 mois et demi max'];
 const svFacts = {
-  mariage:[['Durée', weddingOffers.mariage.facts[1][0]], ['Livraison', `Film final de ${weddingOffers.mariage.facts[0][0]}`]],
-  contenu:[['Livraison', pricingDetails.contenu.deliverables[0]]],
+  mariage:[['Durée', weddingOffers.mariage.facts[1][0]], ['Film final', weddingOffers.mariage.facts[0][0]], svDelay],
+  demande:[svDelay],
+  contenu:[['Format', pricingDetails.contenu.deliverables[0]], svDelay],
+  film:[svDelay],
+  direction:[svDelay],
   strategie:[['Durée','1 h']],
 };
 const svTicket = key => { const o=svOffer(key), id=key==='demande'?'demande-en-mariage':`offre-${key}`, digits=o.price.replace(/[^\d ]/g,'').trim(), facts=svFacts[key]||[];
@@ -555,7 +560,7 @@ const svSteps = [
   { title:'Premier échange', text:['Vous décrivez le projet : une idée, une date ou un problème suffit.', `${site.responseTime}, avec mes premières questions.`], tags:['Sans brief complet','48 h ouvrées'] },
   { title:'Devis et acompte', text:['On fixe le périmètre, les livrables, le calendrier, le prix et les droits.', 'La commande est validée à la signature et à l’acompte de 40 % ; une date n’est bloquée qu’à ce moment.'], tags:['Devis signé','Acompte de 40 %'] },
   { title:'Tournage ou séance', text:['Le tournage, la séance photo ou la session de travail a lieu à la date convenue.', 'Pour une prestation datée, le solde est réglé avant son début.'], tags:['Date convenue','Solde avant la prestation'] },
-  { title:'Livraison et allers-retours', text:['Les allers-retours inclus sont ceux prévus au devis.', 'Je garde une copie de sécurité des fichiers finaux pendant six mois après la livraison.'], tags:['Allers-retours au devis','Copie de sécurité 6 mois','Sources non livrées'] },
+  { title:'Livraison et allers-retours', text:['Livraison en un mois et demi au plus. Les allers-retours inclus sont ceux prévus au devis.', 'Je garde une copie de sécurité des fichiers finaux pendant six mois après la livraison.'], tags:['Livraison 1 mois et demi max','Allers-retours au devis','Copie de sécurité 6 mois','Sources non livrées'] },
 ];
 
 // 5. Avis : mêmes avis que l'accueil, textes inchangés, en pile de cartes.

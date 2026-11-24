@@ -184,7 +184,8 @@ export function normalizeSocial(list) {
 
 // Images du site : emplacements fixes ; sans image publiée, le site garde son image d'origine.
 export const IMAGE_SLOTS = { 'home.dims.realisation': false, 'home.dims.direction': false, 'home.dims.strategie': false, 'home.wedding.0': true, 'home.wedding.1': true, 'home.wedding.2': true,
-  'home.cards.mariage': false, 'home.cards.demande': false, 'home.cards.contenu': false, 'home.cards.film': false, 'home.cards.direction': false, 'home.cards.strategie': false, 'home.cards.dos': false };
+  'home.cards.mariage': false, 'home.cards.demande': false, 'home.cards.contenu': false, 'home.cards.film': false, 'home.cards.direction': false, 'home.cards.strategie': false, 'home.cards.dos': false,
+  'services.reel.strategie': false };
 // Bannière de l'accueil : vidéos hébergées par le site (ordinateur 16:9, téléphone 9:16), chacune avec son affiche.
 // Une vidéo dans le mauvais sens (horizontale pour le téléphone, ou l'inverse) n'est pas publiée.
 export const VIDEO_SLOTS = { 'home.hero.desktop': 'landscape', 'home.hero.mobile': 'portrait' };
