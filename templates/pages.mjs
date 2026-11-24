@@ -10,9 +10,9 @@ import { siteImage, siteVideo } from '../content/site-images.mjs';
 import { gearBoard } from './gear.mjs';
 import { workAssets } from '../content/work-assets.mjs';
 import { focusText, morphTestimonials, morphPanel, bentoFocus, bentoMore } from './showcase.mjs';
-import { weddingWall, weddingOffersSection } from './wedding.mjs';
+import { weddingWall } from './wedding.mjs';
 import { weddingOffers } from '../content/wedding.mjs';
-import { pricing, pricingHref, pricingMessage, contactTopics } from '../content/pricing.mjs';
+import { pricing, pricingHref, pricingMessage, contactTopics, pricingDetails, pricingCommon } from '../content/pricing.mjs';
 import { pricingSection } from './pricing.mjs';
 import '../public/admin/categories.js';
 const Cat = globalThis.NolanCategories;
@@ -142,11 +142,6 @@ const igVideos = () => instagramPosts.map(p=>{ const thumb=socialThumb(p), file=
   const v=videoSchema({ name:p.title, description:p.kind?`${p.kind}, vidéo verticale de Nolan Ribeiro.`:'Vidéo verticale de Nolan Ribeiro.', thumbnail:thumb?`${site.domain}${thumb.src}`:'', uploadDate:p.uploadDate, embedUrl:file?undefined:`${igUrl(p.id)}embed/`, url:file?`${site.domain}/work/#social`:igUrl(p.id) });
   return v&&file ? { ...v, contentUrl:`${site.domain}${p.video.src}`, ...(p.video.duration?{ duration:`PT${p.video.duration}S` }:{}) } : v; }).filter(Boolean);
 
-const visuals = {
-  brand: 'https://images.unsplash.com/photo-1768076955015-dd4f057e96f6?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000',
-  story: 'https://images.unsplash.com/photo-1709316132989-55ef2437b920?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=68&w=1600',
-  moment: 'https://images.unsplash.com/photo-1770866381405-f47395dd2414?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=66&w=2000'
-};
 
 // Bannière de l'accueil. Vidéos hébergées par le site, envoyées depuis l'admin (Images > Accueil · Bannière) :
 // une pour l'ordinateur (16:9), une pour le téléphone (9:16), chacune avec son affiche. Aucune requête tierce :
@@ -446,21 +441,83 @@ export function projectPages(){
   return projects.filter(p=>p.visible&&p.slug!=='le-bol-den-face'&&pageOf.get(p.slug)&&shownMedia(p).length).map(p=>{ const path=pageOf.get(p.slug); return [`${path.slice(1)}index.html`, generatedProjectPage(p,path), path]; });
 }
 
+// Page Services : problème → solution → preuve → offre → contact, une section par besoin.
+// Offres et prix : uniquement content/pricing.mjs (ceux de l'accueil). Preuves : réalisations réelles du catalogue
+// Work (mêmes données que l'admin) ; sans média, l'emplacement n'est pas affiché. Les ancres #realisation,
+// #mariage, #demande-en-mariage, #direction-artistique et #strategie-de-marque restent : l'accueil y renvoie.
+const offerOf = key => pricing.find(o=>o.key===key);
+const svcNeeds = [
+  { id:'realisation', name:'Réalisation', need:dimNeeds.realisation.need, text:dimNeeds.realisation.text,
+    get:['Une seule direction, de la préparation à la livraison','Le tournage seul ou le montage seul, si c’est ce qu’il vous faut','Des fichiers pensés pour leur support final'],
+    offers:['film','contenu'], tones:['dark','red'], work:['video','reseaux-sociaux'] },
+  { id:'mariage', name:'Mariage', need:'Un jour qui ne se rejoue pas.', text:`${offerOf('mariage').text} ${offerOf('demande').text}`,
+    get:pricingDetails.mariage.includes.concat(pricingDetails.mariage.deliverables||[]),
+    offers:['mariage','demande'], tones:['ivory','dark'], work:['mariage'] },
+  { id:'direction-artistique', name:'Direction artistique', need:dimNeeds.direction.need, text:dimNeeds.direction.text,
+    get:['La direction visuelle, la cohérence de marque ou un système créatif que votre équipe applique ensuite','Sans réalisation vidéo, si vous le souhaitez','Des choix créatifs plus simples, une identité qui se reconnaît'],
+    offers:['direction'], tones:['ivory'], work:['direction-artistique'] },
+  { id:'strategie-de-marque', name:'Stratégie de marque', need:dimNeeds.strategie.need, text:dimNeeds.strategie.text,
+    get:pricingDetails.strategie.includes.concat('Un accompagnement plus large, chiffré sur devis'),
+    offers:['strategie'], tones:['red'], work:[] },
+];
+// Miniature réelle d'une réalisation du catalogue (projet, vidéo courte ou photo), sinon null.
+const proofThumb = it => {
+  if(it.kind==='project'&&it.image?.image) return { src:it.image.image, srcset:it.image.srcset||'', alt:it.image.alt||it.title, w:it.image.width, h:it.image.height };
+  if(it.kind==='social'&&it.thumb) return { src:it.thumb.src, srcset:it.thumb.large?`${it.thumb.src} ${it.thumb.width||540}w, ${it.thumb.large} ${(it.thumb.width||540)*2}w`:'', alt:`${it.title}, vidéo verticale`, w:it.thumb.width, h:it.thumb.height };
+  if(it.kind==='photo') { const ph=it.ph; return { src:ph.srcSmall||ph.src, srcset:ph.srcSmall?`${ph.srcSmall} ${ph.smallWidth}w, ${ph.src} ${ph.width}w`:'', alt:ph.alt||it.title, w:ph.smallWidth||ph.width, h:ph.smallHeight||ph.height }; }
+  return null;
+};
+const svcProof = cats => {
+  const seen=new Set(), thumbs=[];
+  for(const c of cats) for(const it of catalogItems.filter(x=>x.cats.includes(c))){ const t=proofThumb(it); if(t&&!seen.has(t.src)&&thumbs.length<3){ seen.add(t.src); thumbs.push({ ...t, title:it.title, cat:c }); } }
+  const links=cats.filter(c=>catalogCount(c));
+  if(!thumbs.length&&!links.length) return '';
+  return `<div class="svc-proof">
+          ${thumbs.length?`<ul class="svc-proof__grid">${thumbs.map(t=>`<li><a href="${catalogHref(t.cat)}"><img src="${esc(t.src)}"${t.srcset?` srcset="${esc(t.srcset)}" sizes="(max-width: 700px) 33vw, 240px"`:''} alt="${esc(t.alt)}"${t.w&&t.h?` width="${t.w}" height="${t.h}"`:''} loading="lazy" decoding="async"><span>${esc(t.title)}</span></a></li>`).join('')}</ul>`:''}
+          <p class="svc-proof__links">${links.map(c=>`<a href="${catalogHref(c)}">Voir les réalisations ${esc(Cat.label(c))} <sup>${catalogCount(c)}</sup> <span aria-hidden="true">↗</span></a>`).join('')}</p>
+        </div>`;
+};
+// Carte d'offre : le composant des « Trois dimensions » de l'accueil (dossier), prix repris tels quels.
+const svcOffer = (key, i, tone='dark') => { const o=offerOf(key), id=key==='demande'?'demande-en-mariage':`offre-${key}`;
+  return `<a class="folder svc-offer svc-offer--${tone}" id="${id}" href="${esc(pricingHref(o))}" style="--i:${i}">
+            <span class="folder__art" aria-hidden="true"></span>
+            <span class="folder__front">
+              <span class="folder__tab">${esc(o.tag)}</span>
+              <span class="folder__top"><strong>${esc(o.title)}</strong><i aria-hidden="true">↗</i></span>
+              <span class="folder__more">${esc(o.text)}</span>
+              <span class="folder__foot"><span>${o.from?'À partir de':esc(o.cta)}</span><b>${esc(o.price)}</b></span>
+            </span>
+          </a>`; };
+
 export function servicesPage(){
-  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Tarifs de Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande en mariage dès 250 €, direction artistique dès 200 €, stratégie de marque à 89 € de l’heure.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page">
-    <section class="fab-page-title motion-reveal"><div><h1>Services.</h1><small>3 expertises</small></div><p>Trois expertises que je peux utiliser séparément ou réunir dans le même projet.</p></section>
-    <section class="v16-service-switcher" data-expertise-switcher data-expertise-query><span class="svc-anchor" id="realisation" data-expertise-anchor="realisation"></span><span class="svc-anchor" id="direction-artistique" data-expertise-anchor="direction"></span><span class="svc-anchor" id="strategie-de-marque" data-expertise-anchor="strategie"></span>
-      <div class="v16-service-switcher__tabs" role="tablist" aria-label="Choisir une expertise">${expertiseTabs.map((x,i)=>`<button id="services-expertise-tab-${x.key}" type="button" role="tab" data-expertise-tab="${x.key}" aria-selected="${i===0?'true':'false'}" aria-controls="services-expertise-panel-${x.key}"><span>${x.index}</span><strong>${x.label}</strong></button>`).join('')}</div>
-      <div class="v16-service-switcher__panels">
-        <div id="services-expertise-panel-realisation" role="tabpanel" aria-labelledby="services-expertise-tab-realisation" data-expertise-panel="realisation" class="is-active"><div class="v16-service-copy"><span class="fab-dot-label">Réalisation & vidéo</span><h2>Une seule direction du concept au fichier final.</h2><p>Je peux prendre un film de l’idée au rendu : préparation, production, montage, encodage et livraison restent reliés par la même vision. L’intérêt est simple : moins de pertes entre les étapes et un tournage pensé aussi pour ce qui devra fonctionner au montage.</p><strong>Vous gagnez une continuité de vision, une expertise terrain et des livrables correctement adaptés à leur support.</strong><a href="/contact/?intent=story&amp;offre=film">Parler d’une réalisation ↗</a></div><figure><img src="${bolPoster}" alt="Le bol d’en face, réalisation Nolan Ribeiro" width="1280" height="720" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-direction" role="tabpanel" aria-labelledby="services-expertise-tab-direction" data-expertise-panel="direction" hidden><div class="v16-service-copy"><span class="fab-dot-label">Direction artistique</span><h2>Un univers doit tenir du premier au dernier détail.</h2><p>Je travaille le cadre visuel d’un projet pour que l’image, la typographie, la couleur, le rythme et la matière racontent la même chose. Même lorsque je n’exécute pas tout moi-même, je peux poser les règles qui permettent à l’équipe de rester cohérente.</p><strong>Vous gagnez une identité plus reconnaissable et des décisions créatives plus simples à reproduire.</strong><a href="/contact/?intent=brand&amp;offre=direction">Parler d’une direction artistique ↗</a></div><figure><img src="${visuals.brand}" alt="Illustration d’une direction artistique" loading="lazy"></figure></div>
-        <div id="services-expertise-panel-strategie" role="tabpanel" aria-labelledby="services-expertise-tab-strategie" data-expertise-panel="strategie" hidden><div class="v16-service-copy"><span class="fab-dot-label">Stratégie de marque & contenu</span><h2>Une stratégie utile doit finir par devenir une action.</h2><p>J’audite ce qui bloque aujourd’hui, je priorise ce qui peut créer un impact rapidement et je construis un plan que l’on peut réellement exécuter. Ensuite on mesure, on stabilise ce qui fonctionne et on augmente l’échelle.</p><strong>Vous gagnez des priorités plus nettes, moins d’attente entre la décision et l’exécution, et une création reliée au marché.</strong><a href="/contact/?intent=brand&amp;offre=strategie">Parler de stratégie ↗</a></div><figure><img src="${visuals.story}" alt="Illustration de stratégie de marque" loading="lazy"></figure></div>
-      </div>
+  return head({title:'Vidéaste mariage et film de marque : tarifs | Nolan Arc',description:'Nolan Ribeiro, vidéaste : film de mariage dès 1 500 €, demande dès 250 €, contenu et direction artistique dès 200 €, stratégie de marque à 89 € / h.',path:'/services/',extraSchema:faqSchema(site.faqs.services,'/services/'),bodyClass:'page-services page-fabrica page-v16'}) + header('/services/') + `<main id="main-content" class="v16-services-page svc-page">
+    <section class="svc-hero" aria-labelledby="svc-title">
+      <h1 id="svc-title" class="motion-reveal">Services<span class="title-dot">.</span></h1>
+      <p class="svc-hero__lead motion-reveal">Un film, un mariage, un univers, une marque. Partez de ce que vous voulez obtenir : le prix de départ est affiché, le reste se cadre en un message.</p>
+      <nav class="svc-index motion-reveal" aria-label="Choisir votre besoin"><ul>${svcNeeds.map(n=>`<li><a href="#${n.id}"><small>${esc(n.name)}</small><strong>${esc(n.need)}</strong><i aria-hidden="true">↓</i></a></li>`).join('')}</ul></nav>
     </section>
-    ${weddingOffersSection()}
-    <section class="v16-combined-expertise motion-reveal"><span class="fab-dot-label">Pourquoi les trois comptent</span><h2>Même quand vous n’en achetez qu’une,<br><em>les autres restent dans la pièce.</em></h2><div><article><span>01</span><strong>Un film de marque</strong><p>La stratégie définit ce qu’il doit accomplir, la direction artistique ce à quoi il doit ressembler, la réalisation comment le produire.</p></article><article><span>02</span><strong>Une direction artistique</strong><p>Elle bénéficie d’une compréhension réelle de ce qui sera faisable sur un plateau et au montage.</p></article><article><span>03</span><strong>Une stratégie</strong><p>Elle reste reliée aux contenus et aux supports que l’entreprise devra réellement produire ensuite.</p></article></div></section>
-    ${faqAccordion(site.faqs.services,{id:'faq-services',eyebrow:'FAQ Services',title:'FAQ.',intro:'Questions précises sur la manière dont je peux intervenir.'})}
-    <section class="fab-contact-band motion-reveal"><div><small>Vous savez ce qu’il vous faut ?</small><h2>On cadre le périmètre.</h2></div><p>Un message suffit pour vérifier si je suis la bonne personne et sous quelle forme intervenir.</p><a href="/contact/">M’expliquer le projet <span>↗</span></a></section>
+    ${svcNeeds.map((n,k)=>`<section class="svc-need" id="${n.id}" aria-labelledby="svc-${n.id}-title">
+      <header class="svc-need__head motion-reveal">
+        <h2 id="svc-${n.id}-title">${esc(n.name)}.<br><em>${esc(n.need)}</em></h2>
+        <p>${esc(n.text)}</p>
+      </header>
+      <div class="svc-need__body">
+        <div class="svc-get motion-reveal"><h3>Vous obtenez</h3><ul>${n.get.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+        <div class="svc-offers" data-count="${n.offers.length}">${n.offers.map((key,i)=>svcOffer(key,i,n.tones[i])).join('')}</div>
+      </div>
+      ${svcProof(n.work)}
+    </section>`).join('')}
+    <div class="price-details__common svc-common"><p class="price-details__common-title">Pour toutes les offres</p><ul>${pricingCommon.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><a href="/cgv/">Conditions générales de vente <span aria-hidden="true">↗</span></a></div>
+    <section class="v16-combined-expertise svc-together motion-reveal" aria-labelledby="svc-together-title"><h2 id="svc-together-title">Même quand vous n’en prenez qu’une,<br><em>les autres restent dans la pièce.</em></h2><div><article><strong>Un film de marque</strong><p>La stratégie définit ce qu’il doit accomplir, la direction artistique ce à quoi il doit ressembler, la réalisation comment le produire.</p></article><article><strong>Une direction artistique</strong><p>Elle tient compte de ce qui sera faisable sur un plateau et au montage.</p></article><article><strong>Une stratégie</strong><p>Elle reste reliée aux contenus que vous devrez réellement produire ensuite.</p></article></div></section>
+    ${testimonials.length?`<section class="v16-testimonials" id="retours" aria-labelledby="svc-avis-title"><header class="fab-section-heading motion-reveal"><div><h2 id="svc-avis-title">Avis.</h2></div><p>Ce qu’ils ont apprécié chez moi.</p></header>${morphTestimonials(testimonials)}</section>`:''}
+    ${faqAccordion(site.faqs.services,{id:'faq-services',eyebrow:'FAQ Services',title:'FAQ.',intro:'Ce qu’on me demande avant de commencer.'})}
+    <section class="wk-cta svc-cta" id="contact-cta" aria-labelledby="svc-cta-title">
+      <div class="wk-cta__copy motion-reveal"><h2 id="svc-cta-title">Un projet <em>en tête&nbsp;?</em></h2><p>Une idée, une date ou un problème à résoudre suffisent. ${esc(site.responseTime)}. Si le projet colle, on fixe le périmètre, les livrables, le calendrier, le prix et les droits avant de démarrer.</p><a class="wk-cta__alt" href="/work/">Voir les réalisations <span aria-hidden="true">↗</span></a></div>
+      <nav class="wk-cta__card motion-reveal" aria-label="Choisir le type de projet"><p class="wk-cta__q">Ça concerne quoi&nbsp;?</p>
+        ${[['moment','Mariage / moment','Mariage, demande en mariage'],['brand','Marque','Contenu, direction artistique, stratégie'],['story','Film / récit','Film de marque, court métrage']].map(([intent,t,x])=>`<a href="/contact/?intent=${intent}"><strong>${esc(t)}</strong><small>${esc(x)}</small><b aria-hidden="true">↗</b></a>`).join('')}
+        <a class="is-alt" href="/contact/"><strong>Autre</strong><small>Une idée à cadrer</small><b aria-hidden="true">↗</b></a>
+      </nav>
+    </section>
   </main>` + footer();
 }
 

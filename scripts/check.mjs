@@ -371,7 +371,10 @@ if((project.match(/class="project-meta-list"/g)||[]).length!==1) fail('Project V
 if(/Détails de production|La fiche technique/i.test(project)) fail('Project V17: duplicate production-detail section found');
 
 // SERVICES — one compact switcher, deeper value, combined expertise, dedicated FAQ.
-if(!services.includes('data-expertise-switcher')||(services.match(/data-expertise-tab=/g)||[]).length!==3||(services.match(/data-expertise-panel=/g)||[]).length!==3) fail('Services V17: three-expertise switcher incomplete');
+// Services (proposition services4) : une section par besoin, ancres reçues depuis l'accueil et le SEO, offres = content/pricing.mjs.
+for(const id of ['realisation','mariage','demande-en-mariage','direction-artistique','strategie-de-marque','offre-contenu']) if(!services.includes(`id="${id}"`)) fail(`Services: anchor #${id} missing (home, polaroids and Offer schema link to it)`);
+{ const { pricing:offers }=await import('../content/pricing.mjs'); for(const o of offers) if(!services.includes(`/contact/?intent=${o.intent}&amp;offre=${o.key}`)||!services.includes(o.price.replace(/'/g,'&#39;'))) fail(`Services: offer ${o.key} or its published price missing`); }
+if(/images\.unsplash\.com/.test(services.split('<main')[1]||'')) fail('Services: no stock image (R1: real work only)');
 if(!services.includes('v16-combined-expertise')) fail('Services V17: combined-expertise value section missing');
 if(!services.includes('id="faq-services"')||!services.includes('data-faq-section')) fail('Services V17: dedicated FAQ missing');
 for(const q of ['Pouvez-vous prendre en charge toute la production vidéo ?','Une direction artistique peut-elle être commandée sans réalisation vidéo ?','Que contient une session ciblée de stratégie à 89 € / h ?']) if(!services.includes(q)) fail(`Services V17: FAQ question missing ${q}`);
