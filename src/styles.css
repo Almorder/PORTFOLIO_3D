@@ -1027,7 +1027,7 @@ body.menu-open .site-header.fab-header,
 .ig-phone .ig-card__play{position:absolute;right:auto;bottom:auto;left:50%;top:36%;translate:-50% -50%;width:64px;height:64px;border-color:rgba(255,255,255,.9);background:rgba(18,4,3,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .ig-phone:nth-child(2) .ig-card__play{left:70%;top:30%}.ig-phone:nth-child(3) .ig-card__play{left:30%;top:42%}.ig-phone:nth-child(4) .ig-card__play{top:24%}
 .ig-phone.is-playing .ig-card__cover{padding:0;background:#fff}
-.ig-phone iframe{width:326px;height:calc(100% / var(--ig-s,1));max-height:none;transform:scale(var(--ig-s,1));transform-origin:0 0}
+.ig-phone iframe{position:absolute;top:0;left:0;flex:none;width:326px;height:calc(100% / var(--ig-s,1));max-height:none;transform:scale(var(--ig-s,1));transform-origin:0 0}
 .ig-phone .ig-card__link{display:block;align-self:stretch;width:auto;margin:-2% 0 0;text-align:center;font-size:12px;color:var(--paper);opacity:.6}
 @media(hover:hover){.ig-phone:not(.is-playing):hover{rotate:0deg;translate:0 -6px}}
 .reveal-enabled .ig-stage .ig-phone{opacity:0;scale:1.06}
@@ -1474,7 +1474,7 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
   opacity:calc(1 - max(var(--a,0) - 2, 0));transition:transform .6s cubic-bezier(.23,1,.32,1),opacity .4s ease,filter .4s ease;filter:brightness(calc(1 - min(var(--a,0),1) * .28))}
 .ps-card:not(.is-active){cursor:pointer}
 .ps-card__screen{position:absolute;inset:0;overflow:hidden;border-radius:16px;background:#120403;box-shadow:0 22px 40px -12px rgba(20,2,0,.6);transition:border-radius .5s cubic-bezier(.23,1,.32,1)}
-.ps-card.is-active .ps-card__screen{border-radius:12.5% / 5.7%;box-shadow:none}
+.ps-card.is-active .ps-card__screen{inset:-.6% -1%;border-radius:12.5% / 5.7%;box-shadow:none} /* déborde d'un pixel ou deux sous le contour du téléphone : plus de liseré */
 .ps-card .ig-card__cover{position:absolute;inset:0;aspect-ratio:auto;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;padding:12% 10% 14%;border:0;border-radius:0;color:var(--paper);background:radial-gradient(circle at 50% 42%,#ffb066 0,#f26a2a 13%,#c9300f 27%,#5a1107 52%,#170504 78%)}
 .ps-card:nth-child(2) .ig-card__cover{background:radial-gradient(circle at 50% 42%,#ffc27a 0,#ee7a2c 12%,#b82a0c 28%,#4a0e06 54%,#150504 80%)}
 .ps-card:nth-child(3) .ig-card__cover{background:radial-gradient(circle at 50% 42%,#ffa55c 0,#e8551f 14%,#a8230b 30%,#420c05 56%,#140404 80%)}
@@ -1484,7 +1484,7 @@ body.page-work .video-showcase h2{font-family:var(--serif);font-weight:500;lette
 .ps-card .ig-card__play{position:absolute;left:50%;top:42%;right:auto;bottom:auto;translate:-50% -50%;width:62px;height:62px;border-color:rgba(255,255,255,.9);background:rgba(18,4,3,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:opacity .3s ease}
 .ps-card:not(.is-active) .ig-card__play{opacity:0;pointer-events:none}
 .ps-card.is-playing .ig-card__cover{padding:0;background:#fff}
-.ps-card iframe{width:326px;height:calc(100% / var(--ig-s,1));max-height:none;border:0;transform:scale(var(--ig-s,1));transform-origin:0 0}
+.ps-card iframe{position:absolute;top:0;left:0;flex:none;width:326px;height:calc(100% / var(--ig-s,1));max-height:none;border:0;transform:scale(var(--ig-s,1));transform-origin:0 0}
 /* le lien Instagram reste accroché sous chaque miniature, centré */
 .ps-card .ig-card__link{position:absolute;left:0;right:0;top:calc(100% + 14px);text-align:center;font-size:12px;color:var(--paper);opacity:.7;transition:opacity .3s ease}
 .ps-card.is-active .ig-card__link{top:calc(100% + 26px);opacity:.9}
