@@ -20,11 +20,11 @@ export const legal = {
   ipPolicy: 'Aucune cession de droits de propriété intellectuelle n’est consentie par défaut. Nolan Ribeiro conserve les droits attachés aux créations réalisées. Toute cession ou licence d’exploitation (notamment quant aux usages, supports, durée, territoire, exclusivité, adaptations et éventuelles déclinaisons) doit être expressément prévue dans le devis ou le contrat et, le cas échéant, faire l’objet d’une rémunération distincte. À défaut, seuls les usages expressément autorisés dans les documents contractuels sont permis.',
   publicationDirector: 'Nolan Ribeiro',
   host: {
-    name: 'GitHub, Inc.',
-    address: '88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis',
-    website: 'https://pages.github.com/',
-    phone: '',
-    phoneNote: 'GitHub indique ne pas proposer d’assistance téléphonique et ne publie pas de numéro de support.'
+    name: 'Cloudflare, Inc.',
+    address: '101 Townsend Street, San Francisco, CA 94107, États-Unis',
+    website: 'https://pages.cloudflare.com/',
+    phone: '+1 650 319 8930',
+    phoneNote: ''
   },
   mediator: {
     // Obligatoire avant toute mise en ligne de l'offre B2C « Moments » :
